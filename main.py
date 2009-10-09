@@ -5,15 +5,15 @@ import time
 import pygame
 import math
 import random
+import threading
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
 
-
-g_nFPS = 0
-g_nFrames = 0;										# // FPS and FPS Counter
-g_dwLastFPS = 0;									# // Last FPS Check Time	
+g_nFPS = 0.0
+g_nFrames = 0.0
+g_dwLastFPS = 0.0
 
 xpos = 0
 zpos = 0
@@ -27,12 +27,10 @@ up_pressed = 0
 left_pressed = 0
 right_pressed = 0
 
-
-
 speed = 2
+# Qwerty = 0, Dvorak = 1
+keyboardlayout = 111111112312312123312123123129121
 
-# 0 = QWERTY, 1 = DVORAK
-keyboardlayout = 0
 level = []
 
 
@@ -40,6 +38,21 @@ width = 0
 height = 0
 texture = 0
 
+
+class Vert:
+	def __init__(self):
+		self.x = 0.0
+		self.y = 0.0
+		self.z = 0.0
+
+class TexCoord:
+	def __init__(self):
+		self.u = 0.0
+		self.v = 0.0
+
+vertexCount = 0
+vertices = Vert()
+texcoords = TexCoord()
 
 def load_level(name):
 	f = open(name, "r")
@@ -111,7 +124,7 @@ def handle_input():
 					right_pressed = 1
 			else:
 				if int(event.key) == pygame.K_w:
-					up_pressed = 1
+                                       up_pressed = 1
 				if int(event.key) == pygame.K_s:
 					down_pressed = 1
 				if int(event.key) == pygame.K_a:
@@ -119,9 +132,9 @@ def handle_input():
 				if int(event.key) == pygame.K_d:
 					right_pressed = 1
 
-			if int(event.key) == pygame.K_F1:
+			if event.key == pygame.K_F1:
 				keyboardlayout = not keyboardlayout
-
+		
 		if event.type == pygame.KEYUP:
 			if keyboardlayout:
 				if int(event.key) == 228:
@@ -132,7 +145,7 @@ def handle_input():
 					left_pressed = 0
 				if int(event.key) == 101:
 					right_pressed = 0
-			else: 
+			else:
 				if int(event.key) == pygame.K_w:
 					up_pressed = 0
 				if int(event.key) == pygame.K_s:
@@ -189,8 +202,8 @@ def initGL():
 
 def draw():
 	global g_nFPS, g_nFrames, g_dwLastFPS
-
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
+	
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
 	glLoadIdentity()
 	glRotatef(xrot, 1.0, 0.0, 0.0)
 	glRotatef(yrot, 0.0, 1.0, 0.0)
@@ -198,23 +211,23 @@ def draw():
 	
 	# // Get FPS
 	milliseconds = time.clock () * 1000.0
-	if (milliseconds - g_dwLastFPS >= 1000):					# // When A Second Has Passed...
+	if (milliseconds - g_dwLastFPS >= 1000):                                        # // When A Second Has Passed...
 		g_dwLastFPS = time.clock () * 1000.0
-		g_nFPS = g_nFrames;										# // Save The FPS
-		g_nFrames = 0;											# // Reset The FPS Counter
+		g_nFPS = g_nFrames;                                                                             # // Sav
+		g_nFrames = 0;                                                                                  # // Res
 
-		# // Build The Title String
-		#szTitle = "FarornasGrotta - %d Triangles, %d FPS" % (g_pMesh.m_nVertexCount / 3, g_nFPS );
-		szTitle = "FarornasGrotta - %d FPS" % (g_nFPS);
-		#if ( g_fVBOSupported ):									# // Include A Notice About VBOs
-		#	szTitle = szTitle + ", Using VBOs";
-		#else:
-		#	szTitle = szTitle + ", Not Using VBOs";
+               # // Build The Title String
+               #szTitle = "FarornasGrotta - %d Triangles, %d FPS" % (g_pMesh.m_nVertexCount / 3, g_nFPS );
+		szTitle = "FarornasGrotta - %f FPS" % (g_nFPS)
+#if ( g_fVBOSupported ):                                                                        # // Inc
+               #       szTitle = szTitle + ", Using VBOs";
+               #else:
+               #       szTitle = szTitle + ", Not Using VBOs";
 
 		pygame.display.set_caption(szTitle)
 
+	g_nFrames += 1
 	
-	g_nFrames += 1 
 	key = 0
 	x = 0
 	y = 0 # y is actually z here
@@ -268,22 +281,30 @@ init()
 from Image import *
 initGL()
 
-frames = 0
 
-xpos = -400
-ypos = 360
-zpos = -45
-xrot = -333
-yrot = -250
+def editpos():
+	global xpos,ypos,zpos,xrot,yrot
+	xpos = -400
+	ypos = 360
+	zpos = -45
+	xrot = -333
+	yrot = -250
+	print "hej"
+
+
+t = threading.Timer(1.0, editpos)
+t.start()
 
 while True:
 
 	handle_input()
 	
 	draw()
-
+	
 	#Print the position every 1000th frame
-	if frames % 1000 == 0:
-		print xpos, ypos, zpos 
+	if g_nFrames == 1:
+		print xpos, ypos, zpos, xrot, yrot 
 
-	frames += 1
+
+
+
