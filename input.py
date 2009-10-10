@@ -65,7 +65,7 @@ class input:
 				if event.type == pygame.QUIT:
 					Global.quit = 1
 				if event.type == pygame.KEYDOWN:
-					print "Button pressed: ", event.key
+					#print "Button pressed: ", event.key
 					if event.key == pygame.K_ESCAPE:
 						Global.quit = 1
 

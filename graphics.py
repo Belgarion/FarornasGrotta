@@ -49,7 +49,7 @@ class CMesh:
 		# // Generate Vertex Field
 		sizeX = len(Global.level)
 		sizeY = len(Global.level[0])
-		print sizeX, sizeY, "titta her"
+
 		self.m_nVertexCount = int ( sizeX * sizeY * 6 / ( flResolution * flResolution ) )
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f') 			# // Vertex Data
 		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f') 			# // Texture Coordinates
@@ -81,9 +81,7 @@ class CMesh:
 					self.m_pTexCoords [nTIndex, 1] =  flZ / sizeY
 					nIndex += 1
 					nTIndex += 1
-					if nIndex > 1 and nIndex < 6:
-						print x, y, z, "x y zzzzz"
-
+					
 				nX += flResolution_int
 			nZ += flResolution_int
 
@@ -127,7 +125,7 @@ class CMesh:
 class Graphics:
 	def __init__(self):
 		global g_fVBOSupported, g_pMesh, g_pMesh2
-
+		
 		g_fVBOSupported = False
 		g_pMesh = None
 		g_pMesh2 = None
@@ -174,8 +172,7 @@ class Graphics:
 		
 		width = image.get_width()
 		height = image.get_height()
-		print width
-		print height
+		
 		texture = glGenTextures(1)
 		
 		glBindTexture(GL_TEXTURE_2D, texture)
@@ -260,9 +257,9 @@ class Graphics:
 			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 			self.g_nFrames = 0
 			time.sleep(1.0)
-			print Global.Input.xrot
+			
 
-	def draw(self):
+	def draw(self, objects):
 		global g_pMesh, g_pMesh2, g_fVBOSupported
 		
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
@@ -298,8 +295,8 @@ class Graphics:
 			#
 			# The faster approach is to make use of an opaque "string" that represents the
 			# the data (vertex array and tex coordinates in this case).
-			print "aaa"
-			print g_pMesh.m_pVertices_as_string
+
+
 			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
 			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
 
@@ -335,8 +332,8 @@ class Graphics:
 			#
 			# The faster approach is to make use of an opaque "string" that represents the
 			# the data (vertex array and tex coordinates in this case).
-			print "aaa"
-			print g_pMesh2.m_pVertices_as_string
+		
+
 			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh2.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
 			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh2.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
 
@@ -350,6 +347,57 @@ class Graphics:
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 		
+		
+		
+		
+		
+		
+		glBegin(GL_QUADS);
+
+
+		x = objects[0].position[0]
+		y = objects[0].position[1]
+		z = objects[0].position[2]
+
+		
+		glColor3f(0.0,1.0,0.0)
+		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
+		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)
+		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Bottom Left Of The Quad (Top)
+		glVertex3f( x+100.0, y+100.0, z+100.0);		# Bottom Right Of The Quad (Top)
+
+		glColor3f(1.0,0.5,0.0);			# Set The Color To Orange
+		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Top Right Of The Quad (Bottom)
+		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Top Left Of The Quad (Bottom)
+		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Bottom)
+		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Bottom)
+
+		glColor3f(1.0,0.0,0.0);			# Set The Color To Red
+		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Front)
+		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Front)
+		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Front)
+		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Front)
+
+		glColor3f(1.0,1.0,0.0);			# Set The Color To Yellow
+		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Back)
+		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Back)
+		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Back)
+		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Back)
+
+		glColor3f(0.0,0.0,1.0);			# Set The Color To Blue
+		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Left)
+		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Left)
+		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Left)
+		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Left)
+
+		glColor3f(1.0,0.0,1.0);			# Set The Color To Violet
+		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Right)
+		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Right)
+		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Right)
+		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Right)
+		glColor3f(1.0, 1.0, 1.0)
+		glEnd();				# Done Drawing The Quad
+
 		"""
 		key = 0
 		x = 0
