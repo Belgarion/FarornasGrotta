@@ -1,6 +1,8 @@
 import pygame
 import math
 import sys
+import time
+from Global import Global
 
 class input:
 	def __init__(self):
@@ -19,34 +21,39 @@ class input:
 		# Qwerty = 0, Dvorak = 1
 		self.keyboardlayout = 1
 		
-		self.speed = 2
+		self.speed = 250
 
 	def handle_input(self):
-		while not quit:
+		clock = pygame.time.Clock()
+		time_passed = clock.tick()
+		time_passed_seconds = time_passed / 1000.0
+		distance_moved = time_passed_seconds * self.speed
+
+		while not Global.quit:
 			if self.up_pressed:
 				xrotrad = self.xrot/180*math.pi
 				yrotrad = self.yrot/180*math.pi
-				self.xpos += math.sin(yrotrad)*self.speed
-				self.zpos -= math.cos(yrotrad)*self.speed
-				self.ypos -= math.sin(xrotrad)*self.speed
+				self.xpos += math.sin(yrotrad)*distance_moved
+				self.zpos -= math.cos(yrotrad)*distance_moved
+				self.ypos -= math.sin(xrotrad)*distance_moved
 
 			if self.down_pressed:
 
 				xrotrad = self.xrot / 180 * math.pi
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.sin(yrotrad)*self.speed
-				self.zpos += math.cos(yrotrad)*self.speed
-				self.ypos += math.sin(xrotrad)*self.speed
+				self.xpos -= math.sin(yrotrad)*distance_moved
+				self.zpos += math.cos(yrotrad)*distance_moved
+				self.ypos += math.sin(xrotrad)*distance_moved
 
 			if self.left_pressed:
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.cos(yrotrad)*self.speed
-				self.zpos -= math.sin(yrotrad)*self.speed
+				self.xpos -= math.cos(yrotrad)*distance_moved
+				self.zpos -= math.sin(yrotrad)*distance_moved
 				
 			if self.right_pressed:
 				yrotrad = self.yrot/180*math.pi
-				self.xpos += math.cos(yrotrad)*self.speed
-				self.zpos += math.sin(yrotrad)*self.speed
+				self.xpos += math.cos(yrotrad)*distance_moved
+				self.zpos += math.sin(yrotrad)*distance_moved
 				
 
 
@@ -56,11 +63,11 @@ class input:
 			
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
-					sys.exit(1)
+					Global.quit = 1
 				if event.type == pygame.KEYDOWN:
 					print "Button pressed: ", event.key
 					if event.key == pygame.K_ESCAPE:
-						sys.exit(1)
+						Global.quit = 1
 
 					if self.keyboardlayout:
 						if int(event.key) == 228:
@@ -103,4 +110,11 @@ class input:
 							self.left_pressed = 0
 						if int(event.key) == pygame.K_d:
 							self.right_pressed = 0
+
+			
+			time_passed = clock.tick()
+			time_passed_seconds = time_passed / 1000.0
+
+			distance_moved = time_passed_seconds * self.speed
+
 			time.sleep(0.001)

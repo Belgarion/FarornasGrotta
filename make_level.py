@@ -16,7 +16,7 @@ i = 0
 n = 0
 while i < x:
     while n < y:
-        row.append(random.randint(1, 10))
+        row.append(random.randint(1,255))
         n+=1
         
 
