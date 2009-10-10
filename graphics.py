@@ -133,6 +133,13 @@ class Graphics:
 		g_pMesh2 = None
 
 		self.g_nFrames = 0
+
+	def addSurface(self, Mesh, ):
+		if (not Mesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
+			print "Error Loading Heightmap"
+			sys.exit(1)
+			return False
+
 	def initGL(self):
 		global width, height, texture, g_pMesh, g_pMesh2, g_fVBOSupported
 		
@@ -141,11 +148,11 @@ class Graphics:
 
 		g_pMesh = CMesh (0)
 		g_pMesh2 = CMesh (50)
-		if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION)):
+		if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
 			print "Error Loading Heightmap"
 			sys.exit(1)
 			return False
-		if (not g_pMesh2.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION)):
+		if (not g_pMesh2.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
 			print "Error Loading Heightmap"
 			sys.exit(1)
 			return False
