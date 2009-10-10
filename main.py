@@ -28,6 +28,7 @@ import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 import Image
+from octree import *
 
 Global.Input = input()
 graphics = Graphics()
@@ -49,6 +50,12 @@ NO_VBOS = True
 g_fVBOSupported = False
 g_pMesh = None
 g_pMesh2 = None
+
+class TestObject:
+	def __init__(self, name, position):
+		self.name = name
+		self.position = position
+
 
 class GameObject:
 	def __init__(self, name, position, orientation, mass, velocity ):
@@ -76,6 +83,29 @@ def init():
 	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
 	objects.append(monster)
 	physics = Physics(objects)
+
+	print sys.getrecursionlimit()
+	sys.setrecursionlimit(100000000)
+	print sys.getrecursionlimit()
+	myTree = Octree(15000.0)
+
+	x = 0
+	z = 0
+
+	for line in Global.level:
+		for point in line:
+			name = "Node__"+ str(x)+ "x" + str(z)
+			pos = ( x, Global.level[x][z], z )
+			testOb = TestObject(name, pos)
+			myTree.insertNode(myTree.root, 15000.0, myTree.root, testOb)
+		
+
+			x += 1
+
+		z += 1
+		x = 0
+
+	print "WARNING: ", myTree.findPosition(myTree.root, (1300, 0, 1300))
 
 
 init()
