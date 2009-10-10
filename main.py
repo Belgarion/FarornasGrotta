@@ -6,33 +6,19 @@ import pygame
 import math
 import random
 import threading
+import thread
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
+from OpenGL.extensions import *
+from input import *
 
-g_nFPS = 0.0
+Input = input()
+
 g_nFrames = 0.0
-g_dwLastFPS = 0.0
-
-xpos = 0
-zpos = 0
-ypos = 0
-
-xrot = 0
-yrot = 0
-
-down_pressed = 0
-up_pressed = 0
-left_pressed = 0
-right_pressed = 0
-
-speed = 2
-# Qwerty = 0, Dvorak = 1
-keyboardlayout = 111111112312312123312123123129121
 
 level = []
-
 
 width = 0
 height = 0
@@ -71,89 +57,6 @@ def load_level(name):
 	print level
 	return level
 
-def handle_input():
-	global xrot, yrot, zpos, xpos, ypos, down_pressed, up_pressed, left_pressed, right_pressed, keyboardlayout
-	
-	if up_pressed:
-		xrotrad = xrot/180*math.pi
-		yrotrad = yrot/180*math.pi
-		xpos += math.sin(yrotrad)*speed
-		zpos -= math.cos(yrotrad)*speed
-		ypos -= math.sin(xrotrad)*speed
-
-	if down_pressed:
-
-		xrotrad = xrot / 180 * math.pi
-		yrotrad = yrot / 180 * math.pi
-		xpos -= math.sin(yrotrad)*speed
-		zpos += math.cos(yrotrad)*speed
-		ypos += math.sin(xrotrad)*speed
-
-	if left_pressed:
-		yrotrad = yrot / 180 * math.pi
-		xpos -= math.cos(yrotrad)*speed
-		zpos -= math.sin(yrotrad)*speed
-		
-	if right_pressed:
-		yrotrad = yrot/180*math.pi
-		xpos += math.cos(yrotrad)*speed
-		zpos += math.sin(yrotrad)*speed
-		
-
-
-	rel = pygame.mouse.get_rel()
-	xrot += rel[1]/10.0 # It is y pos with mouse that rotates the X axis					   
-	yrot += rel[0]/10.0
-	
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			sys.exit(1)
-		if event.type == pygame.KEYDOWN:
-			print "Button pressed: ", event.key
-			if event.key == pygame.K_ESCAPE:
-				sys.exit(1)
-
-			if keyboardlayout:
-				if int(event.key) == 228:
-					up_pressed = 1
-				if int(event.key) == 111:
-					down_pressed = 1
-				if int(event.key) == 97:
-					left_pressed = 1
-				if int(event.key) == 101:
-					right_pressed = 1
-			else:
-				if int(event.key) == pygame.K_w:
-                                       up_pressed = 1
-				if int(event.key) == pygame.K_s:
-					down_pressed = 1
-				if int(event.key) == pygame.K_a:
-					left_pressed = 1
-				if int(event.key) == pygame.K_d:
-					right_pressed = 1
-
-			if event.key == pygame.K_F1:
-				keyboardlayout = not keyboardlayout
-		
-		if event.type == pygame.KEYUP:
-			if keyboardlayout:
-				if int(event.key) == 228:
-					up_pressed = 0
-				if int(event.key) == 111:
-					down_pressed = 0
-				if int(event.key) == 97:
-					left_pressed = 0
-				if int(event.key) == 101:
-					right_pressed = 0
-			else:
-				if int(event.key) == pygame.K_w:
-					up_pressed = 0
-				if int(event.key) == pygame.K_s:
-					down_pressed = 0
-				if int(event.key) == pygame.K_a:
-					left_pressed = 0
-				if int(event.key) == pygame.K_d:
-					right_pressed = 0
 
 def init():
 	global level
@@ -200,32 +103,27 @@ def initGL():
 	gluPerspective( 60, 640/480, 0.1, 1000.0)
 	glMatrixMode(GL_MODELVIEW)
 
+def printFPS():
+	global g_nFPS, g_nFrames, g_dwLastFPS, Input
+	while True:
+		pygame.display.set_caption("FarornasGrotta - %f FPS" % (g_nFrames))
+		g_nFrames = 0
+		time.sleep(1.0)
+		print Input.xrot
+
+
+thread.start_new_thread(printFPS, ())
+
+
 def draw():
 	global g_nFPS, g_nFrames, g_dwLastFPS
 	
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
 	glLoadIdentity()
-	glRotatef(xrot, 1.0, 0.0, 0.0)
-	glRotatef(yrot, 0.0, 1.0, 0.0)
-	glTranslated(-xpos, -ypos,-zpos)
+	glRotatef(Input.xrot, 1.0, 0.0, 0.0)
+	glRotatef(Input.yrot, 0.0, 1.0, 0.0)
+	glTranslated(-Input.xpos, -Input.ypos,-Input.zpos)
 	
-	# // Get FPS
-	milliseconds = time.clock () * 1000.0
-	if (milliseconds - g_dwLastFPS >= 1000):                                        # // When A Second Has Passed...
-		g_dwLastFPS = time.clock () * 1000.0
-		g_nFPS = g_nFrames;                                                                             # // Sav
-		g_nFrames = 0;                                                                                  # // Res
-
-               # // Build The Title String
-               #szTitle = "FarornasGrotta - %d Triangles, %d FPS" % (g_pMesh.m_nVertexCount / 3, g_nFPS );
-		szTitle = "FarornasGrotta - %f FPS" % (g_nFPS)
-#if ( g_fVBOSupported ):                                                                        # // Inc
-               #       szTitle = szTitle + ", Using VBOs";
-               #else:
-               #       szTitle = szTitle + ", Not Using VBOs";
-
-		pygame.display.set_caption(szTitle)
-
 	g_nFrames += 1
 	
 	key = 0
@@ -278,32 +176,31 @@ pygame.init()
 pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
 
 init()
-from Image import *
 initGL()
 
 
 def editpos():
-	global xpos,ypos,zpos,xrot,yrot
-	xpos = -400
-	ypos = 360
-	zpos = -45
-	xrot = -333
-	yrot = -250
+	global Input
+	Input.xpos = -400
+	Input.ypos = 360
+	Input.zpos = -45
+	Input.xrot = -333
+	Input.yrot = -250
 	print "hej"
 
 
-t = threading.Timer(1.0, editpos)
+t = threading.Timer(2.0, editpos)
 t.start()
 
 while True:
 
-	handle_input()
+	Input.handle_input()
 	
 	draw()
 	
 	#Print the position every 1000th frame
 	if g_nFrames == 1:
-		print xpos, ypos, zpos, xrot, yrot 
+		print Input.xpos, Input.ypos, Input.zpos, Input.xrot, Input.yrot 
 
 
 
