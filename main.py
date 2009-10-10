@@ -32,6 +32,8 @@ Input = input()
 g_nFrames = 0.0
 
 level = []
+level2 = []
+
 
 width = 0
 height = 0
@@ -82,12 +84,12 @@ class CMesh:
 		self.m_nVBOVertices = None								# // Vertex VBO Name
 		self.m_nVBOTexCoords = None							# // Texture Coordinate VBO Name
 
-	def LoadHeightmap( self, flHeightScale, flResolution ):
+	def LoadHeightmap( self, flHeightScale, flResolution, iLevel, ):
 		""" // Heightmap Loader """
 
 		# // Generate Vertex Field
-		sizeX = len(level)
-		sizeY = len(level[0])
+		sizeX = len(iLevel)
+		sizeY = len(iLevel[0])
 		print sizeX, sizeY, "titta her"
 		self.m_nVertexCount = int ( sizeX * sizeY * 6 / ( flResolution * flResolution ) )
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f') 			# // Vertex Data
@@ -99,9 +101,9 @@ class CMesh:
 		half_sizeX = float (sizeX) / 1.0
 		half_sizeY = float (sizeY) / 1.0
 		flResolution_int = int (flResolution)
-		while (nZ < len(level)-4):
+		while (nZ < len(iLevel)-4):
 			nX = 0
-			while (nX < len(level[0])-4):
+			while (nX < len(iLevel[0])-4):
 				for nTri in xrange (6):
 					# // Using This Quick Hack, Figure The X,Z Position Of The Point
 					flX = float (nX)
@@ -111,7 +113,7 @@ class CMesh:
 					if (nTri == 2) or (nTri == 4) or (nTri == 5):
 						flZ += flResolution
 					x = flX - half_sizeX
-					y = level[int(flX)][int(flZ)] * flHeightScale
+					y = iLevel[int(flX)][int(flZ)] * flHeightScale
 					z = flZ - half_sizeY
 					self.m_pVertices [nIndex, 0] = x
 					self.m_pVertices [nIndex, 1] = y + self.position_y
@@ -230,13 +232,14 @@ def load_level(name):
 	return level
 
 def init():
-	global level
+	global level, level2
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
 
 	level = load_level("level")
+	level2 = load_level("level2")
 	
 
 def initGL():
@@ -247,11 +250,11 @@ def initGL():
 
 	g_pMesh = CMesh (0)
 	g_pMesh2 = CMesh (50)
-	if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION)):
+	if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION, level)):
 		print "Error Loading Heightmap"
 		sys.exit(1)
 		return False
-	if (not g_pMesh2.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION)):
+	if (not g_pMesh2.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION, level2)):
 		print "Error Loading Heightmap"
 		sys.exit(1)
 		return False
