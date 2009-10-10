@@ -108,12 +108,12 @@ class CMesh:
 		nZ = 0
 		nIndex = 0
 		nTIndex = 0
-		half_sizeX = float (sizeX) / 2.0
-		half_sizeY = float (sizeY) / 2.0
+		half_sizeX = float (sizeX) / 1.0
+		half_sizeY = float (sizeY) / 1.0
 		flResolution_int = int (flResolution)
-		while (nZ < len(level)):
+		while (nZ < len(level)-4):
 			nX = 0
-			while (nX < len(level[0])):
+			while (nX < len(level[0])-4):
 				for nTri in xrange (6):
 					# // Using This Quick Hack, Figure The X,Z Position Of The Point
 					flX = float (nX)
@@ -123,7 +123,7 @@ class CMesh:
 					if (nTri == 2) or (nTri == 4) or (nTri == 5):
 						flZ += flResolution
 					x = flX - half_sizeX
-					y = level[nX][nZ] * flHeightScale
+					y = level[int(flX)][int(flZ)] * flHeightScale
 					z = flZ - half_sizeY
 					self.m_pVertices [nIndex, 0] = x
 					self.m_pVertices [nIndex, 1] = y + self.position_y
@@ -132,6 +132,8 @@ class CMesh:
 					self.m_pTexCoords [nTIndex, 1] =  flZ / sizeY
 					nIndex += 1
 					nTIndex += 1
+					if nIndex > 1 and nIndex < 6:
+						print x, y, z, "x y zzzzz"
 
 				nX += flResolution_int
 			nZ += flResolution_int
@@ -403,7 +405,7 @@ def initGL():
 	#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 	
 	glLoadIdentity()
-	gluPerspective( 60, 640/480, 0.1, 1000.0)
+	gluPerspective( 60, 640/480, 0.1, 5000.0)
 	glMatrixMode(GL_MODELVIEW)
 
 def draw():
@@ -466,7 +468,15 @@ def draw():
 
 
 	glDrawArrays( GL_TRIANGLES, 0, g_pMesh.m_nVertexCount )		# // Draw All Of The Triangles At Once
+
 	
+	glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+
+
+	glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+
 
 	if( g_fVBOSupported ):
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh2.m_nVBOVertices )
