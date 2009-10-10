@@ -56,6 +56,12 @@ class TestObject:
 		self.name = name
 		self.position = position
 
+def RenderDebugLines
+	glDisable(GL_LIGHTING)
+
+	glBegin(GL_LINES)
+
+	 
 
 class GameObject:
 	def __init__(self, name, position, orientation, mass, velocity ):
