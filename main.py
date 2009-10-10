@@ -34,6 +34,8 @@ graphics = Graphics()
 g_nFrames = 0.0
 
 level = []
+level2 = []
+
 
 width = 0
 height = 0
@@ -66,12 +68,16 @@ def init():
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
 
+	global level, level2
+
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
 
+
 	Global.level = load_level("level")
+
 	
 
 init()
