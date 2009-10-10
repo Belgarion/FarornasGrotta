@@ -12,7 +12,7 @@ import logging
 
 import thread
 from Global import Global
-from graphics import Graphics
+from graphics import *
 
 #OpenGL.FULL_LOGGING = True
 
@@ -48,22 +48,6 @@ g_pMesh = None
 g_pMesh2 = None
 
 
-def load_level(name):
-	f = open(name, "r")
-	lines = f.readlines()
-	f.close()
-	level = []
-	x = 0
-	y = 0
-	for line in lines:
-		line2 = []
-		for i in line.rsplit(" "):
-			line2.append(float(i.replace("\n", "")))
-			y+=1
-		level.append(line2)
-		x+=1
-	return level
-
 def init():
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
@@ -82,6 +66,9 @@ def init():
 
 init()
 graphics.initGL()
+
+graphics.addSurface(50, "level2", "grass.jpg")
+graphics.addSurface(0, "level", "test.bmp")
 
 thread.start_new_thread(graphics.printFPS, ())
 

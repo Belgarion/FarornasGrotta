@@ -8,6 +8,22 @@ import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 
+def load_level(name):
+	f = open(name, "r")
+	lines = f.readlines()
+	f.close()
+	level = []
+	x = 0
+	y = 0
+	for line in lines:
+		line2 = []
+		for i in line.rsplit(" "):
+			line2.append(float(i.replace("\n", "")))
+			y+=1
+		level.append(line2)
+		x+=1
+	return level
+
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
@@ -43,12 +59,13 @@ class CMesh:
 		self.m_nVBOVertices = None								# // Vertex VBO Name
 		self.m_nVBOTexCoords = None							# // Texture Coordinate VBO Name
 
-	def LoadHeightmap( self, flHeightScale, flResolution ):
+	def LoadHeightmap( self, flHeightScale, flResolution, iLevel):
 		""" // Heightmap Loader """
 
 		# // Generate Vertex Field
-		sizeX = len(Global.level)
-		sizeY = len(Global.level[0])
+		sizeX = len(iLevel)
+		sizeY = len(iLevel[0])
+
 		print sizeX, sizeY, "titta her"
 		self.m_nVertexCount = int ( sizeX * sizeY * 6 / ( flResolution * flResolution ) )
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f') 			# // Vertex Data
@@ -60,9 +77,9 @@ class CMesh:
 		half_sizeX = float (sizeX) / 1.0
 		half_sizeY = float (sizeY) / 1.0
 		flResolution_int = int (flResolution)
-		while (nZ < len(Global.level)-4):
+		while (nZ < len(iLevel)-4):
 			nX = 0
-			while (nX < len(Global.level[0])-4):
+			while (nX < len(iLevel[0])-4):
 				for nTri in xrange (6):
 					# // Using This Quick Hack, Figure The X,Z Position Of The Point
 					flX = float (nX)
@@ -72,7 +89,7 @@ class CMesh:
 					if (nTri == 2) or (nTri == 4) or (nTri == 5):
 						flZ += flResolution
 					x = flX - half_sizeX
-					y = Global.level[int(flX)][int(flZ)] * flHeightScale
+					y = iLevel[int(flX)][int(flZ)] * flHeightScale
 					z = flZ - half_sizeY
 					self.m_pVertices [nIndex, 0] = x
 					self.m_pVertices [nIndex, 1] = y + self.position_y
@@ -126,36 +143,24 @@ class CMesh:
 
 class Graphics:
 	def __init__(self):
-		global g_fVBOSupported, g_pMesh, g_pMesh2
+		global g_fVBOSupported, g_fVBOObjects
 
 		g_fVBOSupported = False
-		g_pMesh = None
-		g_pMesh2 = None
+		g_fVBOObjects = []
 
 		self.g_nFrames = 0
 
-	def addSurface(self, Mesh, ):
-		if (not Mesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
+	def addSurface(self, Mesh, Map, Texture):
+		global width, height, g_fVBOSupported, g_fVBOObjects
+		g_pMesh = CMesh (Mesh)
+		Level = load_level(Map)
+
+		if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION, Level)):
 			print "Error Loading Heightmap"
 			sys.exit(1)
 			return False
 
-	def initGL(self):
-		global width, height, texture, g_pMesh, g_pMesh2, g_fVBOSupported
-		
-		
 		g_fVBOSupported = self.IsExtensionSupported ("GL_ARB_vertex_buffer_object")
-
-		g_pMesh = CMesh (0)
-		g_pMesh2 = CMesh (50)
-		if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
-			print "Error Loading Heightmap"
-			sys.exit(1)
-			return False
-		if (not g_pMesh2.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION), ):
-			print "Error Loading Heightmap"
-			sys.exit(1)
-			return False
 		
 		if (g_fVBOSupported):
 			# // Get Pointers To The GL Functions
@@ -173,20 +178,14 @@ class Graphics:
 			# glBufferDataARB
 			# glDeleteBuffersARB
 			g_pMesh.BuildVBOs()
-			g_pMesh2.BuildVBOs()
 
-		
+		image = pygame.image.load(Texture)
 
-		image = pygame.image.load("test.bmp")
-		
 		width = image.get_width()
 		height = image.get_height()
 		print width
 		print height
 		texture = glGenTextures(1)
-		
-		glBindTexture(GL_TEXTURE_2D, texture)
-		
 		
 		GL.glBindTexture(GL.GL_TEXTURE_2D, texture)
 		GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, image.get_width(), image.get_height(), 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
@@ -194,8 +193,49 @@ class Graphics:
 		GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
 		GL.glEnable(GL.GL_TEXTURE_2D)
 
+		g_pMesh.nTextureId = texture
 
-		
+		# // Set Pointers To Our Data
+		if( g_fVBOSupported ):
+			# // Enable Pointers
+			glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
+			glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+
+			g_fVBOObjects.append(g_pMesh)
+			print g_pMesh.m_nVBOVertices, g_pMesh.m_nVBOTexCoords
+
+			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOVertices )
+			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
+			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOTexCoords )
+			glTexCoordPointer( 2, GL_FLOAT, 0, None )				# // Set The TexCoord Pointer To The TexCoord Buffer
+
+			glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
+			glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+
+		else:
+			# You can use the pythonism glVertexPointerf (), which will convert the numarray into 
+			# the needed memory for VertexPointer. This has two drawbacks however:
+			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44 
+			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
+			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
+			# regarding glXPointer API.
+			# Also see OpenGLContext Working with Numeric Python
+			# glVertexPointerf ( g_pMesh.m_pVertices ) 	# // Set The Vertex Pointer To Our Vertex Data
+			# glTexCoordPointerf ( g_pMesh.m_pTexCoords ) 	# // Set The Vertex Pointer To Our TexCoord Data
+			#
+			#
+			# The faster approach is to make use of an opaque "string" that represents the
+			# the data (vertex array and tex coordinates in this case).
+			print "aaa"
+			print g_pMesh.m_pVertices_as_string
+			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
+			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data		
+
+
+
+
+	def initGL(self):		
+					
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
 		glDepthFunc(GL_LEQUAL)
@@ -270,7 +310,7 @@ class Graphics:
 			print Global.Input.xrot
 
 	def draw(self):
-		global g_pMesh, g_pMesh2, g_fVBOSupported
+		global g_fVBOSupported, g_fVBOObjects
 		
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
 		glLoadIdentity()
@@ -279,127 +319,26 @@ class Graphics:
 		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
 		
 		self.g_nFrames += 1
-
+		
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
 		glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
-		
-		# // Set Pointers To Our Data
-		if( g_fVBOSupported ):
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOVertices )
-			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOTexCoords )
-			glTexCoordPointer( 2, GL_FLOAT, 0, None )				# // Set The TexCoord Pointer To The TexCoord Buffer
-
-		else:
-			# You can use the pythonism glVertexPointerf (), which will convert the numarray into 
-			# the needed memory for VertexPointer. This has two drawbacks however:
-			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44 
-			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
-			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
-			# regarding glXPointer API.
-			# Also see OpenGLContext Working with Numeric Python
-			# glVertexPointerf ( g_pMesh.m_pVertices ) 	# // Set The Vertex Pointer To Our Vertex Data
-			# glTexCoordPointerf ( g_pMesh.m_pTexCoords ) 	# // Set The Vertex Pointer To Our TexCoord Data
-			#
-			#
-			# The faster approach is to make use of an opaque "string" that represents the
-			# the data (vertex array and tex coordinates in this case).
-			print "aaa"
-			print g_pMesh.m_pVertices_as_string
-			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
-			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
 
 
-		glDrawArrays( GL_TRIANGLES, 0, g_pMesh.m_nVertexCount )		# // Draw All Of The Triangles At Once
+		for i in xrange(len(g_fVBOObjects)):
+			GL.glBindTexture(GL.GL_TEXTURE_2D, g_fVBOObjects[i].nTextureId)
+			GL.glEnable(GL.GL_TEXTURE_2D)
 
-		
-		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
-
-
-		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
-
-
-		if( g_fVBOSupported ):
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh2.m_nVBOVertices )
-			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh2.m_nVBOTexCoords )
-			glTexCoordPointer( 2, GL_FLOAT, 0, None )				# // Set The TexCoord Pointer To The TexCoord Buffer
-
-		else:
-			# You can use the pythonism glVertexPointerf (), which will convert the numarray into 
-			# the needed memory for VertexPointer. This has two drawbacks however:
-			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44 
-			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
-			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
-			# regarding glXPointer API.
-			# Also see OpenGLContext Working with Numeric Python
-			# glVertexPointerf ( g_pMesh.m_pVertices ) 	# // Set The Vertex Pointer To Our Vertex Data
-			# glTexCoordPointerf ( g_pMesh.m_pTexCoords ) 	# // Set The Vertex Pointer To Our TexCoord Data
-			#
-			#
-			# The faster approach is to make use of an opaque "string" that represents the
-			# the data (vertex array and tex coordinates in this case).
-			print "aaa"
-			print g_pMesh2.m_pVertices_as_string
-			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh2.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
-			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh2.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
-
-
-		glDrawArrays( GL_TRIANGLES, 0, g_pMesh2.m_nVertexCount )		# // Draw All Of The Triangles At Once
-
-
-
+			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOVertices )
+			glVertexPointer(3, GL_FLOAT, 0, None)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
+			glTexCoordPointer(2, GL_FLOAT, 0, None)
+			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
 
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 		
-		"""
-		key = 0
-		x = 0
-		y = 0 # y is actually z here
-		errors = 0
-		glEnable(GL_TEXTURE_2D)
-		glBindTexture(GL_TEXTURE_2D, texture)
-		for line in level:
-			if(x+1 < len(level)):
-				for point in line:
-					if y+1 < len(line):
-					   
-						glBegin(GL_TRIANGLE_STRIP)
-						glTexCoord2f(float(x)/width, float(y)/height)
-						glVertex3f(x, level[x][y], y)
-			 
-						glTexCoord2f(float(x)/width, (float(y)+1)/height)
-						glVertex3f(x, level[x][y+1], y+1)
-						
-						glTexCoord2f((float(x)+1)/width, float(y)/height)
-						glVertex3f(x+1, level[x+1][y], y)
-						
-						glTexCoord2f((float(x)+1)/width, (float(y)+1)/height)
-						glVertex3f(x+1, level[x+1][y+1], y+1)
-						glEnd()
-					y += 1
-			x += 1
-			y = 0
-		
-		
-		
-		glPointSize(4.0)
-		x=0
-		y=0
-		for line in level:
-			for point in line:
-				glBegin(GL_POINTS)
-				glVertex3f(x, level[x][y], y)
-				glEnd()
-				y+=1
-			y=0
-			x+=1
-		"""
 		glFlush()
 
 		pygame.display.flip()
