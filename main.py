@@ -46,6 +46,13 @@ g_flYRot = 0.0
 
 g_prev_draw_time = 0.0
 
+class GameObject:
+	def __init__(self, name, position, orientation, mass, velocity ):
+		self.name = name
+		self.position = position
+		self.orientation = orientation
+		self.mass = mass
+		self.velocity = velocity	
 
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
@@ -58,12 +65,12 @@ CVec = CVert
 class CTexCoord:
 	""" // Texture Coordinate Class """
 	def __init__ (self, u = 0.0, v = 0.0):
-		self.u = u # // U Component
+		self.u = u
 		self.v = v
 
 class CMesh:
 	""" // Mesh Data """
-	MESH_RESOLUTION = 4.0
+	MESH_RESOLUTION = 16.0
 	MESH_HEIGHTSCALE = 2.0
 
 	def __init__ (self,position_y):
@@ -99,9 +106,9 @@ class CMesh:
 		half_sizeX = float (sizeX) / 1.0
 		half_sizeY = float (sizeY) / 1.0
 		flResolution_int = int (flResolution)
-		while (nZ < len(level)-4):
+		while (nZ < len(level)-flResolution_int):
 			nX = 0
-			while (nX < len(level[0])-4):
+			while (nX < len(level[0])-flResolution_int):
 				for nTri in xrange (6):
 					# // Using This Quick Hack, Figure The X,Z Position Of The Point
 					flX = float (nX)
@@ -237,6 +244,10 @@ def init():
 	rel = pygame.mouse.get_rel()
 
 	level = load_level("level")
+
+	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
+
+	
 	
 
 def initGL():
