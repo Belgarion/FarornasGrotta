@@ -12,8 +12,9 @@ import logging
 
 import thread
 from Global import Global
-from graphics import Graphics
 from physics import Physics
+from graphics import *
+
 #OpenGL.FULL_LOGGING = True
 
 logging.basicConfig()
@@ -36,6 +37,8 @@ objects = []
 g_nFrames = 0.0
 
 level = []
+level2 = []
+
 
 width = 0
 height = 0
@@ -55,31 +58,18 @@ class GameObject:
 		self.mass = mass
 		self.velocity = velocity	
 
-def load_level(name):
-	f = open(name, "r")
-	lines = f.readlines()
-	f.close()
-	level = []
-	x = 0
-	y = 0
-	for line in lines:
-		line2 = []
-		for i in line.rsplit(" "):
-			line2.append(float(i.replace("\n", "")))
-			y+=1
-		level.append(line2)
-		x+=1
-	return level
-
 def init():
 	global physics
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
 
+	global level, level2
+
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
+
 
 	Global.level = load_level("level")
 
@@ -90,6 +80,9 @@ def init():
 
 init()
 graphics.initGL()
+
+graphics.addSurface(50, "level2", "grass.jpg")
+graphics.addSurface(0, "level", "test.bmp")
 
 thread.start_new_thread(graphics.printFPS, ())
 

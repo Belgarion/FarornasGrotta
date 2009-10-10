@@ -19,7 +19,7 @@ class input:
 		self.yrot = 0
 
 		# Qwerty = 0, Dvorak = 1
-		self.keyboardlayout = 1
+		self.keyboardlayout = 0
 		
 		self.speed = 250
 
@@ -31,35 +31,34 @@ class input:
 
 		while not Global.quit:
 			if self.up_pressed:
-				xrotrad = self.xrot/180*math.pi
-				yrotrad = self.yrot/180*math.pi
-				self.xpos += math.sin(yrotrad)*distance_moved
-				self.zpos -= math.cos(yrotrad)*distance_moved
-				self.ypos -= math.sin(xrotrad)*distance_moved
-
-			if self.down_pressed:
-
 				xrotrad = self.xrot / 180 * math.pi
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.sin(yrotrad)*distance_moved
-				self.zpos += math.cos(yrotrad)*distance_moved
-				self.ypos += math.sin(xrotrad)*distance_moved
+				self.xpos += math.sin(yrotrad) * distance_moved
+				self.zpos -= math.cos(yrotrad) * distance_moved
+				self.ypos -= math.sin(xrotrad) * distance_moved
+
+			if self.down_pressed:
+				xrotrad = self.xrot / 180 * math.pi
+				yrotrad = self.yrot / 180 * math.pi
+				self.xpos -= math.sin(yrotrad) * distance_moved
+				self.zpos += math.cos(yrotrad) * distance_moved
+				self.ypos += math.sin(xrotrad) * distance_moved
 
 			if self.left_pressed:
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.cos(yrotrad)*distance_moved
-				self.zpos -= math.sin(yrotrad)*distance_moved
+				self.xpos -= math.cos(yrotrad) * distance_moved
+				self.zpos -= math.sin(yrotrad) * distance_moved
 				
 			if self.right_pressed:
-				yrotrad = self.yrot/180*math.pi
-				self.xpos += math.cos(yrotrad)*distance_moved
-				self.zpos += math.sin(yrotrad)*distance_moved
+				yrotrad = self.yrot / 180 * math.pi
+				self.xpos += math.cos(yrotrad) * distance_moved
+				self.zpos += math.sin(yrotrad) * distance_moved
 				
 
 
 			rel = pygame.mouse.get_rel()
-			self.xrot += rel[1]/10.0 # It is y pos with mouse that rotates the X axis					   
-			self.yrot += rel[0]/10.0
+			self.xrot += rel[1] / 10.0 # It is y pos with mouse that rotates the X axis					   
+			self.yrot += rel[0] / 10.0
 			
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
