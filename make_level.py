@@ -16,7 +16,7 @@ i = 0
 n = 0
 while i < x:
     while n < y:
-        row.append(random.randint(1,255))
+        row.append(random.randint(1,5))
         n+=1
         
 
@@ -25,7 +25,6 @@ while i < x:
     i+=1
     n = 0
 
-print level
 data = ""
 x2 = 0
 y2 = 0
@@ -33,16 +32,15 @@ for row in level:
     for col in row:
         data += str(col)
         
-        if x2 is not x-1:
-            data += " "
+        data += " "
             
         x2+=1
+    data = data[:-1] 
     data += "\n"
     x2=0
     y2+=1
 
 
-print data
 
 f = open("level", "w")
 
