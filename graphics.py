@@ -7,6 +7,12 @@ from OpenGL import GLU
 import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
+from octree import *
+from debug import * 
+vertices = []
+
+g_Octree = COctree()
+	
 
 def load_level(name):
 	f = open(name, "r")
@@ -20,8 +26,12 @@ def load_level(name):
 		for i in line.rsplit(" "):
 			line2.append(float(i.replace("\n", "")))
 			y+=1
+			Global.vertices.append( (float(x), float(i.replace("\n","")), float(y)) )
+			Global.numberOfVertices += 1
 		level.append(line2)
 		x+=1
+		y = 0
+	
 	return level
 
 class CVert:
@@ -75,8 +85,8 @@ class CMesh:
 		nZ = 0
 		nIndex = 0
 		nTIndex = 0
-		half_sizeX = float (sizeX) / 1.0
-		half_sizeY = float (sizeY) / 1.0
+		half_sizeX = float (sizeX) / 2.0
+		half_sizeY = float (sizeY) / 2.0
 		flResolution_int = int (flResolution)
 		while (nZ < len(iLevel)-4):
 			nX = 0
@@ -251,6 +261,17 @@ class Graphics:
 		gluPerspective( 60, 640/480, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
+		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
+		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
+		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), 100)
+
+		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
+		#Global.g_Debug.RenderDebugLines()
+
+		
+		glEnable(GL_LIGHT0)
+
+
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
 			Note, that this test only tells you if the OpenGL library supports
@@ -339,6 +360,9 @@ class Graphics:
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 		
+
+		g_Octree.DrawOctree(g_Octree)
+		Global.g_Debug.RenderDebugLines()
 		
 		glBegin(GL_QUADS);
 
@@ -346,7 +370,14 @@ class Graphics:
 		x = objects[0].position[0]
 		y = objects[0].position[1]
 		z = objects[0].position[2]
-
+	
+		#####################
+		glColor3f(1.0,0.0,0.0)
+		glVertex3f( 10.0, 10.0,-10.0);		# Top Right Of The Quad (Top)
+		glVertex3f(-10.0, 10.0,-10.0);		# Top Left Of The Quad (Top)
+		glVertex3f(-10.0, 10.0, 10.0);		# Bottom Left Of The Quad (Top)
+		glVertex3f( 10.0, 10.0, 10.0);		# Bottom Right Of The Quad (Top)
+		######################	
 		
 		glColor3f(0.0,1.0,0.0)
 		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)

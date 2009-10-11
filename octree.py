@@ -1,127 +1,10 @@
 #!/usr/bin/python
-
-# This is our constructor that allows us to initialize our data upon creating an instance
-class CVector3:
-
-	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
-
-	def __add__(self, v):
-		return CVertex3(self.x + v.x, self.y + v.y, self.z + v.z)
-		
-	def __sub__(self, v):
-		return CVertex3(self.x - v.x, self.y - v.y, self.z - v.z)
-	
-	def __mul__(self, num):
-		return CVertex3(self.x * num, self.y * num, self.z * num)
-
-	def __div__(self, num):
-		return CVertex3(self.x / num, self.y / num, self.z / num)
-
-# Visually Octrees
-class CDebug:
-
-	def __init__(self):
-		self.m_vLines = CVector3(0, 0, 0) 
-	
-	# This adds a line to out list of debug lines
-	def AddDebugLine(self, vPoint1, vPoint2):
-		# Add the 2 points that make up the line into our line list.
-		m_vLines.push_back(vPoint1)
-		m_vLines.push_back(vPoint2)
-
-	# This adds a rectangle with a given center, width, height and depth to our list
-	def AddDebugRectangle(self, vCenter, width, height, depth):
-		# So we can work with the code better, we divide the dimensions in half.
-		# That way we can create the cube from the center outwards.
-		width /= 2.0
-		height /= 2.0
-		depth /= 2.0
-
-		# Below we create all the 8 points so it will be easier to input the lines
-		# of the cube.  With the dimensions we calculate the points.
-		vTopLeftFront = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z + depth)
-		vTopLeftBack = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z - depth)
-		vTopRightBack = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z - depth)
-		vTopRightFront = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z + depth)
-
-		vBottom_LeftFront = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z + depth)
-		vBottom_LeftBack = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightBack = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightFront = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z + depth)
-
-
-		## TOP LINES
-		m_vLines.push_back(vTopLeftFront)
-		m_vLines.push_back(vTopRightFront)
-
-		m_vLines.push_back(vTopLeftBack)
-		m_vLines.push_back(vTopRightBack)
-
-		m_vLines.push_back(vTopLeftFront)
-		m_vLines.push_back(vTopLeftBack)
-
-		m_vLines.push_back(vTopRightFront)
-		m_vLines.push_back(vTopRightBack)
-
-
-		## BOTTOM LINES
-		m_vLines.push_back(vBottom_LeftFront)
-		m_vLines.push_back(vBottomRightFront)
-
-		m_vLines.push_back(vBottom_LeftBack)
-		m_vLines.push_back(vBottomRightBack)
-
-		m_vLines.push_back(vBottom_LeftFront)
-		m_vLines.push_back(vBottom_LeftBack)
-
-		m_vLines.push_back(vBottomRightFront)
-		m_vLines.push_back(vBottomRightBack)
-
-
-		## SIDE LINES
-		m_vLines.push_back(vTopLeftFront)
-		m_vLines.push_back(vBottom_LeftFront)
-
-		m_vLines.push_back(vTopLeftBack)
-		m_vLines.push_back(vBottom_LeftBack)
-
-		m_vLines.push_back(vTopRightBack)
-		m_vLines.push_back(vBottomRightBack)
-
-		m_vLines.push_back(vTopRightFront)
-		m_vLines.push_back(vBottomRightFront)
-
-
-	# This renders all of the lines
-	def RenderDebugLines(self):
-
-		# Turn OFF lighting so the debug lines are bright yellow
-		glDisable(GL_LIGHTING)
-
-		# Start rendering lines
-		glBegin(GL_LINES)
-
-		# Turn the lines yellow
-		glColor3ub(255, 255, 0)
-
-		# Go through the whole list of lines stored in the vector m_vLines.
-		for i in xrange(len(m_vLines)):
-			# Pass in the current point to be rendered as part of a line
-			glVertex3f(m_vLines[i].x, m_vLines[i].y, m_vLines[i].z)
-
-		# Stop rendering lines
-		glEnd()
-
-		# If we have lighting turned on, turn the lights back on
-		if( g_bLighting ):
-			glEnable(GL_LIGHTING)
-
-	# Destroy the list by set them to 0 again
-	def Clear(self):
-		self.m_vLines = CVector3()
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL import GL
+from OpenGL import GLU
+from Global import Global
+from debug import * 
 
 
 # The current amount of end nodes in our tree (The nodes with vertices stored in them)
@@ -141,14 +24,8 @@ g_MaxSubdivisions = 4
 # This is used to make sure we don't go over the max amount
 g_CurrentSubdivision = 0
 
-# Turn lighting on initially
-g_bLighting = 1
-
 # This holds if we want rendered or wire frame mode
-g_bRenderMode = 1
-
-# Debug?
-g_Debug = CDebug()
+g_bRenderMode = 0
 
 # This returns the cross product between 2 vectors
 def Cross(vVector1, vVector2):
@@ -180,13 +57,14 @@ def Normalize(vVector):
 	return vVector
 
 class COctree:
-
+	
 	def __init__(self):
 		# This tells us if we want to display the yellow debug lines for our nodes
 		self.g_bDisplayNodes = 0
 
 		# These values (0 - 7) store the index ID's for the octree node array (m_pOctreeNodes)
 		self.eOctreeNodes = [TOP_LEFT_FRONT, TOP_LEFT_BACK, TOP_RIGHT_BACK, TOP_RIGHT_FRONT, BOTTOM_LEFT_FRONT, BOTTOM_LEFT_BACK, BOTTOM_RIGHT_BACK, BOTTOM_RIGHT_FRONT] = range(8)
+	
 
 		# This stores the total fave count that is in the nodes 3D space (how many "true"'s)
 		self.totalFaceCount = 0
@@ -209,31 +87,35 @@ class COctree:
 		self.m_pVertices = CVector3(0, 0, 0)
 
 		# These are the eight nodes branching down from this current node
-		self.m_pOctreeNodes[8] = CVector3(0, 0, 0)
+		self.m_pOctreeNodes = []
+		for i in xrange(8):
+			self.m_pOctreeNodes.append(CVector3(0, 0, 0))
 
 	def __del__(self):
 		pass
 
 	# This returns the center of this node
 	def GetCenter(self):
-		return m_vCenter
+		return self.m_vCenter
 
 	# This returns the triangle count stored in this node
 	def GetTriangleCount(self):
-		return m_TriangleCount
+		return self.m_TriangleCount
 
 	# This returns the widht of this node (since it's a cube the height and depth are the same)
 	def GetWidth(self):
-		return m_Width
+		return self.m_Width
 
 	# This returns if this node is subdivided or not
 	def IsSubDivided(self):
-		return m_bSubDivided
+		return self.m_bSubDivided
 
 	# This returns the center point of the new subdivided node, depending on the ID
 	def GetNewNodeCenter(self, vCenter, width, nodeID):
 		# Initialize the new node center
 		vNodeCenter = CVector3(0, 0, 0)
+
+		eOctreeNodes = [TOP_LEFT_FRONT, TOP_LEFT_BACK, TOP_RIGHT_BACK, TOP_RIGHT_FRONT, BOTTOM_LEFT_FRONT, BOTTOM_LEFT_BACK, BOTTOM_RIGHT_BACK, BOTTOM_RIGHT_FRONT] = range(8)
 
 		if nodeID == eOctreeNodes[TOP_LEFT_FRONT]:
 			vNodeCenter = CVector3(vCenter.x - width/4, vCenter.y + width/4, vCenter.z + width/4)
@@ -263,7 +145,7 @@ class COctree:
 
 
 	# This sets the initial width, height and depth for the whole scene
-	def GetSceneDimensions(pVertices, numberOfVerts):
+	def GetSceneDimensions(self,pVertices, numberOfVerts):
 		# Initialize some temporary variables to hold the max dimensions found
 		maxWidth = maxHeight = maxDepth = 0.0
 
@@ -272,6 +154,7 @@ class COctree:
 			return
 
 		# Go through all of the vertices and add them up to eventually find the center
+		m_vCenter = CVector3(0, 0, 0)
 		for i in xrange(numberOfVerts):
 			# Add the current vertex to the center variable (Using operator overloading)
 			m_vCenter = m_vCenter + pVertices[i]
@@ -286,9 +169,9 @@ class COctree:
 		for i in xrange(numberOfVerts):
 			# Get the current dimensions for this vertex.  We use the abs() function
 			# to get the absolute value because it might return a negative number.
-			currentWidth  = abs(int(pVertices[i].x - m_vCenter.x))
-			currentHeight = abs(int(pVertices[i].y - m_vCenter.y))
-			currentDepth  = abs(int(pVertices[i].z - m_vCenter.z))
+			currentWidth  = abs(int(pVertices[i][0] - m_vCenter.x))
+			currentHeight = abs(int(pVertices[i][1] - m_vCenter.y))
+			currentDepth  = abs(int(pVertices[i][2] - m_vCenter.z))
 
 			# Check if the current width value is greater than the max width stored.
 			if currentWidth > maxWidth:
@@ -310,18 +193,18 @@ class COctree:
 
 		# Check if the width is the highest value and assign that for the cube dimension
 		if maxWidth > maxHeight and maxWidth > maxDepth:
-			m_Width = maxWidth
+			self.m_Width = maxWidth
 
 		# Check if the height is the heighest value and assign that for the cube dimension
 		elif maxHeight > maxWidth and maxHeight > maxDepth:
-			m_Width = maxHeight
+			self.m_Width = maxHeight
 
 		# Else it must be the depth or it's the same value as some of the other ones
 		else:
-			m_Width = maxDepth
+			self.m_Width = maxDepth
 
 
-	def CreateNewNode(pVertices, pList, numberOfVerts, vCenter, width, triangleCount, nodeID):
+	def CreateNewNode(self, pVertices, pList, numberOfVerts, vCenter, width, triangleCount, nodeID):
 		# This function helps us set up the new node that is being created.  We only
 		# want to create a new node if it found triangles in it's area.  If there were
 		# no triangle found in this node's cube, then we ignore it and don't create a node.
@@ -329,42 +212,42 @@ class COctree:
 		# Check if the first node found some triangles in it
 		if triangleCount:
 			# Allocate memory for the triangles found in this node (tri's * 3 for vertices)
-			pNodeVertices = CVector3 [triangleCount * 3]
+			pNodeVertices = []
 
 			# Create an counter to count the current index of the new node vertices
-			index = 0
 
 			# Go through all the vertices and assign the vertices to the node's list
 			for i in xrange(numberOfVerts):
 				# If this current triangle is in the node, assign it's vertices to it
 				if pList[i/3]:
-					pNodeVertices[index] = pVertices[i]
-					index += 1
+					pNodeVertices.append(pVertices[i])
 
 			# Now comes the initialization of the node.  First we allocate memory for
 			# our node and then get it's center point.  Depending on the nodeID, 
 			# GetNewNodeCenter() knows which center point to pass back (TOP_LEFT_FRONT, etc..)
 
 			# Allocate a new node for this octree
-			m_pOctreeNodes[nodeID] = COctree
+			self.m_pOctreeNodes[nodeID] = COctree
 
 			# Get the new node's center point depending on the nodexIndex (which of the 8 subdivided cubes).
-			vNodeCenter = GetNewNodeCenter(vCenter, width, nodeID)
+			vNodeCenter = self.GetNewNodeCenter(vCenter, width, nodeID)
 			
 			# Below, before and after we recurse further down into the tree, we keep track
 			# of the level of subdivision that we are in.  This way we can restrict it.
 
 			# Increase the current level of subdivision
+			global g_CurrentSubdivision 
 			g_CurrentSubdivision += 1
 
 			# Recurse through this node and subdivide it if necessary
-			m_pOctreeNodes[nodeID].CreateNode(pNodeVertices, triangleCount * 3, vNodeCenter, width / 2)
+			self.m_pOctreeNodes[nodeID].CreateNode(self, pNodeVertices, triangleCount * 3, vNodeCenter, width / 2)
 
 			# Decrease the current level of subdivision
 			g_CurrentSubdivision -= 1
 
 
-	def CreateNode(pVertices, numberOfVerts, vCenter, width):
+	def CreateNode(self, pVertices, numberOfVerts, vCenter, width):
+		print "HEJ"
 		# This is our main function that creates the octree.  We will recurse through
 		# this function until we finish subdividing.  Either this will be because we
 		# subdivided too many levels or we divided all of the triangles up.
@@ -381,37 +264,38 @@ class COctree:
 		# Add the current node to our debug rectangle list so we can visualize it.
 		# We can now see this node visually as a cube when we render the rectangles.
 		# Since it's a cube we pass in the width for width, height and depth.
-		g_Debug.AddDebugRectangle(vCenter, width, width, width)
+		print vCenter.x,vCenter.y,vCenter.z, width, width, width
+		Global.g_Debug.AddDebugRectangle(vCenter, width, width, width)
 
 		# Check if we have too many triangles in this node and we haven't subdivided
 		# above our max subdivisions.  If so, then we need to break this node into
-		# 8 more nodes (hence the word OCTree).  Both must be true to divide this node.
+		# 8 more nodes (hence the word OCTree).  Both must be True to divide this node.
 		if numberOfTriangles > g_MaxTriangles  and  g_CurrentSubdivision < g_MaxSubdivisions:
-			# Since we need to subdivide more we set the divided flag to true.
+			# Since we need to subdivide more we set the divided flag to True.
 			# This let's us know that this node does NOT have any vertices assigned to it,
 			# but nodes that perhaps have vertices stored in them (Or their nodes, etc....)
 			# We will querey this variable when we are drawing the octree.
-			m_bSubDivided = true
+			m_bSubDivided = True
 
 			# Create a list for each new node to store if a triangle should be stored in it's
-			# triangle list.  For each index it will be a true or false to tell us if that triangle
+			# triangle list.  For each index it will be a True or false to tell us if that triangle
 			# is in the cube of that node.  Below we check every point to see where it's
 			# position is from the center (I.E. if it's above the center, to the left and 
 			# back it's the TOP_LEFT_BACK node).  Depending on the node we set the pList 
-			# index to true.  This will tell us later which triangles go to which node.
+			# index to True.  This will tell us later which triangles go to which node.
 			# You might catch that this way will produce doubles in some nodes.  Some
 			# triangles will intersect more than 1 node right?  We won't split the triangles
 			# in this tutorial just to keep it simple, but the next tutorial we will.
 
 			# Create the list of booleans for each triangle index
-			pList1(numberOfTriangles)	 # TOP_LEFT_FRONT node list
-			pList2(numberOfTriangles)	 # TOP_LEFT_BACK node list
-			pList3(numberOfTriangles)	 # TOP_RIGHT_BACK node list
-			pList4(numberOfTriangles)	 # TOP_RIGHT_FRONT node list
-			pList5(numberOfTriangles)	 # BOTTOM_LEFT_FRONT node list
-			pList6(numberOfTriangles)	 # BOTTOM_LEFT_BACK node list
-			pList7(numberOfTriangles)	 # BOTTOM_RIGHT_BACK node list
-			pList8(numberOfTriangles)	 # BOTTOM_RIGHT_FRONT node list
+			pList1 = []	 # TOP_LEFT_FRONT node list
+			pList2 = []	 # TOP_LEFT_BACK node list
+			pList3 = []	 # TOP_RIGHT_BACK node list
+			pList4 = []	 # TOP_RIGHT_FRONT node list
+			pList5 = []	 # BOTTOM_LEFT_FRONT node list
+			pList6 = []	 # BOTTOM_LEFT_BACK node list
+			pList7 = []	 # BOTTOM_RIGHT_BACK node list
+			pList8 = []	 # BOTTOM_RIGHT_FRONT node list
 		
 			# Go through all of the vertices and check which node they belong too.  The way
 			# we do this is use the center of our current node and check where the point
@@ -428,36 +312,52 @@ class COctree:
 				vPoint = pVertices[i]
 
 				# Check if the point lines within the TOP LEFT FRONT node
-				if vPoint.x <= vCenter.x and vPoint.y >= vCenter.y and vPoint.z >= vCenter.z:
-					pList1[i / 3] = True
+				if vPoint[0] <= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] >= vCenter.z:
+					pList1.append(True)
+				else:
+					pList1.append(False)
 
 				# Check if the point lines within the TOP LEFT BACK node
-				if vPoint.x <= vCenter.x and vPoint.y >= vCenter.y and vPoint.z <= vCenter.z:
-					pList2[i / 3] = True
+				if vPoint[0] <= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] <= vCenter.z:
+					pList2.append(True)
+				else:
+					pList2.append(False)
 
 				# Check if the point lines within the TOP RIGHT BACK node
-				if vPoint.x >= vCenter.x and vPoint.y >= vCenter.y and vPoint.z <= vCenter.z:
-					pList3[i / 3] = True
+				if vPoint[0] >= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] <= vCenter.z:
+					pList3.append(True)
+				else:
+					pList3.append(False)
 
 				# Check if the point lines within the TOP RIGHT FRONT node
-				if vPoint.x >= vCenter.x and vPoint.y >= vCenter.y and vPoint.z >= vCenter.z:
-					pList4[i / 3] = True
+				if vPoint[0] >= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] >= vCenter.z:
+					pList4.append(True)
+				else:
+					pList4.append(False)
 
 				# Check if the point lines within the BOTTOM LEFT FRONT node
-				if vPoint.x <= vCenter.x and vPoint.y <= vCenter.y and vPoint.z >= vCenter.z:
-					pList5[i / 3] = True
+				if vPoint[0] <= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] >= vCenter.z:
+					pList5.append(True)
+				else:
+					pList5.append(False)
 
 				# Check if the point lines within the BOTTOM LEFT BACK node
-				if vPoint.x <= vCenter.x and vPoint.y <= vCenter.y and vPoint.z <= vCenter.z:
-					pList6[i / 3] = True
+				if vPoint[0] <= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] <= vCenter.z:
+					pList6.append(True)
+				else:
+					pList6.append(False)
 
 				# Check if the point lines within the BOTTOM RIGHT BACK node
-				if vPoint.x >= vCenter.x and vPoint.y <= vCenter.y and vPoint.z <= vCenter.z:
-					pList7[i / 3] = True
+				if vPoint[0] >= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] <= vCenter.z:
+					pList7.append(True)
+				else:
+					pList7.append(False)
 
 				# Check if the point lines within the BOTTOM RIGHT FRONT node
-				if vPoint.x >= vCenter.x and vPoint.y <= vCenter.y and vPoint.z >= vCenter.z:
-					pList8[i / 3] = True
+				if vPoint[0] >= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] >= vCenter.z:
+					pList8.append(True)
+				else:
+					pList8.append(False)
 
 
 			# Here we create a variable for each list that holds how many triangles
@@ -466,7 +366,8 @@ class COctree:
 			
 			# Go through each of the lists and increase the triangle count for each node.
 			for i in xrange(numberOfTriangles):  
-				# Increase the triangle count for each node that has a "true" for the index i.
+				# Increase the triangle count for each node that has a "True" for the index i.
+				
 				if pList1[i]:
 					triCount1 += 1
 				if pList2[i]:
@@ -491,14 +392,17 @@ class COctree:
 			# Create the subdivided nodes if necessary and then recurse through them.
 			# The information passed into CreateNewNode() are essential for creating the
 			# new nodes.  We pass the 8 ID's in so it knows how to calculate it's new center.
-			CreateNewNode(pVertices, pList1, numberOfVerts, vCenter, width, triCount1, eOctreeNodes[TOP_LEFT_FRONT])
-			CreateNewNode(pVertices, pList2, numberOfVerts, vCenter, width, triCount2, eOctreeNodes[TOP_LEFT_BACK])
-			CreateNewNode(pVertices, pList3, numberOfVerts, vCenter, width, triCount3, eOctreeNodes[TOP_RIGHT_BACK])
-			CreateNewNode(pVertices, pList4, numberOfVerts, vCenter, width, triCount4, eOctreeNodes[TOP_RIGHT_FRONT])
-			CreateNewNode(pVertices, pList5, numberOfVerts, vCenter, width, triCount5, eOctreeNodes[BOTTOM_LEFT_FRONT])
-			CreateNewNode(pVertices, pList6, numberOfVerts, vCenter, width, triCount6, eOctreeNodes[BOTTOM_LEFT_BACK])
-			CreateNewNode(pVertices, pList7, numberOfVerts, vCenter, width, triCount7, eOctreeNodes[BOTTOM_RIGHT_BACK])
-			CreateNewNode(pVertices, pList8, numberOfVerts, vCenter, width, triCount8, eOctreeNodes[BOTTOM_RIGHT_FRONT])
+
+			eOctreeNodes = [TOP_LEFT_FRONT, TOP_LEFT_BACK, TOP_RIGHT_BACK, TOP_RIGHT_FRONT, BOTTOM_LEFT_FRONT, BOTTOM_LEFT_BACK, BOTTOM_RIGHT_BACK, BOTTOM_RIGHT_FRONT] = range(8)
+
+			self.CreateNewNode(pVertices, pList1, numberOfVerts, vCenter, width, triCount1, eOctreeNodes[TOP_LEFT_FRONT])
+			self.CreateNewNode(pVertices, pList2, numberOfVerts, vCenter, width, triCount2, eOctreeNodes[TOP_LEFT_BACK])
+			self.CreateNewNode(pVertices, pList3, numberOfVerts, vCenter, width, triCount3, eOctreeNodes[TOP_RIGHT_BACK])
+			self.CreateNewNode(pVertices, pList4, numberOfVerts, vCenter, width, triCount4, eOctreeNodes[TOP_RIGHT_FRONT])
+			self.CreateNewNode(pVertices, pList5, numberOfVerts, vCenter, width, triCount5, eOctreeNodes[BOTTOM_LEFT_FRONT])
+			self.CreateNewNode(pVertices, pList6, numberOfVerts, vCenter, width, triCount6, eOctreeNodes[BOTTOM_LEFT_BACK])
+			self.CreateNewNode(pVertices, pList7, numberOfVerts, vCenter, width, triCount7, eOctreeNodes[BOTTOM_RIGHT_BACK])
+			self.CreateNewNode(pVertices, pList8, numberOfVerts, vCenter, width, triCount8, eOctreeNodes[BOTTOM_RIGHT_FRONT])
 		else:
 			# If we get here we must either be subdivided past our max level, or our triangle
 			# count went below the minimum amount of triangles so we need to store them.
@@ -506,9 +410,9 @@ class COctree:
 			# Assign the vertices to this node since we reached the end node.
 			# This will be the end node that actually gets called to be drawn.
 			# We just pass in the vertices and vertex count to be assigned to this node.
-			AssignVerticesToNode(pVertices, numberOfVerts)
+			self.AssignVerticesToNode(pVertices, numberOfVerts)
 
-	def AssignVerticesToNode(pVertices, numberOfVerts):
+	def AssignVerticesToNode(self, pVertices, numberOfVerts):
 		# Since we did not subdivide this node we want to set our flag to false
 		m_bSubDivided = False
 
@@ -519,11 +423,12 @@ class COctree:
 		m_pVertices = pVertices
 
 		# Increase the amount of end nodes created (Nodes with vertices stored)
+		global g_EndNodeCount
 		g_EndNodeCount += 1
 
 	# This goes through each of the nodes and then draws the end nodes vertices.
 	# This function should be called by starting with the root node.
-	def DrawOctree(pNode):
+	def DrawOctree(self, pNode):
 		# We should already have the octree created before we call this function.
 		# This only goes through the nodes that are in our frustum, then renders those
 		#vertices stored in their end nodes.  Before we draw a node we check to
@@ -538,10 +443,10 @@ class COctree:
 		# Before we do any checks with the current node, let's make sure we even need too.
 		# We want to check if this node's cube is even in our frustum first.
 		# To do that we pass in our center point of the node and 1/2 it's width to our 
-		# CubeInFrustum() function.  This will return "true" if it is inside the frustum 
+		# CubeInFrustum() function.  This will return "True" if it is inside the frustum 
 		# (camera's view), otherwise return false.  
-		elif(g_Frustum.CubeInFrustum(pNode.m_vCenter.x, pNode.m_vCenter.y, pNode.m_vCenter.z, pNode.m_Width / 2)):
-			# Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
+		#elif(g_Frustum.CubeInFrustum(pNode.m_vCenter.x, pNode.m_vCenter.y, pNode.m_vCenter.z, pNode.m_Width / 2) or 1):
+		else:			# Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
 			if pNode.IsSubDivided():
 				# Recurse to the bottom of these nodes and draw the end node's vertices
 				# Like creating the octree, we need to recurse through each of the 8 nodes.
@@ -555,6 +460,7 @@ class COctree:
 				DrawOctree(pNode.m_pOctreeNodes[eOctreeNodes[BOTTOM_RIGHT_FRONT]]);
 			else:
 				# Increase the amount of nodes in our viewing frustum (camera's view)
+				global g_TotalNodesDrawn				
 				g_TotalNodesDrawn += 1
 
 				# Make sure we have valid vertices assigned to this node
