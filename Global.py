@@ -103,12 +103,12 @@ class CDebug:
 
 		# Turn OFF lighting so the debug lines are bright yellow
 		
-		glDisable(GL_LIGHTING)
+		#glDisable(GL_LIGHTING)
 		# Start rendering lines
 		glBegin(GL_LINES)
 
 		# Turn the lines yellow
-		glColor3ub(255, 255, 0)
+		#glColor3ub(255, 255, 0)
 
 		# Go through the whole list of lines stored in the vector m_vLines.
 		for i in xrange(len(self.m_vLines)):
@@ -119,8 +119,8 @@ class CDebug:
 		glEnd()
 
 		# If we have lighting turned on, turn the lights back on
-		if( Global.g_bLighting ):
-			glEnable(GL_LIGHTING)
+		#if( Global.g_bLighting ):
+		#	glEnable(GL_LIGHTING)
 
 	# Destroy the list by set them to 0 again
 	def Clear(self):
@@ -137,7 +137,7 @@ class Global:
 	g_Debug = CDebug()
 
 	# Turn lighting on initially
-	g_bLighting = 1
+	g_bLighting = 0
 
 	#def __init__(self, anycallable):
 	#	self.__call__ = anycallable

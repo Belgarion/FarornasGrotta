@@ -18,18 +18,24 @@ def load_level(name):
 	lines = f.readlines()
 	f.close()
 	level = []
-	x = 0
-	y = 0
+	#x = 0
+	#y = 0
 	for line in lines:
-		line2 = []
-		for i in line.rsplit(" "):
-			line2.append(float(i.replace("\n", "")))
-			y+=1
-			Global.vertices.append( (float(x), float(i.replace("\n","")), float(y)) )
-			Global.numberOfVertices += 1
-		level.append(line2)
-		x+=1
-		y = 0
+		pos = line.rsplit(" ")
+		if len(pos) < 2:
+			continue
+		level.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
+		Global.vertices.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
+		Global.numberOfVertices += 1
+		#line2 = []
+		#for i in line.rsplit(" "):
+		#	line2.append(float(i.replace("\n", "")))
+		#	y+=1
+		#	Global.vertices.append( (float(x), float(i.replace("\n","")), float(y)) )
+		#	Global.numberOfVertices += 1
+		#level.append(line2)
+		#x+=1
+		#y = 0
 	
 	return level
 
@@ -49,7 +55,7 @@ class CTexCoord:
 
 class CMesh:
 	""" // Mesh Data """
-	MESH_RESOLUTION = 4.0
+	MESH_RESOLUTION = 8.0
 	MESH_HEIGHTSCALE = 2.0
 
 	def __init__ (self,position_y):
@@ -72,8 +78,9 @@ class CMesh:
 		""" // Heightmap Loader """
 
 		# // Generate Vertex Field
-		sizeX = len(iLevel)
-		sizeY = len(iLevel[0])
+		#sizeX = len(iLevel)
+		#sizeY = len(iLevel[0])
+		sizeX = sizeY = 1000
 
 		print sizeX, sizeY, "titta her"
 
@@ -81,36 +88,37 @@ class CMesh:
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f') 			# // Vertex Data
 		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f') 			# // Texture Coordinates
 
-		nZ = 0
 		nIndex = 0
-		nTIndex = 0
-		half_sizeX = float (sizeX) / 2.0
-		half_sizeY = float (sizeY) / 2.0
-		flResolution_int = int (flResolution)
-		while (nZ < len(iLevel)-4):
-			nX = 0
-			while (nX < len(iLevel[0])-4):
-				for nTri in xrange (6):
-					# // Using This Quick Hack, Figure The X,Z Position Of The Point
-					flX = float (nX)
-					if (nTri == 1) or (nTri == 2) or (nTri == 5):
-						flX += flResolution
-					flZ = float (nZ)
-					if (nTri == 2) or (nTri == 4) or (nTri == 5):
-						flZ += flResolution
-					x = flX - half_sizeX
-					y = iLevel[int(flX)][int(flZ)] * flHeightScale
-					z = flZ - half_sizeY
-					self.m_pVertices [nIndex, 0] = x
-					self.m_pVertices [nIndex, 1] = y + self.position_y
-					self.m_pVertices [nIndex, 2] = z
-					self.m_pTexCoords [nTIndex, 0] = flX / sizeX
-					self.m_pTexCoords [nTIndex, 1] =  flZ / sizeY
-					nIndex += 1
-					nTIndex += 1
-					
-				nX += flResolution_int
-			nZ += flResolution_int
+		for i in iLevel:
+			self.m_pVertices[nIndex, 0] = i[0]
+			self.m_pVertices[nIndex, 1] = i[1]
+			self.m_pVertices[nIndex, 2] = i[2]
+			nIndex += 1
+
+		#while (nZ < len(iLevel)-4):
+		#	nX = 0
+		#	while (nX < len(iLevel[0])-4):
+		#		for nTri in xrange (6):
+		#			# // Using This Quick Hack, Figure The X,Z Position Of The Point
+		#			flX = float (nX)
+		#			if (nTri == 1) or (nTri == 2) or (nTri == 5):
+		#				flX += flResolution
+		#			flZ = float (nZ)
+		#			if (nTri == 2) or (nTri == 4) or (nTri == 5):
+		#				flZ += flResolution
+		#			x = flX - half_sizeX
+		#			y = iLevel[int(flX)][int(flZ)] * flHeightScale
+		#			z = flZ - half_sizeY
+		#			self.m_pVertices [nIndex, 0] = x
+		#			self.m_pVertices [nIndex, 1] = y + self.position_y
+		#			self.m_pVertices [nIndex, 2] = z
+		#			self.m_pTexCoords [nTIndex, 0] = flX / sizeX
+		#			self.m_pTexCoords [nTIndex, 1] =  flZ / sizeY
+		#			nIndex += 1
+		#			nTIndex += 1
+		#			
+		#		nX += flResolution_int
+		#	nZ += flResolution_int
 
 		self.m_pVertices_as_string = self.m_pVertices.tostring () 
 		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring () 
@@ -267,9 +275,6 @@ class Graphics:
 		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
 		#Global.g_Debug.RenderDebugLines()
 
-		
-		glEnable(GL_LIGHT0)
-
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -331,6 +336,7 @@ class Graphics:
 		global g_fVBOSupported, g_fVBOObjects
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+
 		glLoadIdentity()
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
@@ -370,13 +376,6 @@ class Graphics:
 		y = objects[0].position[1]
 		z = objects[0].position[2]
 	
-		#####################
-		glColor3f(1.0,0.0,0.0)
-		glVertex3f( 10.0, 10.0,-10.0);		# Top Right Of The Quad (Top)
-		glVertex3f(-10.0, 10.0,-10.0);		# Top Left Of The Quad (Top)
-		glVertex3f(-10.0, 10.0, 10.0);		# Bottom Left Of The Quad (Top)
-		glVertex3f( 10.0, 10.0, 10.0);		# Bottom Right Of The Quad (Top)
-		######################	
 		
 		glColor3f(0.0,1.0,0.0)
 		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)

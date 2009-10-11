@@ -117,28 +117,28 @@ class COctree:
 		eOctreeNodes = [TOP_LEFT_FRONT, TOP_LEFT_BACK, TOP_RIGHT_BACK, TOP_RIGHT_FRONT, BOTTOM_LEFT_FRONT, BOTTOM_LEFT_BACK, BOTTOM_RIGHT_BACK, BOTTOM_RIGHT_FRONT] = range(8)
 
 		if nodeID == eOctreeNodes[TOP_LEFT_FRONT]:
-			vNodeCenter = CVector3(vCenter.x - width/4, vCenter.y + width/4, vCenter.z + width/4)
+			vNodeCenter = CVector3(vCenter.x - width/4.0, vCenter.y + width/4.0, vCenter.z + width/4.0)
 
 		if nodeID == eOctreeNodes[TOP_LEFT_BACK]:
-			vNodeCenter = CVector3(vCenter.x - width/4, vCenter.y + width/4, vCenter.z - width/4)
+			vNodeCenter = CVector3(vCenter.x - width/4.0, vCenter.y + width/4.0, vCenter.z - width/4.0)
 
 		if nodeID == eOctreeNodes[TOP_RIGHT_BACK]:
-			vNodeCenter = CVector3(vCenter.x + width/4, vCenter.y + width/4, vCenter.z - width/4)
+			vNodeCenter = CVector3(vCenter.x + width/4.0, vCenter.y + width/4.0, vCenter.z - width/4.0)
 
 		if nodeID == eOctreeNodes[TOP_RIGHT_FRONT]:
-			vNodeCenter = CVector3(vCenter.x + width/4, vCenter.y + width/4, vCenter.z + width/4)
+			vNodeCenter = CVector3(vCenter.x + width/4.0, vCenter.y + width/4.0, vCenter.z + width/4.0)
 
 		if nodeID == eOctreeNodes[BOTTOM_LEFT_FRONT]:
-			vNodeCenter = CVector3(vCenter.x - width/4, vCenter.y - width/4, vCenter.z + width/4)
+			vNodeCenter = CVector3(vCenter.x - width/4.0, vCenter.y - width/4.0, vCenter.z + width/4.0)
 
 		if nodeID == eOctreeNodes[BOTTOM_LEFT_BACK]:
-			vNodeCenter = CVector3(vCenter.x - width/4, vCenter.y - width/4, vCenter.z - width/4)
+			vNodeCenter = CVector3(vCenter.x - width/4.0, vCenter.y - width/4.0, vCenter.z - width/4.0)
 
 		if nodeID == eOctreeNodes[BOTTOM_RIGHT_BACK]:
-			vNodeCenter = CVector3(vCenter.x + width/4, vCenter.y - width/4, vCenter.z - width/4)
+			vNodeCenter = CVector3(vCenter.x + width/4.0, vCenter.y - width/4.0, vCenter.z - width/4.0)
 
 		if nodeID == eOctreeNodes[BOTTOM_RIGHT_FRONT]:
-			vNodeCenter = CVector3(vCenter.x + width/4, vCenter.y - width/4, vCenter.z + width/4)
+			vNodeCenter = CVector3(vCenter.x + width/4.0, vCenter.y - width/4.0, vCenter.z + width/4.0)
 
 		return vNodeCenter
 

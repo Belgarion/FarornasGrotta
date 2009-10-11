@@ -79,7 +79,7 @@ def init():
 	rel = pygame.mouse.get_rel()
 
 
-	Global.level = load_level("level")
+	Global.level = load_level("Terrain.raw")
 
 	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
 	objects.append(monster)
@@ -90,8 +90,10 @@ def init():
 init()
 graphics.initGL()
 
-graphics.addSurface(50, "level2", "grass.jpg")
-graphics.addSurface(0, "level", "test.bmp")
+#graphics.addSurface(50, "level2", "grass.jpg")
+#graphics.addSurface(0, "level", "test.bmp")
+graphics.addSurface(50, "Terrain.raw", "grass.jpg")
+graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
 thread.start_new_thread(graphics.printFPS, ())
 
