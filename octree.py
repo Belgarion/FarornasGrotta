@@ -3,8 +3,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
-from Global import Global
-from debug import * 
+from Global import *
 
 
 # The current amount of end nodes in our tree (The nodes with vertices stored in them)

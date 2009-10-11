@@ -1,5 +1,5 @@
 import pygame
-from Global import Global
+from Global import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
@@ -8,7 +8,6 @@ import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 from octree import *
-from debug import * 
 vertices = []
 
 g_Octree = COctree()

@@ -2,7 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
-from Global import *
+
 # This is our constructor that allows us to initialize our data upon creating an instance
 class CVector3:
 

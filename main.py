@@ -11,7 +11,7 @@ import OpenGL
 import logging
 
 import thread
-from Global import Global
+from Global import *
 from physics import Physics
 from graphics import *
 
@@ -28,7 +28,6 @@ import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 import Image
-from debug import * 
 from octree import *
 
 Global.Input = input()
