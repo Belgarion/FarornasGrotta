@@ -13,10 +13,10 @@ class CVector3:
 
 	def __add__(self, v):
        		return CVector3(self.x + v[0], self.y + v[1], self.z + v[2])
-		
+
 	def __sub__(self, v):
 		return CVector3(self.x - v[0], self.y - v[1], self.z - v[2])
-	
+
 	def __mul__(self, num):
 		return CVector3(self.x * num, self.y * num, self.z * num)
 
@@ -28,7 +28,7 @@ class CDebug:
 
 	def __init__(self):
 		self.m_vLines = []
-	
+
 	# This adds a line to out list of debug lines
 	def AddDebugLine(self, vPoint1, vPoint2):
 		# Add the 2 points that make up the line into our line list.
@@ -127,12 +127,12 @@ class CDebug:
 		self.m_vLines = CVector3()
 
 class Global:
-
 	quit = 0
 	Input = None
 	Level = [[]]
 	numberOfVertices = 0
 	vertices = []
+	wireframe = False
 
 	g_Debug = CDebug()
 

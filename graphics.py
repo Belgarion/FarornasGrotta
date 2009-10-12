@@ -11,7 +11,7 @@ from octree import *
 vertices = []
 
 g_Octree = COctree()
-	
+
 
 def load_level(name):
 	f = open(name, "r")
@@ -36,7 +36,7 @@ def load_level(name):
 		#level.append(line2)
 		#x+=1
 		#y = 0
-	
+
 	return level
 
 class CVert:
@@ -103,8 +103,8 @@ class CMesh:
 			nIndex += 1
 			nTIndex += 1
 
-		self.m_pVertices_as_string = self.m_pVertices.tostring () 
-		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring () 
+		self.m_pVertices_as_string = self.m_pVertices.tostring ()
+		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring ()
 
 	def BuildVBOs (self):
 		""" // Generate And Bind The Vertex Buffer """
@@ -145,7 +145,7 @@ class Graphics:
 		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level)
 
 		g_fVBOSupported = self.IsExtensionSupported ("GL_ARB_vertex_buffer_object")
-		
+
 		if (g_fVBOSupported):
 			# // Get Pointers To The GL Functions
 			# In python, calling Init for the extension functions will
@@ -167,9 +167,9 @@ class Graphics:
 
 		width = image.get_width()
 		height = image.get_height()
-		
+
 		texture = glGenTextures(1)
-		
+
 		glBindTexture(GL_TEXTURE_2D, texture)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -196,9 +196,9 @@ class Graphics:
 			glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 
 		else:
-			# You can use the pythonism glVertexPointerf (), which will convert the numarray into 
+			# You can use the pythonism glVertexPointerf (), which will convert the numarray into
 			# the needed memory for VertexPointer. This has two drawbacks however:
-			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44 
+			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44
 			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
 			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
 			# regarding glXPointer API.
@@ -219,7 +219,7 @@ class Graphics:
 
 
 
-	def initGL(self):		
+	def initGL(self):
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
 		glDepthFunc(GL_LEQUAL)
@@ -228,9 +228,9 @@ class Graphics:
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
 		glViewport (0, 0, 640, 480)
 		glMatrixMode(GL_PROJECTION)
-		
+
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
-		
+
 		glLoadIdentity()
 		gluPerspective( 60, 640/480, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
@@ -274,7 +274,7 @@ class Graphics:
 
 		# Now determine if Python supports the extension
 		# Exentsion names are in the form GL_<group>_<extension_name>
-		# e.g.  GL_EXT_fog_coord 
+		# e.g.  GL_EXT_fog_coord
 		# Python divides extension into modules
 		# g_fVBOSupported = IsExtensionSupported ("GL_ARB_vertex_buffer_object")
 		# from OpenGL.GL.EXT.fog_coord import *
@@ -313,7 +313,7 @@ class Graphics:
 			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 			self.g_nFrames = 0
 			time.sleep(1.0)
-			
+
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		glDisable(GL_LIGHTING)
@@ -342,7 +342,12 @@ class Graphics:
 
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
+
+		if Global.wireframe:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+		else:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 
 		light_position = (150.0, 0.0, 75.0, 1.0)
@@ -353,13 +358,13 @@ class Graphics:
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
 		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
-		
+
 		self.g_nFrames += 1
-		
+
 		self.drawAxes()
 
 		glColor3f(1.0, 1.0, 1.0)
-		
+
 
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
@@ -384,19 +389,19 @@ class Graphics:
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
-		
+
 
 		g_Octree.DrawOctree(g_Octree)
 		Global.g_Debug.RenderDebugLines()
-		
+
 		glBegin(GL_QUADS)
 
 
 		x = objects[0].position[0]
 		y = objects[0].position[1]
 		z = objects[0].position[2]
-	
-		
+
+
 		glColor3f(0.0,1.0,0.0)
 		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
 		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)

@@ -20,7 +20,7 @@ class input:
 
 		# Qwerty = 0, Dvorak = 1
 		self.keyboardlayout = 0
-		
+
 		self.speed = 250
 
 	def handle_input(self):
@@ -48,18 +48,18 @@ class input:
 				yrotrad = self.yrot / 180 * math.pi
 				self.xpos -= math.cos(yrotrad) * distance_moved
 				self.zpos -= math.sin(yrotrad) * distance_moved
-				
+
 			if self.right_pressed:
 				yrotrad = self.yrot / 180 * math.pi
 				self.xpos += math.cos(yrotrad) * distance_moved
 				self.zpos += math.sin(yrotrad) * distance_moved
-				
+
 
 
 			rel = pygame.mouse.get_rel()
-			self.xrot += rel[1] / 10.0 # It is y pos with mouse that rotates the X axis					   
+			self.xrot += rel[1] / 10.0 # It is y pos with mouse that rotates the X axis
 			self.yrot += rel[0] / 10.0
-			
+
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					Global.quit = 1
@@ -67,50 +67,52 @@ class input:
 					#print "Button pressed: ", event.key
 					if event.key == pygame.K_ESCAPE:
 						Global.quit = 1
+					elif event.key == pygame.K_F7:
+						Global.wireframe ^= 1
 
 					if self.keyboardlayout:
 						if int(event.key) == 228:
 							self.up_pressed = 1
-						if int(event.key) == 111:
+						elif int(event.key) == 111:
 							self.down_pressed = 1
-						if int(event.key) == 97:
+						elif int(event.key) == 97:
 							self.left_pressed = 1
-						if int(event.key) == 101:
+						elif int(event.key) == 101:
 							self.right_pressed = 1
 					else:
 						if int(event.key) == pygame.K_w:
 							self.up_pressed = 1
-						if int(event.key) == pygame.K_s:
+						elif int(event.key) == pygame.K_s:
 							self.down_pressed = 1
-						if int(event.key) == pygame.K_a:
+						elif int(event.key) == pygame.K_a:
 							self.left_pressed = 1
-						if int(event.key) == pygame.K_d:
+						elif int(event.key) == pygame.K_d:
 							self.right_pressed = 1
 
 					if event.key == pygame.K_F1:
 						self.keyboardlayout ^= 1
-				
+
 				if event.type == pygame.KEYUP:
 					if self.keyboardlayout:
 						if int(event.key) == 228:
 							self.up_pressed = 0
-						if int(event.key) == 111:
+						elif int(event.key) == 111:
 							self.down_pressed = 0
-						if int(event.key) == 97:
+						elif int(event.key) == 97:
 							self.left_pressed = 0
-						if int(event.key) == 101:
+						elif int(event.key) == 101:
 							self.right_pressed = 0
 					else:
 						if int(event.key) == pygame.K_w:
 							self.up_pressed = 0
-						if int(event.key) == pygame.K_s:
+						elif int(event.key) == pygame.K_s:
 							self.down_pressed = 0
-						if int(event.key) == pygame.K_a:
+						elif int(event.key) == pygame.K_a:
 							self.left_pressed = 0
-						if int(event.key) == pygame.K_d:
+						elif int(event.key) == pygame.K_d:
 							self.right_pressed = 0
 
-			
+
 			time_passed = clock.tick()
 			time_passed_seconds = time_passed / 1000.0
 

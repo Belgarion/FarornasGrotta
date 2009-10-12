@@ -56,7 +56,7 @@ class TestObject:
 		self.name = name
 		self.position = position
 
-	 
+
 
 class GameObject:
 	def __init__(self, name, position, orientation, mass, velocity ):
@@ -64,7 +64,7 @@ class GameObject:
 		self.position = position
 		self.orientation = orientation
 		self.mass = mass
-		self.velocity = velocity	
+		self.velocity = velocity
 
 def init():
 	global physics
@@ -85,7 +85,7 @@ def init():
 	objects.append(monster)
 	physics = Physics(objects)
 
-	
+
 
 init()
 graphics.initGL()
@@ -103,7 +103,7 @@ def editpos():
 	Global.Input.zpos = -45
 	Global.Input.xrot = -333
 	Global.Input.yrot = -250
-	
+
 
 
 t = threading.Timer(2.0, editpos)
@@ -111,14 +111,14 @@ t.start()
 
 thread.start_new_thread(Global.Input.handle_input, ())
 
-while not Global.quit:		
-	
+while not Global.quit:
+
 	#physics.updateObjects(objects)
 	objects = physics.update()
 	graphics.draw(objects)
-	
+
 	#Print the position every 1000th frame
 	if g_nFrames == 1:
-		#print xpos, ypos, zpos, xrot, yrot 
+		#print xpos, ypos, zpos, xrot, yrot
 		pass
 
