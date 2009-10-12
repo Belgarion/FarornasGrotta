@@ -48,15 +48,14 @@ class CVert:
 CVec = CVert
 
 class CTexCoord:
-	""" // Texture Coordinate Class """
+	""" Texture Coordinate Class """
 	def __init__ (self, u = 0.0, v = 0.0):
 		self.u = u # // U Component
 		self.v = v
 
 class CMesh:
-	""" // Mesh Data """
-	MESH_RESOLUTION = 8.0
-	MESH_HEIGHTSCALE = 2.0
+	""" Mesh Data """
+	MESH_HEIGHTSCALE = 1.0
 
 	def __init__ (self,position_y):
 		self.position_y = position_y
@@ -74,66 +73,38 @@ class CMesh:
 		self.m_nVBOVertices = None								# // Vertex VBO Name
 		self.m_nVBOTexCoords = None							# // Texture Coordinate VBO Name
 
-	def LoadHeightmap( self, flHeightScale, flResolution, iLevel):
-		""" // Heightmap Loader """
+	def LoadHeightmap( self, flHeightScale, iLevel):
+		""" Heightmap Loader """
 
-		# // Generate Vertex Field
-		#sizeX = len(iLevel)
-		#sizeY = len(iLevel[0])
-		sizeX = sizeY = 1000
+		xMax = xMin = iLevel[0][0]
+		zMax = zMin = iLevel[0][2]
+		for i in iLevel:
+			if i[0] < xMin: xMin = i[0]
+			elif i[0] > xMax: xMax = i[0]
 
-		print sizeX, sizeY, "titta her"
+			if i[2] < zMin: zMin = i[2]
+			elif i[2] > zMax: zMax = i[2]
 
-		self.m_nVertexCount = int ( sizeX * sizeY * 6 / ( flResolution * flResolution ) )
-		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f') 			# // Vertex Data
-		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f') 			# // Texture Coordinates
+		sizeX = xMax - xMin
+		sizeY = zMax - zMin
+
+		self.m_nVertexCount = len(iLevel)
+		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f')	# // Vertex Data
+		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f')	# // Texture Coordinates
 
 		nIndex = 0
+		nTIndex = 0
 		for i in iLevel:
 			self.m_pVertices[nIndex, 0] = i[0]
-			self.m_pVertices[nIndex, 1] = i[1]
+			self.m_pVertices[nIndex, 1] = i[1] * flHeightScale + self.position_y
 			self.m_pVertices[nIndex, 2] = i[2]
+			self.m_pTexCoords[nTIndex, 0] = (i[0]-xMin) / sizeX
+			self.m_pTexCoords[nTIndex, 1] = (i[2]-zMin) / sizeY
 			nIndex += 1
-
-		#while (nZ < len(iLevel)-4):
-		#	nX = 0
-		#	while (nX < len(iLevel[0])-4):
-		#		for nTri in xrange (6):
-		#			# // Using This Quick Hack, Figure The X,Z Position Of The Point
-		#			flX = float (nX)
-		#			if (nTri == 1) or (nTri == 2) or (nTri == 5):
-		#				flX += flResolution
-		#			flZ = float (nZ)
-		#			if (nTri == 2) or (nTri == 4) or (nTri == 5):
-		#				flZ += flResolution
-		#			x = flX - half_sizeX
-		#			y = iLevel[int(flX)][int(flZ)] * flHeightScale
-		#			z = flZ - half_sizeY
-		#			self.m_pVertices [nIndex, 0] = x
-		#			self.m_pVertices [nIndex, 1] = y + self.position_y
-		#			self.m_pVertices [nIndex, 2] = z
-		#			self.m_pTexCoords [nTIndex, 0] = flX / sizeX
-		#			self.m_pTexCoords [nTIndex, 1] =  flZ / sizeY
-		#			nIndex += 1
-		#			nTIndex += 1
-		#			
-		#		nX += flResolution_int
-		#	nZ += flResolution_int
+			nTIndex += 1
 
 		self.m_pVertices_as_string = self.m_pVertices.tostring () 
 		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring () 
-
-		# // Load The Texture Into OpenGL
-		#self.m_nTextureID = glGenTextures (1)						# // Get An Open ID
-		#glBindTexture( GL_TEXTURE_2D, self.m_nTextureID )			# // Bind The Texture
-		#glTexImage2D( GL_TEXTURE_2D, 0, 3, sizeX, sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, 
-		#	self.m_pTextureImage.tostring ("raw", "RGB", 0, -1))
-		#glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR)
-		#glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR)
-
-		# // Free The Texture Data
-		#self.m_pTextureImage = None
-		return True
 
 	def BuildVBOs (self):
 		""" // Generate And Bind The Vertex Buffer """
@@ -171,10 +142,7 @@ class Graphics:
 		g_pMesh = CMesh (Mesh)
 		Level = load_level(Map)
 
-		if (not g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, CMesh.MESH_RESOLUTION, Level)):
-			print "Error Loading Heightmap"
-			sys.exit(1)
-			return False
+		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level)
 
 		g_fVBOSupported = self.IsExtensionSupported ("GL_ARB_vertex_buffer_object")
 		
@@ -202,11 +170,12 @@ class Graphics:
 		
 		texture = glGenTextures(1)
 		
-		GL.glBindTexture(GL.GL_TEXTURE_2D, texture)
-		GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, image.get_width(), image.get_height(), 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
-		GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-		GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-		GL.glEnable(GL.GL_TEXTURE_2D)
+		glBindTexture(GL_TEXTURE_2D, texture)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+		glEnable(GL_TEXTURE_2D)
 
 		g_pMesh.nTextureId = texture
 
@@ -217,7 +186,6 @@ class Graphics:
 			glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
 
 			g_fVBOObjects.append(g_pMesh)
-			print g_pMesh.m_nVBOVertices, g_pMesh.m_nVBOTexCoords
 
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOVertices )
 			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
@@ -244,21 +212,20 @@ class Graphics:
 			print "aaa"
 			print g_pMesh.m_pVertices_as_string
 			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
-			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data		
+			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
+
+		glDisable(GL_TEXTURE_2D)
 
 
 
 
 	def initGL(self):		
-					
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
 		glDepthFunc(GL_LEQUAL)
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-		glEnable(GL_TEXTURE_2D)
-		glColor4f (1.0, 6.0, 6.0, 1.0)
 		glViewport (0, 0, 640, 480)
 		glMatrixMode(GL_PROJECTION)
 		
@@ -267,6 +234,22 @@ class Graphics:
 		glLoadIdentity()
 		gluPerspective( 60, 640/480, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
+
+		#Lighting
+		diffuseMaterial = (0.5, 0.5, 0.0, 1.0)
+		mat_specular = (1.0, 1.0, 1.0, 1.0)
+		light_position = (150.0, 0.0, 75.0, 1.0)
+
+		glMaterialfv(GL_FRONT, GL_AMBIENT, diffuseMaterial)
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseMaterial)
+		glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
+		glEnable(GL_LIGHTING)
+		glEnable(GL_LIGHT0)
+
+		glColorMaterial(GL_FRONT, GL_DIFFUSE)
+		glEnable(GL_COLOR_MATERIAL)
+		############
 
 		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
 		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
@@ -331,11 +314,40 @@ class Graphics:
 			self.g_nFrames = 0
 			time.sleep(1.0)
 			
+	def drawAxes(self):
+		""" Draws x, y and z axes """
+		glDisable(GL_LIGHTING)
+		glColor3f(1.0, 0.0, 0.0)
+		glBegin(GL_LINES)
+		glVertex3f(-1000.0, 0.0, 0.0)
+		glVertex3f( 1000.0, 0.0, 0.0)
+		glEnd()
+
+		glColor3f(0.0, 1.0, 0.0)
+		glBegin(GL_LINES)
+		glVertex3f(0.0, -1000.0, 0.0)
+		glVertex3f(0.0,  1000.0, 0.0)
+		glEnd()
+
+		glColor3f(0.0, 0.0, 1.0)
+		glBegin(GL_LINES)
+		glVertex3f(0.0, 0.0, -1000.0)
+		glVertex3f(0.0, 0.0, 1000.0)
+		glEnd()
+		glEnable(GL_LIGHTING)
+
 
 	def draw(self, objects):
 		global g_fVBOSupported, g_fVBOObjects
 
+		glClearColor(0.4, 0.4, 0.4, 0.0)
+
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+
+
+		light_position = (150.0, 0.0, 75.0, 1.0)
+		glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+
 
 		glLoadIdentity()
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
@@ -344,6 +356,10 @@ class Graphics:
 		
 		self.g_nFrames += 1
 		
+		self.drawAxes()
+
+		glColor3f(1.0, 1.0, 1.0)
+		
 
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
@@ -351,8 +367,10 @@ class Graphics:
 
 
 		for i in xrange(len(g_fVBOObjects)):
-			GL.glBindTexture(GL.GL_TEXTURE_2D, g_fVBOObjects[i].nTextureId)
-			GL.glEnable(GL.GL_TEXTURE_2D)
+			#glEnable(GL_BLEND)
+			#glBlendFunc(GL_ONE, GL_ONE)
+			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].nTextureId)
+			glEnable(GL_TEXTURE_2D)
 
 
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOVertices )
@@ -360,6 +378,8 @@ class Graphics:
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
 			glTexCoordPointer(2, GL_FLOAT, 0, None)
 			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
+
+			glDisable(GL_TEXTURE_2D)
 
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
@@ -369,7 +389,7 @@ class Graphics:
 		g_Octree.DrawOctree(g_Octree)
 		Global.g_Debug.RenderDebugLines()
 		
-		glBegin(GL_QUADS);
+		glBegin(GL_QUADS)
 
 
 		x = objects[0].position[0]
