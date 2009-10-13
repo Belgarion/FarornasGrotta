@@ -23,11 +23,9 @@ from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
 from input import *
-#from pyglew import *
 import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
-import Image
 from octree import *
 
 Global.Input = input()
@@ -36,20 +34,6 @@ physics = 0
 objects = []
 
 g_nFrames = 0.0
-
-level = []
-level2 = []
-
-
-width = 0
-height = 0
-texture = 0
-
-NO_VBOS = True
-
-g_fVBOSupported = False
-g_pMesh = None
-g_pMesh2 = None
 
 class TestObject:
 	def __init__(self, name, position):
@@ -93,7 +77,7 @@ graphics.initGL()
 #graphics.addSurface(50, "level2", "grass.jpg")
 #graphics.addSurface(0, "level", "test.bmp")
 graphics.addSurface(50, "Terrain.raw", "grass.jpg")
-graphics.addSurface(0, "Terrain.raw", "test.bmp")
+#graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
 thread.start_new_thread(graphics.printFPS, ())
 

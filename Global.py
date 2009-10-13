@@ -133,6 +133,7 @@ class Global:
 	numberOfVertices = 0
 	vertices = []
 	wireframe = False
+	VBOSupported = False
 
 	g_Debug = CDebug()
 

@@ -8,9 +8,21 @@ import numpy as Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 from octree import *
+import sys
 vertices = []
 
 g_Octree = COctree()
+
+
+def nearestPowerOfTwo(v):
+	v -= 1
+	v |= v >> 1
+	v |= v >> 2
+	v |= v >> 4
+	v |= v >> 8
+	v |= v >> 16
+	v += 1
+	return v
 
 
 def load_level(name):
@@ -73,7 +85,7 @@ class CMesh:
 		self.m_nVBOVertices = None								# // Vertex VBO Name
 		self.m_nVBOTexCoords = None							# // Texture Coordinate VBO Name
 
-	def LoadHeightmap( self, flHeightScale, iLevel):
+	def LoadHeightmap(self, flHeightScale, iLevel, textureWidthRatio, textureHeightRatio):
 		""" Heightmap Loader """
 
 		xMax = xMin = iLevel[0][0]
@@ -95,11 +107,11 @@ class CMesh:
 		nIndex = 0
 		nTIndex = 0
 		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i[0]
+			self.m_pVertices[nIndex, 0] = i[0] 
 			self.m_pVertices[nIndex, 1] = i[1] * flHeightScale + self.position_y
 			self.m_pVertices[nIndex, 2] = i[2]
-			self.m_pTexCoords[nTIndex, 0] = (i[0]-xMin) / sizeX
-			self.m_pTexCoords[nTIndex, 1] = (i[2]-zMin) / sizeY
+			self.m_pTexCoords[nTIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			self.m_pTexCoords[nTIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 			nTIndex += 1
 
@@ -108,7 +120,7 @@ class CMesh:
 
 	def BuildVBOs (self):
 		""" // Generate And Bind The Vertex Buffer """
-		if (g_fVBOSupported):
+		if (Global.VBOSupported):
 			self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
 			# // Load The Data
@@ -130,23 +142,37 @@ class CMesh:
 
 class Graphics:
 	def __init__(self):
-		global g_fVBOSupported, g_fVBOObjects
+		global g_fVBOObjects
 
-		g_fVBOSupported = False
 		g_fVBOObjects = []
 
 		self.g_nFrames = 0
 
 	def addSurface(self, Mesh, Map, Texture):
-		global width, height, g_fVBOSupported, g_fVBOObjects
+		global g_fVBOObjects
 		g_pMesh = CMesh (Mesh)
 		Level = load_level(Map)
 
-		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level)
 
-		g_fVBOSupported = self.IsExtensionSupported ("GL_ARB_vertex_buffer_object")
+		image = pygame.image.load(Texture)
 
-		if (g_fVBOSupported):
+		width = image.get_width()
+		height = image.get_height()
+
+		width = nearestPowerOfTwo(width)
+		height = nearestPowerOfTwo(height)
+
+		textureWidthRatio = float(image.get_width()) / width
+		textureHeightRatio = float(image.get_height()) / height
+
+		if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
+			sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
+			Global.quit = 1
+			return
+
+		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level, textureWidthRatio, textureHeightRatio)
+
+		if (Global.VBOSupported):
 			# // Get Pointers To The GL Functions
 			# In python, calling Init for the extension functions will
 			# fill in the function pointers (really function objects)
@@ -163,15 +189,12 @@ class Graphics:
 			# glDeleteBuffersARB
 			g_pMesh.BuildVBOs()
 
-		image = pygame.image.load(Texture)
-
-		width = image.get_width()
-		height = image.get_height()
-
 		texture = glGenTextures(1)
 
 		glBindTexture(GL_TEXTURE_2D, texture)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.get_width(), image.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
+		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0, image.get_width(), image.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
@@ -180,7 +203,7 @@ class Graphics:
 		g_pMesh.nTextureId = texture
 
 		# // Set Pointers To Our Data
-		if( g_fVBOSupported ):
+		if (Global.VBOSupported):
 			# // Enable Pointers
 			glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
 			glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
@@ -220,6 +243,8 @@ class Graphics:
 
 
 	def initGL(self):
+		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
+
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
 		glDepthFunc(GL_LEQUAL)
@@ -338,7 +363,7 @@ class Graphics:
 
 
 	def draw(self, objects):
-		global g_fVBOSupported, g_fVBOObjects
+		global g_fVBOObjects
 
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
