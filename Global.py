@@ -129,11 +129,14 @@ class CDebug:
 class Global:
 	quit = 0
 	Input = None
+	menu = None
 	Level = [[]]
 	numberOfVertices = 0
 	vertices = []
 	wireframe = False
 	VBOSupported = False
+	mainMenuOpen = True
+	mainMenuRow = 0
 
 	g_Debug = CDebug()
 

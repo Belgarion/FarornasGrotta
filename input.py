@@ -23,6 +23,23 @@ class input:
 
 		self.speed = 250
 
+
+	def handleMainMenuInput(self):
+		for event in pygame.event.get():
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					Global.quit = 1
+				elif event.key == pygame.K_UP:
+					if Global.mainMenuRow > 0: Global.mainMenuRow -= 1
+				elif event.key == pygame.K_DOWN:
+					Global.mainMenuRow += 1
+				elif event.key == pygame.K_RETURN:
+					try:
+						Global.menu.menuEntries[Global.mainMenuRow][1]()
+					except:
+						print "Error running function for menu entry"
+
+
 	def handle_mouse(self):
 		for event in pygame.event.get([pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]):
 			if event.type == pygame.MOUSEMOTION:
@@ -36,6 +53,10 @@ class input:
 		distance_moved = time_passed_seconds * self.speed
 
 		while not Global.quit:
+			if Global.mainMenuOpen:
+				self.handleMainMenuInput()
+				continue
+
 			if self.up_pressed:
 				xrotrad = self.xrot / 180 * math.pi
 				yrotrad = self.yrot / 180 * math.pi

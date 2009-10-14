@@ -14,6 +14,7 @@ import thread
 from Global import *
 from physics import Physics
 from graphics import *
+from menu import *
 
 #OpenGL.FULL_LOGGING = True
 
@@ -32,6 +33,7 @@ import traceback
 from octree import *
 
 Global.Input = input()
+Global.menu = Menu()
 graphics = Graphics()
 physics = 0
 objects = []
@@ -93,12 +95,27 @@ def editpos():
 	Global.Input.yrot = -250
 
 
-t = threading.Timer(2.0, editpos)
-t.start()
-
 thread.start_new_thread(Global.Input.handle_input, ())
 
 fpsTime = 0
+
+
+def startGame():
+	Global.mainMenuOpen = False
+	editpos()
+	physics.lastTime = time.time()
+
+def a():
+	print "a"
+
+def b():
+	print "b"
+
+Global.menu.setBackground("test.bmp")
+Global.menu.addMenuEntry("Start", startGame)
+Global.menu.addMenuEntry(".qjk", a)
+Global.menu.addMenuEntry("aoeu", b)
+
 while not Global.quit:
 	if sys.platform == "win32":
 		if time.time() - fpsTime >= 1.0:
@@ -106,12 +123,9 @@ while not Global.quit:
 			graphics.printFPS()
 		Global.Input.handle_mouse()
 
-	#physics.updateObjects(objects)
-	objects = physics.update()
-	graphics.draw(objects)
-
-	#Print the position every 1000th frame
-	if g_nFrames == 1:
-		#print xpos, ypos, zpos, xrot, yrot
-		pass
+	if Global.mainMenuOpen:
+		Global.menu.draw()
+	else:
+		objects = physics.update()
+		graphics.draw(objects)
 
