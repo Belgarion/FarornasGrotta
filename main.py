@@ -23,7 +23,10 @@ from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
 from input import *
-import numpy as Numeric
+try:
+	import numpy as Numeric
+except:
+	import Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 from octree import *
@@ -77,9 +80,10 @@ graphics.initGL()
 #graphics.addSurface(50, "level2", "grass.jpg")
 #graphics.addSurface(0, "level", "test.bmp")
 graphics.addSurface(50, "Terrain.raw", "grass.jpg")
-#graphics.addSurface(0, "Terrain.raw", "test.bmp")
+graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
-thread.start_new_thread(graphics.printFPS, ())
+if sys.platform != "win32":
+	thread.start_new_thread(graphics.printFPS, ())
 
 def editpos():
 	Global.Input.xpos = -400
@@ -89,13 +93,18 @@ def editpos():
 	Global.Input.yrot = -250
 
 
-
 t = threading.Timer(2.0, editpos)
 t.start()
 
 thread.start_new_thread(Global.Input.handle_input, ())
 
+fpsTime = 0
 while not Global.quit:
+	if sys.platform == "win32":
+		if time.time() - fpsTime >= 1.0:
+			fpsTime = time.time()
+			graphics.printFPS()
+		Global.Input.handle_mouse()
 
 	#physics.updateObjects(objects)
 	objects = physics.update()

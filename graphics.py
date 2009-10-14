@@ -4,7 +4,10 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
-import numpy as Numeric
+try:
+	import numpy as Numeric
+except:
+	import Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 from octree import *
@@ -337,6 +340,7 @@ class Graphics:
 		while True:
 			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 			self.g_nFrames = 0
+			if sys.platform == "win32": break
 			time.sleep(1.0)
 
 	def drawAxes(self):
