@@ -75,6 +75,8 @@ class input:
 							Global.wireframe ^= 1
 						elif event.key == pygame.K_F1:
 							self.keyboardlayout ^= 1
+						elif event.key == pygame.K_F2:
+							Global.debugLines ^= 1
 
 					if event.key == pygame.K_UP:
 						self.up_pressed ^= 1

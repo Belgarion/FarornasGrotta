@@ -5,6 +5,7 @@ from OpenGL import GL
 from OpenGL import GLU
 from Global import *
 
+import math
 
 # The current amount of end nodes in our tree (The nodes with vertices stored in them)
 g_EndNodeCount = 0
@@ -14,10 +15,10 @@ g_TotalNodesDrawn = 0
 
 # The maximum amount of triangles per node.  If a node has equal or less 
 # than this, stop subdividing and store the face indices in that node
-g_MaxTriangles = 1000
+g_MaxTriangles = 100
 
 # The maximum amount of subdivisions allow (Levels of subdivision)
-g_MaxSubdivisions = 4
+g_MaxSubdivisions = 3
 
 # This holds the current amount of subdivisions we are currently at.
 # This is used to make sure we don't go over the max amount
@@ -31,17 +32,17 @@ def Cross(vVector1, vVector2):
 	vNormal = CVector3(0, 0, 0)
 
 	# Calculate the cross product with the non communitive equation
-	vNormal.x = ((vVector1.y * vVector2.z) - (vVector1.z * vVector2.y))
-	vNormal.y = ((vVector1.z * vVector2.x) - (vVector1.x * vVector2.z))
-	vNormal.z = ((vVector1.x * vVector2.y) - (vVector1.y * vVector2.x))
-
+	vNormal0 = ((vVector1[1] * vVector2[2]) - (vVector1[2] * vVector2[1]))
+	vNormal1 = ((vVector1[2] * vVector2[0]) - (vVector1[0] * vVector2[2]))
+	vNormal2 = ((vVector1[0] * vVector2[1]) - (vVector1[1] * vVector2[0]))
+	vNormal = (vNormal0, vNormal1, vNormal2)
 	# Return the cross product
 	return vNormal
 
 # This returns the magnitude of a vector
 def Magnitude(vNormal):
 	# Here is the equation:  magnitude = sqrt(V.x^2 + V.y^2 + V.z^2) : Where V is the vector
-	return sqrt( (vNormal.x * vNormal.x) + (vNormal.y * vNormal.y) + (vNormal.z * vNormal.z) )
+	return math.sqrt( (vNormal[0] * vNormal[0]) + (vNormal[1] * vNormal[1]) + (vNormal[2] * vNormal[2]) )
 
 # This returns a normalized vector
 def Normalize(vVector):
@@ -50,7 +51,7 @@ def Normalize(vVector):
 
 	# Now that we have the magnitude, we can divide our vector by that magnitude.
 	# That will make our vector a total length of 1.  
-	vVector = vVector / magnitude
+	vVector = (vVector[0] / magnitude, vVector[1] / magnitude, vVector[2] / magnitude)
 	
 	# Finally, return our normalized vector
 	return vVector
@@ -139,7 +140,7 @@ class COctree:
 
 		if nodeID == eOctreeNodes[BOTTOM_RIGHT_FRONT]:
 			vNodeCenter = CVector3(vCenter.x + width/4.0, vCenter.y - width/4.0, vCenter.z + width/4.0)
-
+		#Debug print "vnodeCenter:", vNodeCenter.x, vNodeCenter.y, vNodeCenter.z
 		return vNodeCenter
 
 
@@ -190,6 +191,7 @@ class COctree:
 		# because we are calculating from the center of the scene.
 		maxWidth = maxHeigh = maxDepth = maxDepth*2
 
+		
 		# Check if the width is the highest value and assign that for the cube dimension
 		if maxWidth > maxHeight and maxWidth > maxDepth:
 			self.m_Width = maxWidth
@@ -246,14 +248,14 @@ class COctree:
 
 
 	def CreateNode(self, pVertices, numberOfVerts, vCenter, width):
-		print "HEJ"
+		
 		# This is our main function that creates the octree.  We will recurse through
 		# this function until we finish subdividing.  Either this will be because we
 		# subdivided too many levels or we divided all of the triangles up.
 
 		# Create a variable to hold the number of triangles
 		numberOfTriangles = numberOfVerts / 3
-
+		#Debug print numberOfTriangles, "trianglar"
 		# Initialize this node's center point.  Now we know the center of this node.
 		m_vCenter = vCenter
 
@@ -263,9 +265,8 @@ class COctree:
 		# Add the current node to our debug rectangle list so we can visualize it.
 		# We can now see this node visually as a cube when we render the rectangles.
 		# Since it's a cube we pass in the width for width, height and depth.
-		print vCenter.x,vCenter.y,vCenter.z, width, width, width
 		Global.g_Debug.AddDebugRectangle(vCenter, width, width, width)
-
+		
 		# Check if we have too many triangles in this node and we haven't subdivided
 		# above our max subdivisions.  If so, then we need to break this node into
 		# 8 more nodes (hence the word OCTree).  Both must be True to divide this node.
@@ -287,14 +288,26 @@ class COctree:
 			# in this tutorial just to keep it simple, but the next tutorial we will.
 
 			# Create the list of booleans for each triangle index
-			pList1 = []	 # TOP_LEFT_FRONT node list
-			pList2 = []	 # TOP_LEFT_BACK node list
-			pList3 = []	 # TOP_RIGHT_BACK node list
-			pList4 = []	 # TOP_RIGHT_FRONT node list
-			pList5 = []	 # BOTTOM_LEFT_FRONT node list
-			pList6 = []	 # BOTTOM_LEFT_BACK node list
-			pList7 = []	 # BOTTOM_RIGHT_BACK node list
-			pList8 = []	 # BOTTOM_RIGHT_FRONT node list
+
+			
+			pList1 = []
+			pList2 = []
+			pList3 = []
+			pList4 = []
+			pList5 = []
+			pList6 = []
+			pList7 = []
+			pList8 = []
+
+			for i in xrange(numberOfTriangles):
+				pList1.append(False)	 # TOP_LEFT_FRONT node list
+				pList2.append(False)	 # TOP_LEFT_BACK node list
+				pList3.append(False)	 # TOP_RIGHT_BACK node list
+				pList4.append(False)	 # TOP_RIGHT_FRONT node list
+				pList5.append(False)	 # BOTTOM_LEFT_FRONT node list
+				pList6.append(False)	 # BOTTOM_LEFT_BACK node list
+				pList7.append(False)	 # BOTTOM_RIGHT_BACK node list
+				pList8.append(False)	 # BOTTOM_RIGHT_FRONT node list
 		
 			# Go through all of the vertices and check which node they belong too.  The way
 			# we do this is use the center of our current node and check where the point
@@ -312,51 +325,36 @@ class COctree:
 
 				# Check if the point lines within the TOP LEFT FRONT node
 				if vPoint[0] <= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] >= vCenter.z:
-					pList1.append(True)
-				else:
-					pList1.append(False)
+					pList1[i/3] = True
+				
 
 				# Check if the point lines within the TOP LEFT BACK node
 				if vPoint[0] <= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] <= vCenter.z:
-					pList2.append(True)
-				else:
-					pList2.append(False)
+					pList2[i/3] = True
 
 				# Check if the point lines within the TOP RIGHT BACK node
 				if vPoint[0] >= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] <= vCenter.z:
-					pList3.append(True)
-				else:
-					pList3.append(False)
+					pList3[i/3] = True
 
 				# Check if the point lines within the TOP RIGHT FRONT node
 				if vPoint[0] >= vCenter.x and vPoint[1] >= vCenter.y and vPoint[2] >= vCenter.z:
-					pList4.append(True)
-				else:
-					pList4.append(False)
+					pList4[i/3] = True
 
 				# Check if the point lines within the BOTTOM LEFT FRONT node
 				if vPoint[0] <= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] >= vCenter.z:
-					pList5.append(True)
-				else:
-					pList5.append(False)
+					pList5[i/3] = True
 
 				# Check if the point lines within the BOTTOM LEFT BACK node
 				if vPoint[0] <= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] <= vCenter.z:
-					pList6.append(True)
-				else:
-					pList6.append(False)
+					pList6[i/3] = True
 
 				# Check if the point lines within the BOTTOM RIGHT BACK node
 				if vPoint[0] >= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] <= vCenter.z:
-					pList7.append(True)
-				else:
-					pList7.append(False)
+					pList7[i/3] = True
 
 				# Check if the point lines within the BOTTOM RIGHT FRONT node
 				if vPoint[0] >= vCenter.x and vPoint[1] <= vCenter.y and vPoint[2] >= vCenter.z:
-					pList8.append(True)
-				else:
-					pList8.append(False)
+					pList8[i/3] = True
 
 
 			# Here we create a variable for each list that holds how many triangles
@@ -477,15 +475,20 @@ class COctree:
 
 				# Go through all of the vertices (the number of triangles * 3)
 				i = 0
-				while i < pNode.GetTriangleCount() * 3:
+				while i < 4608 * 3:
 					# Before we render the vertices we want to calculate the face normal
 					# of the current polygon.  That way when lighting is turned on we can
 					# see the definition of the terrain more clearly.  In reality you wouldn't do this.
 					
-					# Here we get a vector from each side of the triangle
-					vVector1 = pVertices[i + 1] - pVertices[i]
-					vVector2 = pVertices[i + 2] - pVertices[i]
 
+					vertices = Global.vertices
+					# Here we get a vector from each side of the triangle
+					#vVector1 = vertices[i + 1] - vertices[i]
+					#vVector2 = vertices[i + 2] - vertices[i]
+					
+					#Haxx instead of the two upper lines
+					vVector1 = (vertices[i+1][0] - vertices[i][0], vertices[i+1][1] - vertices[i][1], vertices[i+1][2] - vertices[i][2])
+					vVector2 = (vertices[i+2][0] - vertices[i][0], vertices[i+2][1] - vertices[i][1], vertices[i+2][2] - vertices[i][2])
 					# Then we need to get the cross product of those 2 vectors (The normal's direction)
 					vNormal = Cross(vVector1, vVector2)
 
@@ -493,16 +496,16 @@ class COctree:
 					vNormal = Normalize(vNormal)
 
 					# Pass in the normal for this triangle so we can see better depth in the scene
-					glNormal3f(vNormal.x, vNormal.y, vNormal.z)
+					glNormal3f(vNormal[0], vNormal[1], vNormal[2])
 
 					# Render the first point in the triangle
-					glVertex3f(pVertices[i].x, pVertices[i].y, pVertices[i].z)
+					glVertex3f(vertices[i][0], vertices[i][1], vertices[i][2])
 
 					# Render the next point in the triangle
-					glVertex3f(pVertices[i + 1].x, pVertices[i + 1].y, pVertices[i + 1].z)
+					glVertex3f(vertices[i + 1][0], vertices[i + 1][1], vertices[i + 1][2])
 
 					# Render the last point in the triangle to form the current triangle
-					glVertex3f(pVertices[i + 2].x, pVertices[i + 2].y, pVertices[i + 2].z)
+					glVertex3f(vertices[i + 2][0], vertices[i + 2][1], vertices[i + 2][2])
 
 					i += 3
 

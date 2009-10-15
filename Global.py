@@ -45,16 +45,15 @@ class CDebug:
 
 		# Below we create all the 8 points so it will be easier to input the lines
 		# of the cube.  With the dimensions we calculate the points.
-		vTopLeftFront = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z + depth)
-		vTopLeftBack = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z - depth)
-		vTopRightBack = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z - depth)
-		vTopRightFront = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z + depth)
+		vTopLeftFront =  vCenter.x - width, vCenter.y + height, vCenter.z + depth
+		vTopLeftBack = vCenter.x - width, vCenter.y + height, vCenter.z - depth
+		vTopRightBack = vCenter.x + width, vCenter.y + height, vCenter.z - depth
+		vTopRightFront = vCenter.x + width, vCenter.y + height, vCenter.z + depth
 
-		vBottom_LeftFront = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z + depth)
-		vBottom_LeftBack = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightBack = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightFront = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z + depth)
-
+		vBottom_LeftFront =  vCenter.x - width, vCenter.y - height, vCenter.z + depth
+		vBottom_LeftBack =  vCenter.x - width, vCenter.y - height, vCenter.z - depth
+		vBottomRightBack =  vCenter.x + width, vCenter.y - height, vCenter.z - depth
+		vBottomRightFront =  vCenter.x + width, vCenter.y - height, vCenter.z + depth
 
 		## TOP LINES
 		self.m_vLines.append(vTopLeftFront)
@@ -113,7 +112,7 @@ class CDebug:
 		# Go through the whole list of lines stored in the vector m_vLines.
 		for i in xrange(len(self.m_vLines)):
 			# Pass in the current point to be rendered as part of a line
-			glVertex3f(self.m_vLines[i].x, self.m_vLines[i].y, self.m_vLines[i].z)
+			glVertex3f(self.m_vLines[i][0], self.m_vLines[i][1], self.m_vLines[i][2])
 
 		# Stop rendering lines
 		glEnd()
@@ -137,5 +136,7 @@ class Global:
 
 	g_Debug = CDebug()
 
+	debugLines = False
+	
 	# Turn lighting on initially
 	g_bLighting = 1

@@ -104,6 +104,7 @@ class CMesh:
 		sizeY = zMax - zMin
 
 		self.m_nVertexCount = len(iLevel)
+		
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f')	# // Vertex Data
 		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f')	# // Texture Coordinates
 
@@ -154,7 +155,7 @@ class Graphics:
 	def addSurface(self, Mesh, Map, Texture):
 		global g_fVBOObjects
 		g_pMesh = CMesh (Mesh)
-		Level = load_level(Map)
+		Level = Global.level
 
 
 		image = pygame.image.load(Texture)
@@ -281,6 +282,8 @@ class Graphics:
 
 		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
 		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
+	
+
 		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), 100)
 
 		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
@@ -390,8 +393,6 @@ class Graphics:
 
 		self.g_nFrames += 1
 
-		self.drawAxes()
-
 		glColor3f(1.0, 1.0, 1.0)
 
 
@@ -419,9 +420,11 @@ class Graphics:
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 
-
-		g_Octree.DrawOctree(g_Octree)
-		Global.g_Debug.RenderDebugLines()
+		#We got another thing to draw
+		#g_Octree.DrawOctree(g_Octree)
+		if Global.debugLines:
+			Global.g_Debug.RenderDebugLines()
+			self.drawAxes()
 
 		glBegin(GL_QUADS)
 

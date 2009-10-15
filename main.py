@@ -72,6 +72,11 @@ def init():
 	objects.append(monster)
 	physics = Physics(objects)
 
+	print "F1 for switch between Qwerty and Dvorak"
+	print "F2 for switch debugLines"
+	print "F7 for switch wireframe"
+	print "WASD to move. Mouse to look."
+
 
 
 init()
@@ -79,8 +84,8 @@ graphics.initGL()
 
 #graphics.addSurface(50, "level2", "grass.jpg")
 #graphics.addSurface(0, "level", "test.bmp")
-graphics.addSurface(50, "Terrain.raw", "grass.jpg")
-graphics.addSurface(0, "Terrain.raw", "test.bmp")
+graphics.addSurface(0, "Terrain.raw", "grass.jpg")
+#graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
 if sys.platform != "win32":
 	thread.start_new_thread(graphics.printFPS, ())
@@ -109,9 +114,5 @@ while not Global.quit:
 	#physics.updateObjects(objects)
 	objects = physics.update()
 	graphics.draw(objects)
-
-	#Print the position every 1000th frame
-	if g_nFrames == 1:
-		#print xpos, ypos, zpos, xrot, yrot
-		pass
-
+	
+	
