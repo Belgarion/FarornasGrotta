@@ -255,7 +255,7 @@ class Graphics:
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60, 640/480, 0.1, 5000.0)
+		gluPerspective( 60, 640.0/480.0, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting

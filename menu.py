@@ -8,6 +8,7 @@ try:
 	import numpy as Numeric
 except:
 	import Numeric
+from font import Font
 
 class Menu:
 	def __init__(self):
@@ -16,6 +17,10 @@ class Menu:
 		self.verticesId = None
 		self.texCoordsId = None
 		self.menuEntries = []
+		self.font = None
+	
+	def init_font(self):
+		self.font = Font()
 
 	def setBackground(self, filename):
 		image = pygame.image.load(filename)
@@ -34,8 +39,8 @@ class Menu:
 			vertices = Numeric.zeros((4, 3), 'f')
 			vertices[1, 0] = 640.0
 			vertices[2, 0] = 640.0
-			vertices[2, 1] = 640.0
-			vertices[3, 1] = 640.0
+			vertices[2, 1] = 480.0
+			vertices[3, 1] = 480.0
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
@@ -96,7 +101,7 @@ class Menu:
 
 
 		glLoadIdentity()
-		glTranslated(-320.0, -320.0, -555.0)
+		glTranslated(-320.0, -240.0, -410.0)
 
 		glColor3f(1.0, 1.0, 1.0)
 
@@ -132,14 +137,18 @@ class Menu:
 				glColor3f(1.0, 0.0, 0.0)
 
 			glBegin(GL_QUADS)
-			glVertex3f(50.0,  640 - 60.0*row, 1.0)
-			glVertex3f(590.0, 640 - 60.0*row, 1.0)
-			glVertex3f(590.0, 640 - 60.0*row + 50, 1.0)
-			glVertex3f(50.0,  640 - 60.0*row + 50, 1.0)
+			glVertex3f(50.0,  480 - 50.0*row, 1.0)
+			glVertex3f(590.0, 480 - 50.0*row, 1.0)
+			glVertex3f(590.0, 480 - 50.0*row + 40, 1.0)
+			glVertex3f(50.0,  480 - 50.0*row + 40, 1.0)
 			glEnd()
+
+			glColor3f(1.0, 1.0, 0.0)
+			self.font.glPrint(50.0, 480.0 - 50.0*row, entry[0])
 
 			i += 1
 			row += 1
+
 
 		glEnable(GL_LIGHTING)
 

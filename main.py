@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python -OO
 # -*- coding: utf-8 -*-
 import sys
 import time
@@ -78,11 +78,13 @@ def init():
 
 init()
 graphics.initGL()
+Global.menu.init_font()
 
 #graphics.addSurface(50, "level2", "grass.jpg")
 #graphics.addSurface(0, "level", "test.bmp")
-graphics.addSurface(50, "Terrain.raw", "grass.jpg")
-graphics.addSurface(0, "Terrain.raw", "test.bmp")
+#graphics.addSurface(50, "Terrain.raw", "grass.jpg")
+graphics.addSurface(0, "Terrain.raw", "grass.jpg")
+#graphics.addSurface(0, "skydome.raw", "test.bmp")
 
 if sys.platform != "win32":
 	thread.start_new_thread(graphics.printFPS, ())
