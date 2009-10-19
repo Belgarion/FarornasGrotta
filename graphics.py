@@ -12,10 +12,6 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 from octree import *
 import sys
-vertices = []
-
-g_Octree = COctree()
-
 
 def nearestPowerOfTwo(v):
 	v -= 1
@@ -28,31 +24,20 @@ def nearestPowerOfTwo(v):
 	return v
 
 
-def load_level(name):
-	f = open(name, "r")
-	lines = f.readlines()
-	f.close()
-	level = []
-	#x = 0
-	#y = 0
-	for line in lines:
-		pos = line.rsplit(" ")
-		if len(pos) < 2:
-			continue
-		level.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
-		Global.vertices.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
-		Global.numberOfVertices += 1
-		#line2 = []
-		#for i in line.rsplit(" "):
-		#	line2.append(float(i.replace("\n", "")))
-		#	y+=1
-		#	Global.vertices.append( (float(x), float(i.replace("\n","")), float(y)) )
-		#	Global.numberOfVertices += 1
-		#level.append(line2)
-		#x+=1
-		#y = 0
+def load_level(level):
+	WholeMap = []	
 
-	return level
+	level = open(level, "r")
+	for line in level:
+		temp = line.split(" ")
+		temp[2] = temp[2].replace("\r\n", "")
+
+		Global.vertices.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
+		WholeMap.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
+		Global.g_NumberOfVerts += 1
+	
+	level.close()
+	return WholeMap
 
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
@@ -91,14 +76,14 @@ class CMesh:
 	def LoadHeightmap(self, flHeightScale, iLevel, textureWidthRatio, textureHeightRatio):
 		""" Heightmap Loader """
 
-		xMax = xMin = iLevel[0][0]
-		zMax = zMin = iLevel[0][2]
+		xMax = xMin = iLevel[0].x
+		zMax = zMin = iLevel[0].z
 		for i in iLevel:
-			if i[0] < xMin: xMin = i[0]
-			elif i[0] > xMax: xMax = i[0]
+			if i.x < xMin: xMin = i.x
+			elif i.x > xMax: xMax = i.x
 
-			if i[2] < zMin: zMin = i[2]
-			elif i[2] > zMax: zMax = i[2]
+			if i.z < zMin: zMin = i.z
+			elif i.z > zMax: zMax = i.z
 
 		sizeX = xMax - xMin
 		sizeY = zMax - zMin
@@ -111,11 +96,11 @@ class CMesh:
 		nIndex = 0
 		nTIndex = 0
 		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i[0] 
-			self.m_pVertices[nIndex, 1] = i[1] * flHeightScale + self.position_y
-			self.m_pVertices[nIndex, 2] = i[2]
-			self.m_pTexCoords[nTIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
-			self.m_pTexCoords[nTIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			self.m_pVertices[nIndex, 0] = i.x 
+			self.m_pVertices[nIndex, 1] = i.y * flHeightScale + self.position_y
+			self.m_pVertices[nIndex, 2] = i.z
+			self.m_pTexCoords[nTIndex, 0] = (i.x-xMin) / sizeX * textureWidthRatio
+			self.m_pTexCoords[nTIndex, 1] = (i.z-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 			nTIndex += 1
 
@@ -149,8 +134,9 @@ class Graphics:
 		global g_fVBOObjects
 
 		g_fVBOObjects = []
-
 		self.g_nFrames = 0
+
+		self.g_Octree = COctree()
 
 	def addSurface(self, Mesh, Map, Texture):
 		global g_fVBOObjects
@@ -280,13 +266,9 @@ class Graphics:
 		glEnable(GL_COLOR_MATERIAL)
 		############
 
-		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
-		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
-	
+		self.g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
+		self.g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
 
-		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), 100)
-
-		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
 		#Global.g_Debug.RenderDebugLines()
 
 
@@ -372,9 +354,25 @@ class Graphics:
 	def draw(self, objects):
 		global g_fVBOObjects
 
-		glClearColor(0.4, 0.4, 0.4, 0.0)
+		if Global.reDraw:
+			Global.g_EndNodeCount = 0
+			Global.g_Debug.Clear()
+			self.g_Octree.DestroyOctree()
+			self.g_Octree.GetSceneDimensions(Global.vertices, Global.g_NumberOfVerts)
+			self.g_Octree.CreateNode(Global.vertices, Global.g_NumberOfVerts, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
+			Global.reDraw = False
 
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
+
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+		glLoadIdentity()
+
+		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
+		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
+		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
+		
+		self.g_nFrames += 1
+
+		glClearColor(0.4, 0.4, 0.4, 0.0)
 
 		if Global.wireframe:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -385,13 +383,6 @@ class Graphics:
 		light_position = (150.0, 0.0, 75.0, 1.0)
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
-
-		glLoadIdentity()
-		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
-		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
-		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
-
-		self.g_nFrames += 1
 
 		glColor3f(1.0, 1.0, 1.0)
 
@@ -420,14 +411,16 @@ class Graphics:
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 
-		#We got another thing to draw
-		#g_Octree.DrawOctree(g_Octree)
-		if Global.debugLines:
-			Global.g_Debug.RenderDebugLines()
-			self.drawAxes()
+		# Here we draw the octree, starting with the root node and recursing down each node.
+		# When we get to each of the end nodes we will draw the vertices assigned to them.
+		self.g_Octree.DrawOctree(self.g_Octree)
+
+		# Render the cube'd nodes to visualize the octree (in wire frame mode)
+		Global.g_Debug.RenderDebugLines()
+
+
 
 		glBegin(GL_QUADS)
-
 
 		x = objects[0].position[0]
 		y = objects[0].position[1]

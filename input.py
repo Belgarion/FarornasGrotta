@@ -2,7 +2,7 @@ import pygame
 import math
 import sys
 import time
-from Global import Global
+from Global import *
 
 class input:
 	def __init__(self):
@@ -77,6 +77,14 @@ class input:
 							self.keyboardlayout ^= 1
 						elif event.key == pygame.K_F2:
 							Global.debugLines ^= 1
+						elif event.key == pygame.K_e:
+							if Global.g_MaxSubdivisions < 4:
+								Global.g_MaxSubdivisions += 1
+								Global.reDraw = True
+						elif event.key == pygame.K_q:
+							if Global.g_MaxSubdivisions > 0:
+								Global.g_MaxSubdivisions -= 1
+								Global.reDraw = True
 
 					if event.key == pygame.K_UP:
 						self.up_pressed ^= 1
