@@ -113,7 +113,7 @@ def a():
 def b():
 	print "b"
 
-Global.menu.setBackground("test.bmp")
+Global.menu.setBackground("IMG_1133.jpg")
 Global.menu.addMenuEntry("Start", startGame)
 Global.menu.addMenuEntry(".qjk", a)
 Global.menu.addMenuEntry("aoeu", b)

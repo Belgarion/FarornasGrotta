@@ -128,7 +128,7 @@ class Menu:
 		if Global.mainMenuRow > len(self.menuEntries)  - 1:
 			Global.mainMenuRow = len(self.menuEntries) - 1
 
-		row = 2
+		row = 7
 		i = 0
 		for entry in self.menuEntries:
 			if Global.mainMenuRow == i:
@@ -136,15 +136,15 @@ class Menu:
 			else:
 				glColor3f(1.0, 0.0, 0.0)
 
-			glBegin(GL_QUADS)
-			glVertex3f(50.0,  480 - 50.0*row, 1.0)
-			glVertex3f(590.0, 480 - 50.0*row, 1.0)
-			glVertex3f(590.0, 480 - 50.0*row + 40, 1.0)
-			glVertex3f(50.0,  480 - 50.0*row + 40, 1.0)
+			"""glBegin(GL_QUADS)
+			glVertex3f(240.0,  480 - 50.0*row, 1.0)
+			glVertex3f(400.0, 480 - 50.0*row, 1.0)
+			glVertex3f(400.0, 480 - 50.0*row + 40, 1.0)
+			glVertex3f(240.0,  480 - 50.0*row + 40, 1.0)
 			glEnd()
 
-			glColor3f(1.0, 1.0, 0.0)
-			self.font.glPrint(50.0, 480.0 - 50.0*row, entry[0])
+			glColor3f(1.0, 1.0, 0.0)"""
+			self.font.glPrint(320.0, 480.0 - 50.0*row, entry[0])
 
 			i += 1
 			row += 1
