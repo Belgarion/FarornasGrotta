@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python -OO
 # -*- coding: utf-8 -*-
 import sys
 import time
@@ -14,6 +14,7 @@ import thread
 from Global import *
 from physics import Physics
 from graphics import *
+from menu import *
 
 #OpenGL.FULL_LOGGING = True
 
@@ -32,6 +33,7 @@ import traceback
 from octree import *
 
 Global.Input = input()
+Global.menu = Menu()
 graphics = Graphics()
 physics = 0
 objects = []
@@ -77,6 +79,7 @@ def init():
 
 init()
 graphics.initGL()
+Global.menu.init_font()
 
 graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
@@ -86,6 +89,24 @@ if sys.platform != "win32":
 thread.start_new_thread(Global.Input.handle_input, ())
 
 fpsTime = 0
+
+
+def startGame():
+	Global.mainMenuOpen = False
+	editpos()
+	physics.lastTime = time.time()
+
+def a():
+	print "a"
+
+def b():
+	print "b"
+
+Global.menu.setBackground("IMG_1133.jpg")
+Global.menu.addMenuEntry("Start", startGame)
+Global.menu.addMenuEntry(".qjk", a)
+Global.menu.addMenuEntry("aoeu", b)
+
 while not Global.quit:
 	if sys.platform == "win32":
 		if time.time() - fpsTime >= 1.0:
@@ -93,8 +114,8 @@ while not Global.quit:
 			graphics.printFPS()
 		Global.Input.handle_mouse()
 
-	#physics.updateObjects(objects)
-	objects = physics.update()
-	graphics.draw(objects)
-	
-	
+	if Global.mainMenuOpen:
+		Global.menu.draw()
+	else:
+		objects = physics.update()
+		graphics.draw(objects)

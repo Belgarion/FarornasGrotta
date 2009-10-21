@@ -1,0 +1,5 @@
+Libraries needed:
+pygame ( http://www.pygame.org/ )
+pyopengl ( http://pyopengl.sourceforge.net/ )
+imaging ( http://www.pythonware.com/products/pil/index.htm )
+numpy ( http://numpy.scipy.org/ )

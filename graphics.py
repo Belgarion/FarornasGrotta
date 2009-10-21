@@ -145,11 +145,8 @@ class Graphics:
 
 		image = pygame.image.load(Texture)
 
-		width = image.get_width()
-		height = image.get_height()
-
-		width = nearestPowerOfTwo(width)
-		height = nearestPowerOfTwo(height)
+		width = nearestPowerOfTwo(image.get_width())
+		height = nearestPowerOfTwo(image.get_height())
 
 		textureWidthRatio = float(image.get_width()) / width
 		textureHeightRatio = float(image.get_height()) / height
@@ -221,7 +218,6 @@ class Graphics:
 			#
 			# The faster approach is to make use of an opaque "string" that represents the
 			# the data (vertex array and tex coordinates in this case).
-			print "aaa"
 			print g_pMesh.m_pVertices_as_string
 			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
 			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
@@ -246,7 +242,7 @@ class Graphics:
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60, 640/480, 0.1, 5000.0)
+		gluPerspective( 60, 640.0/480.0, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting
