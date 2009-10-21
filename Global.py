@@ -141,9 +141,6 @@ class Global:
 	
 	g_NumberOfVerts = 0
 
-	# Turn lighting on initially
-	g_bLighting = 1
-
 	# The current amount of end nodes in our tree (The nodes with vertices stored in them)
 	g_EndNodeCount = 0
 
@@ -167,7 +164,7 @@ class Global:
 	# Turn lighting on initially
 	g_bLighting = 1
 
-	debugLines = True
+	g_bDebugLines = 1
 	numberOfVertices = 0
 	wireframe = False
 	VBOSupported = False

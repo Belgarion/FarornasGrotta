@@ -56,17 +56,12 @@ class GameObject:
 def init():
 	global physics
 	pygame.init()
-	pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
-
-	global level, level2
+	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
 
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
-
-
-	Global.level = load_level("Terrain.raw")
 
 	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
 	objects.append(monster)
@@ -75,31 +70,18 @@ def init():
 	print "F1 for switch between Qwerty and Dvorak"
 	print "F2 for switch debugLines"
 	print "F7 for switch wireframe"
-	print "WASD to move. Mouse to look."
+	print "+/- to increase/decrease number of debug-lines level"
+	print "WASD to move. Mouse to look"
 
 
 
 init()
 graphics.initGL()
 
-#graphics.addSurface(50, "level2", "grass.jpg")
-#graphics.addSurface(0, "level", "test.bmp")
-graphics.addSurface(0, "Terrain.raw", "grass.jpg")
-#graphics.addSurface(0, "Terrain.raw", "test.bmp")
+graphics.addSurface(0, "Terrain.raw", "test.bmp")
 
 if sys.platform != "win32":
 	thread.start_new_thread(graphics.printFPS, ())
-
-def editpos():
-	Global.Input.xpos = -400
-	Global.Input.ypos = 360
-	Global.Input.zpos = -45
-	Global.Input.xrot = -333
-	Global.Input.yrot = -250
-
-
-t = threading.Timer(2.0, editpos)
-t.start()
 
 thread.start_new_thread(Global.Input.handle_input, ())
 

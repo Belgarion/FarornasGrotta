@@ -23,7 +23,6 @@ def nearestPowerOfTwo(v):
 	v += 1
 	return v
 
-
 def load_level(level):
 	WholeMap = []	
 
@@ -108,7 +107,7 @@ class CMesh:
 		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring ()
 
 	def BuildVBOs (self):
-		""" // Generate And Bind The Vertex Buffer """
+		""" Generate And Bind The Vertex Buffer """
 		if (Global.VBOSupported):
 			self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
@@ -123,8 +122,6 @@ class CMesh:
 
 			# // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card
 			self.m_pVertices = None
-			self.m_pVertices = None
-			self.m_pTexCoords = None
 			self.m_pTexCoords = None
 		return
 
@@ -141,8 +138,10 @@ class Graphics:
 	def addSurface(self, Mesh, Map, Texture):
 		global g_fVBOObjects
 		g_pMesh = CMesh (Mesh)
-		Level = Global.level
+		Level = load_level(Map)
 
+		self.g_Octree.GetSceneDimensions(Level, Global.numberOfVertices)
+		self.g_Octree.CreateNode(Level, Global.numberOfVertices, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
 
 		image = pygame.image.load(Texture)
 
@@ -266,11 +265,6 @@ class Graphics:
 		glEnable(GL_COLOR_MATERIAL)
 		############
 
-		self.g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
-		self.g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
-
-		#Global.g_Debug.RenderDebugLines()
-
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -315,7 +309,7 @@ class Graphics:
 			print "PyOpenGL supports '%s'" % (TargetExtension)
 		except:
 			traceback.print_exc()
-			print 'Failed to import', extension_module_name
+			print "Failed to import", extension_module_name
 			print "OpenGL rendering context supports '%s'" % (TargetExtension),
 			return False
 
@@ -411,59 +405,64 @@ class Graphics:
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 
-		# Here we draw the octree, starting with the root node and recursing down each node.
-		# When we get to each of the end nodes we will draw the vertices assigned to them.
-		self.g_Octree.DrawOctree(self.g_Octree)
-
-		# Render the cube'd nodes to visualize the octree (in wire frame mode)
-		Global.g_Debug.RenderDebugLines()
 
 
 
-		glBegin(GL_QUADS)
+		if Global.g_MaxSubdivisions:
+			# Here we draw the octree, starting with the root node and recursing down each node.
+			# When we get to each of the end nodes we will draw the vertices assigned to them.
+			self.g_Octree.DrawOctree(self.g_Octree)
+			
+			if Global.g_bDebugLines:
+				# Render the cube'd nodes to visualize the octree (in wire frame mode)
+				Global.g_Debug.RenderDebugLines()
 
-		x = objects[0].position[0]
-		y = objects[0].position[1]
-		z = objects[0].position[2]
 
 
-		glColor3f(0.0,1.0,0.0)
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Bottom Left Of The Quad (Top)
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Bottom Right Of The Quad (Top)
+#		glBegin(GL_QUADS)
 
-		glColor3f(1.0,0.5,0.0);			# Set The Color To Orange
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Top Right Of The Quad (Bottom)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Top Left Of The Quad (Bottom)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Bottom)
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Bottom)
+#		x = objects[0].position[0]
+#		y = objects[0].position[1]
+#		z = objects[0].position[2]
 
-		glColor3f(1.0,0.0,0.0);			# Set The Color To Red
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Front)
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Front)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Front)
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Front)
 
-		glColor3f(1.0,1.0,0.0);			# Set The Color To Yellow
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Back)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Back)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Back)
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Back)
-
-		glColor3f(0.0,0.0,1.0);			# Set The Color To Blue
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Left)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Left)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Left)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Left)
-
-		glColor3f(1.0,0.0,1.0);			# Set The Color To Violet
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Right)
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Right)
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Right)
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Right)
-		glColor3f(1.0, 1.0, 1.0)
-		glEnd();				# Done Drawing The Quad
+#		glColor3f(0.0,1.0,0.0)
+#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
+#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)
+#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Bottom Left Of The Quad (Top)
+#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Bottom Right Of The Quad (Top)
+#
+#		glColor3f(1.0,0.5,0.0);			# Set The Color To Orange
+#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Top Right Of The Quad (Bottom)
+#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Top Left Of The Quad (Bottom)
+#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Bottom)
+#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Bottom)
+#
+#		glColor3f(1.0,0.0,0.0);			# Set The Color To Red
+#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Front)
+#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Front)
+#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Front)
+#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Front)
+#
+#		glColor3f(1.0,1.0,0.0);			# Set The Color To Yellow
+#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Back)
+#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Back)
+#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Back)
+#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Back)
+#
+#		glColor3f(0.0,0.0,1.0);			# Set The Color To Blue
+#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Left)
+#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Left)
+#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Left)
+#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Left)
+#
+#		glColor3f(1.0,0.0,1.0);			# Set The Color To Violet
+#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Right)
+#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Right)
+#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Right)
+#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Right)
+#		glColor3f(1.0, 1.0, 1.0)
+#		glEnd();				# Done Drawing The Quad
 
 		glFlush()
 

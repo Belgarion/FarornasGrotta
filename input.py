@@ -76,12 +76,11 @@ class input:
 						elif event.key == pygame.K_F1:
 							self.keyboardlayout ^= 1
 						elif event.key == pygame.K_F2:
-							Global.debugLines ^= 1
-						elif event.key == pygame.K_e:
-							if Global.g_MaxSubdivisions < 4:
-								Global.g_MaxSubdivisions += 1
-								Global.reDraw = True
-						elif event.key == pygame.K_q:
+							Global.g_bDebugLines ^= 1
+						elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
+							Global.g_MaxSubdivisions += 1
+							Global.reDraw = True
+						elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
 							if Global.g_MaxSubdivisions > 0:
 								Global.g_MaxSubdivisions -= 1
 								Global.reDraw = True
