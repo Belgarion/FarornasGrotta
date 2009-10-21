@@ -398,7 +398,7 @@ class COctree:
 		# CubeInFrustum() function.  This will return "True" if it is inside the frustum 
 		# (camera's view), otherwise return false.  
 		#elif(g_Frustum.CubeInFrustum(pNode.m_vCenter.x, pNode.m_vCenter.y, pNode.m_vCenter.z, pNode.m_Width / 2) or 1):
-		else:			# Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
+		else:			# Check if this node is subdivided. If so, then we need to recurse and draw it's nodes
 			if pNode.IsSubDivided():
 				# Recurse to the bottom of these nodes and draw the end node's vertices
 				# Like creating the octree, we need to recurse through each of the 8 nodes.
@@ -461,7 +461,7 @@ class COctree:
 					i += 3
 
 				# Quit Drawing
-				glEnd();
+				glEnd()
 
 	def DestroyOctree(self):
 		# Free the triangle data if it's not NULL
