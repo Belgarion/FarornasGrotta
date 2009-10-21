@@ -29,7 +29,7 @@ def load_level(level):
 	level = open(level, "r")
 	for line in level:
 		temp = line.split(" ")
-		temp[2] = temp[2].replace("\r\n", "")
+		#temp[2] = temp[2].replace("\r\n", "")
 
 		Global.vertices.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
 		WholeMap.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
@@ -179,53 +179,19 @@ class Graphics:
 
 		glBindTexture(GL_TEXTURE_2D, texture)
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
-		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0, image.get_width(), image.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-		glEnable(GL_TEXTURE_2D)
+		
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT )
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT )
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
+		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0, image.get_width(), image.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 
 		g_pMesh.nTextureId = texture
 
-		# // Set Pointers To Our Data
-		if (Global.VBOSupported):
-			# // Enable Pointers
-			glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-			glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
-
-			g_fVBOObjects.append(g_pMesh)
-
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOVertices )
-			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOTexCoords )
-			glTexCoordPointer( 2, GL_FLOAT, 0, None )				# // Set The TexCoord Pointer To The TexCoord Buffer
-
-			glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-			glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
-
-		else:
-			# You can use the pythonism glVertexPointerf (), which will convert the numarray into
-			# the needed memory for VertexPointer. This has two drawbacks however:
-			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44
-			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
-			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
-			# regarding glXPointer API.
-			# Also see OpenGLContext Working with Numeric Python
-			# glVertexPointerf ( g_pMesh.m_pVertices ) 	# // Set The Vertex Pointer To Our Vertex Data
-			# glTexCoordPointerf ( g_pMesh.m_pTexCoords ) 	# // Set The Vertex Pointer To Our TexCoord Data
-			#
-			#
-			# The faster approach is to make use of an opaque "string" that represents the
-			# the data (vertex array and tex coordinates in this case).
-			print g_pMesh.m_pVertices_as_string
-			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
-			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
-
-		glDisable(GL_TEXTURE_2D)
-
-
-
+		g_fVBOObjects.append(g_pMesh)
 
 	def initGL(self):
 		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
@@ -362,6 +328,9 @@ class Graphics:
 		
 		self.g_nFrames += 1
 
+		if Global.drawAxes:
+			self.drawAxes()
+
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
 		if Global.wireframe:
@@ -394,6 +363,7 @@ class Graphics:
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
 			glTexCoordPointer(2, GL_FLOAT, 0, None)
 			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 			glDisable(GL_TEXTURE_2D)
 
@@ -415,51 +385,33 @@ class Graphics:
 
 
 
-#		glBegin(GL_QUADS)
-
-#		x = objects[0].position[0]
-#		y = objects[0].position[1]
-#		z = objects[0].position[2]
-
-
-#		glColor3f(0.0,1.0,0.0)
-#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
-#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)
-#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Bottom Left Of The Quad (Top)
-#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Bottom Right Of The Quad (Top)
-#
-#		glColor3f(1.0,0.5,0.0);			# Set The Color To Orange
-#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Top Right Of The Quad (Bottom)
-#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Top Left Of The Quad (Bottom)
-#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Bottom)
-#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Bottom)
-#
-#		glColor3f(1.0,0.0,0.0);			# Set The Color To Red
-#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Front)
-#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Front)
-#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Front)
-#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Front)
-#
-#		glColor3f(1.0,1.0,0.0);			# Set The Color To Yellow
-#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Back)
-#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Back)
-#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Back)
-#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Back)
-#
-#		glColor3f(0.0,0.0,1.0);			# Set The Color To Blue
-#		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Left)
-#		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Left)
-#		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Left)
-#		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Left)
-#
-#		glColor3f(1.0,0.0,1.0);			# Set The Color To Violet
-#		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Right)
-#		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Right)
-#		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Right)
-#		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Right)
-#		glColor3f(1.0, 1.0, 1.0)
-#		glEnd();				# Done Drawing The Quad
-
+		s = 100.0
+		x = objects[0].position[0]
+		y = objects[0].position[1]
+		z = objects[0].position[2]
+		verts = [
+				x+s,y+s,z-s, x-s,y+s,z-s, x-s,y+s,z+s, x+s,y+s,z+s, #top
+				x+s,y-s,z+s, x-s,y-s,z+s, x-s,y-s,z-s, x+s,y-s,z-s, #bottom
+				x+s,y+s,z+s, x-s,y+s,z+s, x-s,y-s,z+s, x+s,y-s,z+s, #front
+				x+s,y-s,z-s, x-s,y-s,z-s, x-s,y+s,z-s, x+s,y+s,z-s, #back
+				x-s,y+s,z+s, x-s,y+s,z-s, x-s,y-s,z-s, x-s,y-s,z+s, #left
+				x+s,y+s,z-s, x+s,y+s,z+s, x+s,y-s,z+s, x+s,y-s,z-s  #right
+				]
+		colors = [
+				0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, #top
+				1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, #bottom
+				1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, #front
+				1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, #back
+				0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, #left
+				1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0  #right
+				]
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_COLOR_ARRAY)
+		glVertexPointer(3, GL_FLOAT, 0, verts)
+		glColorPointer(3, GL_FLOAT, 0, colors)
+		glDrawArrays(GL_QUADS, 0, 24)
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_COLOR_ARRAY)
 		glFlush()
 
 		pygame.display.flip()

@@ -84,7 +84,7 @@ class input:
 			if sys.platform != "win32":
 				self.handle_mouse()
 
-			for event in pygame.event.get():
+			for event in pygame.event.get([pygame.KEYDOWN, pygame.KEYUP]):
 				if event.type == pygame.QUIT:
 					Global.quit = 1
 				elif event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
@@ -92,12 +92,14 @@ class input:
 					if event.type == pygame.KEYDOWN:
 						if event.key == pygame.K_ESCAPE:
 							Global.quit = 1
-						elif event.key == pygame.K_F7:
-							Global.wireframe ^= 1
 						elif event.key == pygame.K_F1:
 							self.keyboardlayout ^= 1
 						elif event.key == pygame.K_F2:
 							Global.g_bDebugLines ^= 1
+						elif event.key == pygame.K_F6:
+							Global.drawAxes ^= 1
+						elif event.key == pygame.K_F7:
+							Global.wireframe ^= 1
 						elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
 							Global.g_MaxSubdivisions += 1
 							Global.reDraw = True

@@ -2,12 +2,20 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
-import pygame
+try:
+	import pygame
+except:
+	print "ERROR: pygame is not installed"
+	sys.exit()
 import math
 import random
 import threading
 import thread
-import OpenGL
+try:
+	import OpenGL
+except:
+	print "ERROR: pyopengl is not installed"
+	sys.exit()
 import logging
 
 import thread
@@ -71,6 +79,7 @@ def init():
 
 	print "F1 for switch between Qwerty and Dvorak"
 	print "F2 for switch debugLines"
+	print "F6 for switch drawAxes"
 	print "F7 for switch wireframe"
 	print "+/- to increase/decrease number of debug-lines level"
 	print "WASD to move. Mouse to look"
@@ -86,6 +95,14 @@ graphics.addSurface(0, "Terrain.raw", "test.bmp")
 if sys.platform != "win32":
 	thread.start_new_thread(graphics.printFPS, ())
 
+def editpos():
+	Global.Input.xpos = -400
+	Global.Input.ypos = 360
+	Global.Input.zpos = -45
+	Global.Input.xrot = -333
+	Global.Input.yrot = -250
+
+
 thread.start_new_thread(Global.Input.handle_input, ())
 
 fpsTime = 0
@@ -96,16 +113,17 @@ def startGame():
 	editpos()
 	physics.lastTime = time.time()
 
-def a():
-	print "a"
+def options():
+	print "Not implemented (yet)"
+	# TODO: Implement submenus
 
-def b():
-	print "b"
+def quit():
+	Global.quit = 1
 
 Global.menu.setBackground("IMG_1133.jpg")
 Global.menu.addMenuEntry("Start", startGame)
-Global.menu.addMenuEntry(".qjk", a)
-Global.menu.addMenuEntry("aoeu", b)
+Global.menu.addMenuEntry("Options", options)
+Global.menu.addMenuEntry("Quit", quit)
 
 while not Global.quit:
 	if sys.platform == "win32":

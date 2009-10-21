@@ -140,6 +140,7 @@ class Global:
 	VBOSupported = False
 	mainMenuOpen = True
 	mainMenuRow = 0
+	drawAxes = False
 
 	g_Debug = CDebug()
 
@@ -169,7 +170,7 @@ class Global:
 	# Turn lighting on initially
 	g_bLighting = 1
 
-	g_bDebugLines = 1
+	g_bDebugLines = False
 	numberOfVertices = 0
 	wireframe = False
 	VBOSupported = False
