@@ -12,20 +12,15 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
 from octree import *
 import sys
+import math
+from skydome import Skydome
 vertices = []
 
 g_Octree = COctree()
 
+import random
 
-def nearestPowerOfTwo(v):
-	v -= 1
-	v |= v >> 1
-	v |= v >> 2
-	v |= v >> 4
-	v |= v >> 8
-	v |= v >> 16
-	v += 1
-	return v
+
 
 
 def load_level(name):
@@ -35,6 +30,7 @@ def load_level(name):
 	level = []
 	#x = 0
 	#y = 0
+
 	for line in lines:
 		pos = line.rsplit(" ")
 		if len(pos) < 2:
@@ -105,18 +101,20 @@ class CMesh:
 
 		self.m_nVertexCount = len(iLevel)
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f')	# // Vertex Data
+		self.normals = Numeric.zeros ((self.m_nVertexCount, 3), 'f')
 		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f')	# // Texture Coordinates
 
 		nIndex = 0
-		nTIndex = 0
 		for i in iLevel:
 			self.m_pVertices[nIndex, 0] = i[0] 
 			self.m_pVertices[nIndex, 1] = i[1] * flHeightScale + self.position_y
 			self.m_pVertices[nIndex, 2] = i[2]
-			self.m_pTexCoords[nTIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
-			self.m_pTexCoords[nTIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			self.m_pTexCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			self.m_pTexCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			self.normals[nIndex, 0] = random.random()
+			self.normals[nIndex, 1] = random.random()
+			self.normals[nIndex, 2] = random.random()
 			nIndex += 1
-			nTIndex += 1
 
 		self.m_pVertices_as_string = self.m_pVertices.tostring ()
 		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring ()
@@ -135,11 +133,14 @@ class CMesh:
 			# // Load The Data
 			glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pTexCoords, GL_STATIC_DRAW_ARB )
 
+			self.normalsId = glGenBuffersARB(1)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+			glBufferDataARB(GL_ARRAY_BUFFER_ARB, self.normals, GL_STATIC_DRAW_ARB)
+
 			# // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card
 			self.m_pVertices = None
-			self.m_pVertices = None
 			self.m_pTexCoords = None
-			self.m_pTexCoords = None
+			self.normals = None
 		return
 
 
@@ -154,20 +155,10 @@ class Graphics:
 	def addSurface(self, Mesh, Map, Texture):
 		global g_fVBOObjects
 		g_pMesh = CMesh (Mesh)
-		Level = load_level(Map)
+		#Level = load_level(Map)
+		Level = loadRaw(Map)
 
-		image = pygame.image.load(Texture)
-
-		width = nearestPowerOfTwo(image.get_width())
-		height = nearestPowerOfTwo(image.get_height())
-
-		textureWidthRatio = float(image.get_width()) / width
-		textureHeightRatio = float(image.get_height()) / height
-
-		if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
-			sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
-			Global.quit = 1
-			return
+		g_pMesh.nTextureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
 		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level, textureWidthRatio, textureHeightRatio)
 
@@ -188,60 +179,14 @@ class Graphics:
 			# glDeleteBuffersARB
 			g_pMesh.BuildVBOs()
 
-		texture = glGenTextures(1)
 
-		glBindTexture(GL_TEXTURE_2D, texture)
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
-		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0, image.get_width(), image.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-		glEnable(GL_TEXTURE_2D)
-
-		g_pMesh.nTextureId = texture
-
-		# // Set Pointers To Our Data
-		if (Global.VBOSupported):
-			# // Enable Pointers
-			glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-			glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
-
-			g_fVBOObjects.append(g_pMesh)
-
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOVertices )
-			glVertexPointer( 3, GL_FLOAT, 0, None )				# // Set The Vertex Pointer To The Vertex Buffer
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_pMesh.m_nVBOTexCoords )
-			glTexCoordPointer( 2, GL_FLOAT, 0, None )				# // Set The TexCoord Pointer To The TexCoord Buffer
-
-			glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-			glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
-
-		else:
-			# You can use the pythonism glVertexPointerf (), which will convert the numarray into
-			# the needed memory for VertexPointer. This has two drawbacks however:
-			#	1) This does not work in Python 2.2 with PyOpenGL 2.0.0.44
-			#	2) In Python 2.3 with PyOpenGL 2.0.1.07 this is very slow.
-			# See the PyOpenGL documentation. Section "PyOpenGL for OpenGL Programmers" for details
-			# regarding glXPointer API.
-			# Also see OpenGLContext Working with Numeric Python
-			# glVertexPointerf ( g_pMesh.m_pVertices ) 	# // Set The Vertex Pointer To Our Vertex Data
-			# glTexCoordPointerf ( g_pMesh.m_pTexCoords ) 	# // Set The Vertex Pointer To Our TexCoord Data
-			#
-			#
-			# The faster approach is to make use of an opaque "string" that represents the
-			# the data (vertex array and tex coordinates in this case).
-			print g_pMesh.m_pVertices_as_string
-			glVertexPointer( 3, GL_FLOAT, 0, g_pMesh.m_pVertices_as_string)  	# // Set The Vertex Pointer To Our Vertex Data
-			glTexCoordPointer( 2, GL_FLOAT, 0, g_pMesh.m_pTexCoords_as_string) 	# // Set The Vertex Pointer To Our TexCoord Data
-
-		glDisable(GL_TEXTURE_2D)
-
-
-
+		g_fVBOObjects.append(g_pMesh)
 
 	def initGL(self):
 		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
+		#if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two") or self.IsExtensionSupported("GL_NV_texture_rectangle") or self.IsExtensionSupported("GL_EXT_texture_rectangle") or self.IsExtensionSupported("GL_ARB_texture_rectangle"):
+		if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two"):
+			Global.NPOTSupported = True
 
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
@@ -255,7 +200,7 @@ class Graphics:
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60, 640.0/480.0, 0.1, 5000.0)
+		gluPerspective( 60.0, 640.0/480.0, 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting
@@ -263,16 +208,21 @@ class Graphics:
 		mat_specular = (1.0, 1.0, 1.0, 1.0)
 		light_position = (150.0, 0.0, 75.0, 1.0)
 
-		glMaterialfv(GL_FRONT, GL_AMBIENT, diffuseMaterial)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffuseMaterial)
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseMaterial)
-		glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+		glLightfv(GL_LIGHT1, GL_POSITION, light_position)
 
 		glEnable(GL_LIGHTING)
-		glEnable(GL_LIGHT0)
+		glDisable(GL_LIGHT0)
+		glEnable(GL_LIGHT1)
 
-		glColorMaterial(GL_FRONT, GL_DIFFUSE)
-		glEnable(GL_COLOR_MATERIAL)
+		#glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE)
+		#glEnable(GL_COLOR_MATERIAL)
 		############
+		#glEnable(GL_RESCALE_NORMAL)
+		glEnable(GL_NORMALIZE)
+
+		self.skydome = Skydome()
 
 		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
 		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
@@ -340,7 +290,10 @@ class Graphics:
 
 	def drawAxes(self):
 		""" Draws x, y and z axes """
-		glDisable(GL_LIGHTING)
+		light = glIsEnabled(GL_LIGHTING)
+		if light:
+			glDisable(GL_LIGHTING)
+
 		glColor3f(1.0, 0.0, 0.0)
 		glBegin(GL_LINES)
 		glVertex3f(-1000.0, 0.0, 0.0)
@@ -358,7 +311,9 @@ class Graphics:
 		glVertex3f(0.0, 0.0, -1000.0)
 		glVertex3f(0.0, 0.0, 1000.0)
 		glEnd()
-		glEnable(GL_LIGHTING)
+
+		if light:
+			glEnable(GL_LIGHTING)
 
 
 	def draw(self, objects):
@@ -374,96 +329,130 @@ class Graphics:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 
-		light_position = (150.0, 0.0, 75.0, 1.0)
-		glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+		#light_position = (150.0, 0.0, 75.0, 1.0)
+		#glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
 
 		glLoadIdentity()
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
 		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
+		#print -Global.Input.xpos, -Global.Input.ypos, -Global.Input.zpos
 
 		self.g_nFrames += 1
 
-		self.drawAxes()
+		if Global.drawAxes:
+			self.drawAxes()
 
 		glColor3f(1.0, 1.0, 1.0)
 
+		#glClearColor(0.0, 0.0, 0.6, 0.5)
+		glFogi(GL_FOG_MODE, GL_LINEAR)
+		glFogfv(GL_FOG_COLOR, (0.4, 0.4, 0.4, 0.0))
+		glFogf(GL_FOG_DENSITY, 0.1)
+		glHint(GL_FOG_HINT, GL_DONT_CARE)
+		glFogf(GL_FOG_START, 1.0)
+		glFogf(GL_FOG_END, 110.0)
+		#glEnable(GL_FOG)
+
+		# SkyDome
+		self.skydome.draw()
 
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+		#glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+	
 
+		glPushMatrix()
+		glColor3f(1.0, 1.0, 1.0)
+		#glScalef(10.0, 10.0, 10.0)
 
 		for i in xrange(len(g_fVBOObjects)):
 			#glEnable(GL_BLEND)
 			#glBlendFunc(GL_ONE, GL_ONE)
 			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].nTextureId)
-			glEnable(GL_TEXTURE_2D)
+			#glEnable(GL_TEXTURE_2D)
 
 
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOVertices )
 			glVertexPointer(3, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
-			glTexCoordPointer(2, GL_FLOAT, 0, None)
-			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
+			#glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
+			#glTexCoordPointer(2, GL_FLOAT, 0, None)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].normalsId)
+			glNormalPointer(GL_FLOAT, 0, None)
 
-			glDisable(GL_TEXTURE_2D)
+			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+			#glDisable(GL_TEXTURE_2D)
+			#glDisable(GL_BLEND)
+
+		glPopMatrix()
 
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+		#glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+
+		glDisable(GL_FOG)
 
 
 		g_Octree.DrawOctree(g_Octree)
-		Global.g_Debug.RenderDebugLines()
+		if Global.debugLines:
+			Global.g_Debug.RenderDebugLines()
 
-		glBegin(GL_QUADS)
 
-
+		s = 100.0
 		x = objects[0].position[0]
 		y = objects[0].position[1]
 		z = objects[0].position[2]
+		verts = [
+				x+s,y+s,z-s, x-s,y+s,z-s, x-s,y+s,z+s, x+s,y+s,z+s, #top
+				x+s,y-s,z+s, x-s,y-s,z+s, x-s,y-s,z-s, x+s,y-s,z-s, #bottom
+				x+s,y+s,z+s, x-s,y+s,z+s, x-s,y-s,z+s, x+s,y-s,z+s, #front
+				x+s,y-s,z-s, x-s,y-s,z-s, x-s,y+s,z-s, x+s,y+s,z-s, #back
+				x-s,y+s,z+s, x-s,y+s,z-s, x-s,y-s,z-s, x-s,y-s,z+s, #left
+				x+s,y+s,z-s, x+s,y+s,z+s, x+s,y-s,z+s, x+s,y-s,z-s  #right
+				]
+		colors = [
+				0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, #top
+				1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, #bottom
+				1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, #front
+				1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, #back
+				0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, #left
+				1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0  #right
+				]
+		normals = [
+				0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 	#top
+				0.0,-1.0,0.0, 0.0,-1.0,0.0, 0.0,-1.0,0.0, 0.0,-1.0,0.0, #bottom
+				0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0,		#front
+				0.0,0.0,-1.0, 0.0,0.0,-1.0, 0.0,0.0,-1.0, 0.0,0.0,-1.0,	#back
+				-1.0,0.0,0.0, -1.0,0.0,0.0, -1.0,0.0,0.0, -1.0,0.0,0.0, #left
+				1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 	#right
+				]
 
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_COLOR_ARRAY)
+		glEnableClientState(GL_NORMAL_ARRAY)
+		glVertexPointer(3, GL_FLOAT, 0, verts)
+		glColorPointer(3, GL_FLOAT, 0, colors)
+		glNormalPointer(GL_FLOAT, 0, normals)
+		glDrawArrays(GL_QUADS, 0, 24)
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_COLOR_ARRAY)
+		glDisableClientState(GL_NORMAL_ARRAY)
 
-		glColor3f(0.0,1.0,0.0)
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Top)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Top)
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Bottom Left Of The Quad (Top)
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Bottom Right Of The Quad (Top)
-
-		glColor3f(1.0,0.5,0.0);			# Set The Color To Orange
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Top Right Of The Quad (Bottom)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Top Left Of The Quad (Bottom)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Bottom)
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Bottom)
-
-		glColor3f(1.0,0.0,0.0);			# Set The Color To Red
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Front)
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Front)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Front)
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Front)
-
-		glColor3f(1.0,1.0,0.0);			# Set The Color To Yellow
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Back)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Back)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Back)
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Back)
-
-		glColor3f(0.0,0.0,1.0);			# Set The Color To Blue
-		glVertex3f(x+-100.0, y+100.0, z+100.0);		# Top Right Of The Quad (Left)
-		glVertex3f(x+-100.0, y+100.0,z+-100.0);		# Top Left Of The Quad (Left)
-		glVertex3f(x+-100.0,y+-100.0,z+-100.0);		# Bottom Left Of The Quad (Left)
-		glVertex3f(x+-100.0,y+-100.0, z+100.0);		# Bottom Right Of The Quad (Left)
-
-		glColor3f(1.0,0.0,1.0);			# Set The Color To Violet
-		glVertex3f( x+100.0, y+100.0,z+-100.0);		# Top Right Of The Quad (Right)
-		glVertex3f( x+100.0, y+100.0, z+100.0);		# Top Left Of The Quad (Right)
-		glVertex3f( x+100.0,y+-100.0, z+100.0);		# Bottom Left Of The Quad (Right)
-		glVertex3f( x+100.0,y+-100.0,z+-100.0);		# Bottom Right Of The Quad (Right)
-		glColor3f(1.0, 1.0, 1.0)
-		glEnd();				# Done Drawing The Quad
-
+		i = 0
+		while i < len(normals):
+			glBegin(GL_LINES)
+			glVertex3f(normals[i], normals[i+1], normals[i+2])
+			glVertex3f(normals[i]*200, normals[i+1]*200, normals[i+2]*200)
+			glEnd()
+			i += 3
+		
 		glFlush()
 
 		pygame.display.flip()
+
+		err = glGetError()
+		if err:
+			print "OpenGL Error:",err,"(",gluErrorString(err),")"

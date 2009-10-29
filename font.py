@@ -1,6 +1,12 @@
 from OpenGL.GL import *
-import ImageFont
+import sys
+try:
+	import ImageFont
+except:
+	print "ERROR: Python Imaging Library is not installed"
+	sys.exit()
 from graphics import nearestPowerOfTwo
+from Global import Global
 
 class Font:
 	def __init__(self):

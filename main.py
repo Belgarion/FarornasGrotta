@@ -2,12 +2,20 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
-import pygame
+try:
+	import pygame
+except:
+	print "ERROR: pygame is not installed"
+	sys.exit()
 import math
 import random
 import threading
 import thread
-import OpenGL
+try:
+	import OpenGL
+except:
+	print "ERROR: pyopengl is not installed"
+	sys.exit()
 import logging
 
 import thread
@@ -84,7 +92,6 @@ Global.menu.init_font()
 #graphics.addSurface(0, "level", "test.bmp")
 #graphics.addSurface(50, "Terrain.raw", "grass.jpg")
 graphics.addSurface(0, "Terrain.raw", "grass.jpg")
-#graphics.addSurface(0, "skydome.raw", "test.bmp")
 
 if sys.platform != "win32":
 	thread.start_new_thread(graphics.printFPS, ())
@@ -107,16 +114,17 @@ def startGame():
 	editpos()
 	physics.lastTime = time.time()
 
-def a():
-	print "a"
+def options():
+	print "Not implemented (yet)"
+	# TODO: Implement submenus
 
-def b():
-	print "b"
+def quit():
+	Global.quit = 1
 
-Global.menu.setBackground("IMG_1133.jpg")
+Global.menu.setBackground("img2.png")
 Global.menu.addMenuEntry("Start", startGame)
-Global.menu.addMenuEntry(".qjk", a)
-Global.menu.addMenuEntry("aoeu", b)
+Global.menu.addMenuEntry("Options", options)
+Global.menu.addMenuEntry("Quit", quit)
 
 while not Global.quit:
 	if sys.platform == "win32":

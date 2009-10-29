@@ -1,0 +1,208 @@
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GL.ARB.vertex_buffer_object import *
+from Global import Global, loadRaw, loadTexture, loadObj
+try:
+	import numpy as Numeric
+except:
+	import Numeric
+import pygame
+import math
+import time
+import random
+
+class Sun:
+	def __init__(self):
+		vertices, vnormals, f = loadObj("sun.obj")
+
+		self.vertexCount = len(f[0])*3
+
+		self.verticesId = glGenBuffersARB(1)
+		self.normalsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	
+		#self.angle = 3.1415/4.0 #in radians
+		self.angle = 90.0 * (3.1415/180.0)
+
+	def update(self):
+		# 360 / 24 = 15
+		# 15/60 = 0.25
+
+		now = time.gmtime()
+		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
+		#self.angle = 120 * (3.1415/180.0)
+		#self.angle = 20 * (3.1415/180.0)
+		self.x = math.cos(self.angle) * 900
+		self.y = math.sin(self.angle) * 900
+
+		if -3.1415 < self.angle < 3.1415:
+			#print "day"
+			pass
+		else:
+			#print "night"
+			pass
+
+	def draw(self):
+		self.update()
+
+		glPushMatrix()
+
+
+		#glDisable(GL_COLOR_MATERIAL)
+
+		#glDisable(GL_LIGHTING)
+		light = glIsEnabled(GL_LIGHTING)
+		if not light:
+			glEnable(GL_LIGHTING)
+
+		glColor3f(1.0, 1.0, 0.0)
+		
+		glScalef(0.1, 0.1, 0.1)
+		glTranslatef(self.x, self.y, 0.0)
+		#glRotatef(180.0, 0.0, 1.0, 0.0)
+
+		#glPushMatrix()
+		#glLightfv(GL_LIGHT0, GL_POSITION, (self.x, self.y, 0.0, 10000.0) )
+
+		#glLightfv(GL_LIGHT1, GL_POSITION, (1.0, 1.0, 0.0, 0.0) )
+		#glLightfv(GL_LIGHT1, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0) )
+		#glLightfv(GL_LIGHT1, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0) )
+
+		glLightfv(GL_LIGHT1, GL_POSITION, (0.0, 0.0, 0.0, 1.0))
+		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.5, 0.5, 0.5, 1.0))
+		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, (1.0, 1.0, 0.0, 1.0))
+
+		#glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 180)
+		#glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, (1.0, 1.0, 1.0))
+		#glPopMatrix()
+	
+		#glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0)
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0.3, 0.1, 0.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.5, 0.5, 0.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.0, 0.0, 0.0, 1.0))
+
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_NORMAL_ARRAY)
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glVertexPointer(3, GL_FLOAT, 0, None)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glNormalPointer(GL_FLOAT, 0, None)
+		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_NORMAL_ARRAY)
+
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0.0, 0.0, 0.0, 1.0))
+
+		#glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.0, 0.0, 0.0, 1.0))
+
+		if not light:
+			glDisable(GL_LIGHTING)
+
+		glPopMatrix()
+
+class Skydome:
+	def __init__(self):
+		self.sun = Sun()
+
+
+		#v = loadRaw("skydome.raw")
+		vertices, vnormals, f = loadObj("/home/sebastian/untitled.obj")
+
+		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("sky.png")
+
+		xMax = xMin = vertices[0][0]
+		zMax = zMin = vertices[0][2]
+		for i in vertices:
+			if i[0] < xMin: xMin = i[0]
+			elif i[0] > xMax: xMax = i[0]
+
+			if i[2] < zMin: zMin = i[2]
+			elif i[2] > zMax: zMax = i[2]
+
+		sizeX = xMax - xMin
+		sizeY = zMax - zMin
+
+		texCoords = Numeric.zeros((len(f[0]*3), 2), 'f')
+		self.vertexCount = len(f[0])*3
+
+		nIndex = 0
+		for i in vertices:
+			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			nIndex += 1
+
+		self.verticesId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+		self.texCoordsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
+		self.normalsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		self.vertices = vertices
+		self.normals = vnormals
+
+	def draw(self):
+		glPushMatrix()
+		
+		#glDisable(GL_LIGHTING)
+		glColor3f(0.0, 0.749, 1.0)
+
+		glScalef(10.0, 10.0, 10.0)
+		glTranslatef(0.0, -20.0, 0.0)
+		
+		self.sun.draw()
+
+		#glDisable(GL_DEPTH_TEST)
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+		glBindTexture(GL_TEXTURE_2D, self.textureId)
+		#glEnable(GL_TEXTURE_2D)
+		
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glVertexPointer(3, GL_FLOAT, 0, None)
+		#glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
+		#glTexCoordPointer(2, GL_FLOAT, 0, None)
+		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		#glDisable(GL_TEXTURE_2D)
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
+		#glEnable(GL_DEPTH_TEST)
+		light = glIsEnabled(GL_LIGHTING)
+		if not light:
+			glEnable(GL_LIGHTING)
+
+
+		"""glDisable(GL_LIGHTING)
+		vertices = self.vertices
+		normals = self.normals
+		for i in xrange(len(vertices)):
+			glBegin(GL_LINES)
+			glVertex3f(vertices[i][0], vertices[i][1], vertices[i][2])
+			glVertex3f(vertices[i][0] + normals[i][0]*20, vertices[i][1] + normals[i][1]*20, vertices[i][2] + normals[i][2]*20)
+			glEnd()
+		glEnable(GL_LIGHTING)"""
+
+
+		if not light:
+			glDisable(GL_LIGHTING)
+
+		glPopMatrix()
