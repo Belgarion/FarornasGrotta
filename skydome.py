@@ -13,9 +13,7 @@ import random
 
 class Sun:
 	def __init__(self):
-		vertices, vnormals, f = loadObj("sun.obj")
-
-		self.vertexCount = len(f[0])*3
+		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("sun.obj")
 
 		self.verticesId = glGenBuffersARB(1)
 		self.normalsId = glGenBuffersARB(1)
@@ -96,7 +94,10 @@ class Sun:
 		glVertexPointer(3, GL_FLOAT, 0, None)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
 		glNormalPointer(GL_FLOAT, 0, None)
-		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		if not self.isQuad:
+			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		else:
+			glDrawArrays(GL_QUADS, 0, self.vertexCount)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		glDisableClientState(GL_VERTEX_ARRAY)
@@ -117,7 +118,7 @@ class Skydome:
 
 
 		#v = loadRaw("skydome.raw")
-		vertices, vnormals, f = loadObj("/home/sebastian/untitled.obj")
+		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("skydome.obj")
 
 		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("sky.png")
 
@@ -133,8 +134,7 @@ class Skydome:
 		sizeX = xMax - xMin
 		sizeY = zMax - zMin
 
-		texCoords = Numeric.zeros((len(f[0]*3), 2), 'f')
-		self.vertexCount = len(f[0])*3
+		texCoords = Numeric.zeros((self.vertexCount, 2), 'f')
 
 		nIndex = 0
 		for i in vertices:
@@ -178,7 +178,10 @@ class Skydome:
 		glVertexPointer(3, GL_FLOAT, 0, None)
 		#glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
 		#glTexCoordPointer(2, GL_FLOAT, 0, None)
-		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		if not self.isQuad:
+			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		else:
+			glDrawArrays(GL_QUADS, 0, self.vertexCount)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		#glDisable(GL_TEXTURE_2D)

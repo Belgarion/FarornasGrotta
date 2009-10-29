@@ -20,9 +20,6 @@ g_Octree = COctree()
 
 import random
 
-
-
-
 def load_level(name):
 	f = open(name, "r")
 	lines = f.readlines()
@@ -143,6 +140,60 @@ class CMesh:
 			self.normals = None
 		return
 
+class Player:
+	def __init__(self):
+		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("player.obj")
+
+		self.verticesId = glGenBuffersARB(1)
+		self.normalsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		self.x = 100
+		self.y = 100
+
+	
+	def draw(self):
+
+		glPushMatrix()
+
+
+		#glDisable(GL_COLOR_MATERIAL)
+
+		#glDisable(GL_LIGHTING)
+		light = glIsEnabled(GL_LIGHTING)
+		if not light:
+			glEnable(GL_LIGHTING)
+
+		glColor3f(1.0, 1.0, 0.0)
+		
+		glTranslatef(self.x, self.y, 0.0)
+		glScalef(10, 10, 10)
+		#glRotatef(180.0, 0.0, 1.0, 0.0)
+
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_NORMAL_ARRAY)
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glVertexPointer(3, GL_FLOAT, 0, None)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glNormalPointer(GL_FLOAT, 0, None)
+		if not self.isQuad:
+			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
+		else:
+			glDrawArrays(GL_QUADS, 0, self.vertexCount)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_NORMAL_ARRAY)
+
+		if not light:
+			glDisable(GL_LIGHTING)
+
+		glPopMatrix()
 
 class Graphics:
 	def __init__(self):
@@ -230,6 +281,7 @@ class Graphics:
 
 		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
 		#Global.g_Debug.RenderDebugLines()
+		self.player = Player()
 
 
 	def IsExtensionSupported (self, TargetExtension):
@@ -389,12 +441,14 @@ class Graphics:
 
 		glPopMatrix()
 
+
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
 		#glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
 
 		glDisable(GL_FOG)
 
+		self.player.draw()
 
 		g_Octree.DrawOctree(g_Octree)
 		if Global.debugLines:

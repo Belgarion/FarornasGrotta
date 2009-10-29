@@ -48,6 +48,7 @@ def loadObj(filename):
 		if len(pos) < 4:
 			continue
 
+		quad = False
 		if pos[0] == "v":
 			v.append( (float(pos[1]), float(pos[2]), float(pos[3])) )
 		elif pos[0] == "vn":
@@ -56,21 +57,47 @@ def loadObj(filename):
 			a = pos[1].rsplit("/")
 			b = pos[2].rsplit("/")
 			c = pos[3].rsplit("/")
+			d = None
+			if len(pos) > 4:
+				d = pos[4].rsplit("/")
+				quad = True
 
-			facesv.append( (int(a[0])-1, int(b[0])-1, int(c[0])-1) )
+			if not quad:
+				facesv.append( (int(a[0])-1, int(b[0])-1, int(c[0])-1) )
+			else:
+				facesv.append( (int(a[0])-1, int(b[0])-1, int(c[0])-1, int(d[0])-1 ) )
+
 			if a[1] != '':
-				facest.append( (int(a[1])-1, int(b[1])-1, int(c[1])-1) )
+				if not quad:
+					facest.append( (int(a[1])-1, int(b[1])-1, int(c[1])-1 ) )
+				else:
+					facest.append( (int(a[1])-1, int(b[1])-1, int(c[1])-1, int(d[1])-1 ) )
 			else:
-				facest.append( (0, 0, 0) )
+				if not quad:
+					facest.append( (0, 0, 0) )
+				else:
+					facest.append( (0, 0, 0, 0) )
+
 			if a[2] != '':
-				facesn.append( (int(a[2])-1, int(b[2])-1, int(c[2])-1) )
+				if not quad:
+					facesn.append( (int(a[2])-1, int(b[2])-1, int(c[2])-1) )
+				else:
+					facesn.append( (int(a[2])-1, int(b[2])-1, int(c[2])-1, int(d[2])-1 ) )
 			else:
-				facesn.append( (0, 0, 0) )
+				if not quad:
+					facesn.append( (0, 0, 0) )
+				else:
+					facesn.append( (0, 0, 0, 0) )
 
 	vertices = Numeric.zeros((len(facesv)*3, 3), 'f')
 	vnormals = Numeric.zeros((len(facesn)*3, 3), 'f')
 	#texCoords = Numeric.zeros((len(facest*3), 2), 'f')
 	vertexCount = len(facesv)*3
+	if quad:
+		vertices = Numeric.zeros((len(facesv)*4, 3), 'f')
+		vnormals = Numeric.zeros((len(facesn)*4, 3), 'f')
+		#texCoords = Numeric.zeros((len(facest*4), 2), 'f')
+		vertexCount = len(facesv)*4
 	
 	nIndex = 0
 	for i in facesv:
@@ -83,6 +110,11 @@ def loadObj(filename):
 		vertices[nIndex + 2, 0] = v[i[2]][0]
 		vertices[nIndex + 2, 1] = v[i[2]][1]
 		vertices[nIndex + 2, 2] = v[i[2]][2]
+		if quad:
+			vertices[nIndex + 3, 0] = v[i[3]][0]
+			vertices[nIndex + 3, 1] = v[i[3]][1]
+			vertices[nIndex + 3, 2] = v[i[3]][2]
+			nIndex += 1
 		nIndex += 3
 
 	nIndex = 0
@@ -96,9 +128,14 @@ def loadObj(filename):
 		vnormals[nIndex + 2, 0] = vn[i[2]][0]
 		vnormals[nIndex + 2, 1] = vn[i[2]][1]
 		vnormals[nIndex + 2, 2] = vn[i[2]][2]
+		if quad:
+			vnormals[nIndex + 3, 0] = vn[i[3]][0]
+			vnormals[nIndex + 3, 1] = vn[i[3]][1]
+			vnormals[nIndex + 3, 2] = vn[i[3]][2]
+			nIndex += 1
 		nIndex += 3
 
-	return (vertices, vnormals, (facesv, facest, facesn))
+	return (vertices, vnormals, (facesv, facest, facesn), vertexCount, quad)
 
 def loadTexture(filename):
 	""" Loads a texture from file, returns (textureId, textureWidthRatio, textureHeightRatio) """
