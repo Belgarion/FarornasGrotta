@@ -16,7 +16,7 @@ import math
 from skydome import Skydome
 vertices = []
 
-g_Octree = COctree()
+#g_Octree = COctree()
 
 import random
 
@@ -46,6 +46,31 @@ import random
 		#y = 0
 
 	return level"""
+
+def nearestPowerOfTwo(v):
+	v -= 1
+	v |= v >> 1
+	v |= v >> 2
+	v |= v >> 4
+	v |= v >> 8
+	v |= v >> 16
+	v += 1
+	return v
+
+"""def load_level(level):
+	WholeMap = []	
+
+	level = open(level, "r")
+	for line in level:
+		temp = line.split(" ")
+		#temp[2] = temp[2].replace("\r\n", "")
+
+		Global.vertices.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
+		WholeMap.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
+		Global.g_NumberOfVerts += 1
+	
+	level.close()
+	return WholeMap"""
 
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
@@ -84,40 +109,38 @@ class CMesh:
 	def LoadHeightmap(self, flHeightScale, iLevel, textureWidthRatio, textureHeightRatio):
 		""" Heightmap Loader """
 
-		xMax = xMin = iLevel[0][0]
-		zMax = zMin = iLevel[0][2]
+		xMax = xMin = iLevel[0].x
+		zMax = zMin = iLevel[0].z
 		for i in iLevel:
-			if i[0] < xMin: xMin = i[0]
-			elif i[0] > xMax: xMax = i[0]
+			if i.x < xMin: xMin = i.x
+			elif i.x > xMax: xMax = i.x
 
-			if i[2] < zMin: zMin = i[2]
-			elif i[2] > zMax: zMax = i[2]
+			if i.z < zMin: zMin = i.z
+			elif i.z > zMax: zMax = i.z
 
 		sizeX = xMax - xMin
 		sizeY = zMax - zMin
 
 		self.m_nVertexCount = len(iLevel)
+		
 		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f')	# // Vertex Data
 		self.normals = Numeric.zeros ((self.m_nVertexCount, 3), 'f')
 		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f')	# // Texture Coordinates
 
 		nIndex = 0
 		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i[0] 
-			self.m_pVertices[nIndex, 1] = i[1] * flHeightScale + self.position_y
-			self.m_pVertices[nIndex, 2] = i[2]
-			self.m_pTexCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
-			self.m_pTexCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
-			self.normals[nIndex, 0] = random.random()
-			self.normals[nIndex, 1] = random.random()
-			self.normals[nIndex, 2] = random.random()
+			self.m_pVertices[nIndex, 0] = i.x 
+			self.m_pVertices[nIndex, 1] = i.y * flHeightScale + self.position_y
+			self.m_pVertices[nIndex, 2] = i.z
+			self.m_pTexCoords[nTIndex, 0] = (i.x-xMin) / sizeX * textureWidthRatio
+			self.m_pTexCoords[nTIndex, 1] = (i.z-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
 		self.m_pVertices_as_string = self.m_pVertices.tostring ()
 		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring ()
 
 	def BuildVBOs (self):
-		""" // Generate And Bind The Vertex Buffer """
+		""" Generate And Bind The Vertex Buffer """
 		if (Global.VBOSupported):
 			self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
 			glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
@@ -200,8 +223,9 @@ class Graphics:
 		global g_fVBOObjects
 
 		g_fVBOObjects = []
-
 		self.g_nFrames = 0
+
+		self.g_Octree = COctree()
 
 	def addSurface(self, Mesh, Map, Texture):
 		"""global g_fVBOObjects
@@ -211,6 +235,9 @@ class Graphics:
 
 		g_pMesh.nTextureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
+		self.g_Octree.GetSceneDimensions(Level, Global.numberOfVertices)
+		self.g_Octree.CreateNode(Level, Global.numberOfVertices, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
+
 		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level, textureWidthRatio, textureHeightRatio)
 
 		g_pMesh.BuildVBOs()"""
@@ -218,7 +245,6 @@ class Graphics:
 
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("terrain.obj")
-
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
@@ -238,8 +264,9 @@ class Graphics:
 
 		nIndex = 0
 		for i in vertices:
-			Global.vertices.append( (i[0], i[1], i[2]) )
+			Global.vertices.append( CVector3(i[0], i[1], i[2]) )
 			Global.numberOfVertices += 1
+			Global.g_NumberOfVerts += 1
 			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
@@ -261,7 +288,6 @@ class Graphics:
 		g_pMesh.texCoordsId = self.texCoordsId
 		g_pMesh.vertexCount = self.vertexCount
 		g_pMesh.isQuad = self.isQuad
-
 
 		g_fVBOObjects.append(g_pMesh)
 
@@ -312,14 +338,13 @@ class Graphics:
 
 		self.skydome = Skydome()
 
-		g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
-		g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
+		#g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
+		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
 		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), 100)
 
 		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
 		#Global.g_Debug.RenderDebugLines()
 		self.player = Player()
-
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -364,7 +389,7 @@ class Graphics:
 			print "PyOpenGL supports '%s'" % (TargetExtension)
 		except:
 			traceback.print_exc()
-			print 'Failed to import', extension_module_name
+			print "Failed to import", extension_module_name
 			print "OpenGL rendering context supports '%s'" % (TargetExtension),
 			return False
 
@@ -408,9 +433,28 @@ class Graphics:
 	def draw(self, objects):
 		global g_fVBOObjects
 
-		glClearColor(0.4, 0.4, 0.4, 0.0)
+		if Global.reDraw:
+			Global.g_EndNodeCount = 0
+			Global.g_Debug.Clear()
+			self.g_Octree.DestroyOctree()
+			self.g_Octree.GetSceneDimensions(Global.vertices, Global.g_NumberOfVerts)
+			self.g_Octree.CreateNode(Global.vertices, Global.g_NumberOfVerts, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
+			Global.reDraw = False
 
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
+
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+		glLoadIdentity()
+
+		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
+		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
+		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
+		
+		self.g_nFrames += 1
+
+		if Global.drawAxes:
+			self.drawAxes()
+
+		glClearColor(0.4, 0.4, 0.4, 0.0)
 
 		if Global.wireframe:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -496,10 +540,17 @@ class Graphics:
 
 		self.player.draw()
 
-		g_Octree.DrawOctree(g_Octree)
 		if Global.debugLines:
 			Global.g_Debug.RenderDebugLines()
 
+		if Global.g_MaxSubdivisions:
+			# Here we draw the octree, starting with the root node and recursing down each node.
+			# When we get to each of the end nodes we will draw the vertices assigned to them.
+			self.g_Octree.DrawOctree(self.g_Octree)
+			
+			if Global.g_bDebugLines:
+				# Render the cube'd nodes to visualize the octree (in wire frame mode)
+				Global.g_Debug.RenderDebugLines()
 
 		s = 100.0
 		x = objects[0].position[0]

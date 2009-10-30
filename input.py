@@ -2,7 +2,7 @@ import pygame
 import math
 import sys
 import time
-from Global import Global
+from Global import *
 
 class input:
 	def __init__(self):
@@ -83,7 +83,7 @@ class input:
 			
 			if sys.platform != "win32":
 				self.handle_mouse()
-	
+
 			for event in pygame.event.get([pygame.KEYDOWN, pygame.KEYUP]):
 				if event.type == pygame.QUIT:
 					Global.quit = 1
@@ -96,10 +96,18 @@ class input:
 							self.keyboardlayout ^= 1
 						elif event.key == pygame.K_F2:
 							Global.debugLines ^= 1
+							Global.g_bDebugLines ^= 1
 						elif event.key == pygame.K_F6:
 							Global.drawAxes ^= 1
 						elif event.key == pygame.K_F7:
 							Global.wireframe ^= 1
+						elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
+							Global.g_MaxSubdivisions += 1
+							Global.reDraw = True
+						elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
+							if Global.g_MaxSubdivisions > 0:
+								Global.g_MaxSubdivisions -= 1
+								Global.reDraw = True
 
 					if event.key == pygame.K_UP:
 						self.up_pressed ^= 1

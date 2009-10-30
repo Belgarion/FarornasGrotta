@@ -66,21 +66,23 @@ class GameObject:
 def init():
 	global physics
 	pygame.init()
-	pygame.display.set_mode((640,480), pygame.DOUBLEBUF|pygame.OPENGL)
-
-	global level, level2
+	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
 
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
 
-
-	#Global.level = load_level("Terrain.raw")
-
 	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
 	objects.append(monster)
 	physics = Physics(objects)
+
+	print "F1 for switch between Qwerty and Dvorak"
+	print "F2 for switch debugLines"
+	print "F6 for switch drawAxes"
+	print "F7 for switch wireframe"
+	print "+/- to increase/decrease number of debug-lines level"
+	print "WASD to move. Mouse to look"
 
 
 
@@ -88,9 +90,6 @@ init()
 graphics.initGL()
 Global.menu.init_font()
 
-#graphics.addSurface(50, "level2", "grass.jpg")
-#graphics.addSurface(0, "level", "test.bmp")
-#graphics.addSurface(50, "Terrain.raw", "grass.jpg")
 graphics.addSurface(0, "Terrain.raw", "grass.jpg")
 
 if sys.platform != "win32":
@@ -138,4 +137,3 @@ while not Global.quit:
 	else:
 		objects = physics.update()
 		graphics.draw(objects)
-
