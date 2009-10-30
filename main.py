@@ -76,7 +76,7 @@ def init():
 	rel = pygame.mouse.get_rel()
 
 
-	Global.level = load_level("Terrain.raw")
+	#Global.level = load_level("Terrain.raw")
 
 	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
 	objects.append(monster)

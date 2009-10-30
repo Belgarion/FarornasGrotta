@@ -20,7 +20,7 @@ g_Octree = COctree()
 
 import random
 
-def load_level(name):
+"""def load_level(name):
 	f = open(name, "r")
 	lines = f.readlines()
 	f.close()
@@ -45,7 +45,7 @@ def load_level(name):
 		#x+=1
 		#y = 0
 
-	return level
+	return level"""
 
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
@@ -204,7 +204,7 @@ class Graphics:
 		self.g_nFrames = 0
 
 	def addSurface(self, Mesh, Map, Texture):
-		global g_fVBOObjects
+		"""global g_fVBOObjects
 		g_pMesh = CMesh (Mesh)
 		#Level = load_level(Map)
 		Level = loadRaw(Map)
@@ -213,28 +213,65 @@ class Graphics:
 
 		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level, textureWidthRatio, textureHeightRatio)
 
-		if (Global.VBOSupported):
-			# // Get Pointers To The GL Functions
-			# In python, calling Init for the extension functions will
-			# fill in the function pointers (really function objects)
-			# so that we call the Extension.
+		g_pMesh.BuildVBOs()"""
 
-			if (not glInitVertexBufferObjectARB()):
-				print "Help!  No GL_ARB_vertex_buffer_object"
-				sys.exit(1)
-				return False
-			# Now we can call to gl*Buffer* ()
-			# glGenBuffersARB
-			# glBindBufferARB
-			# glBufferDataARB
-			# glDeleteBuffersARB
-			g_pMesh.BuildVBOs()
+
+		g_pMesh = CMesh (Mesh)
+		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("terrain.obj")
+
+
+		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
+
+		xMax = xMin = vertices[0][0]
+		zMax = zMin = vertices[0][2]
+		for i in vertices:
+			if i[0] < xMin: xMin = i[0]
+			elif i[0] > xMax: xMax = i[0]
+
+			if i[2] < zMin: zMin = i[2]
+			elif i[2] > zMax: zMax = i[2]
+
+		sizeX = xMax - xMin
+		sizeY = zMax - zMin
+
+		texCoords = Numeric.zeros ((self.vertexCount, 2), 'f')
+
+		nIndex = 0
+		for i in vertices:
+			Global.vertices.append( (i[0], i[1], i[2]) )
+			Global.numberOfVertices += 1
+			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			nIndex += 1
+
+
+		self.verticesId = glGenBuffersARB(1)
+		self.vnormalsId = glGenBuffersARB(1)
+		self.texCoordsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.vnormalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+		g_pMesh.verticesId = self.verticesId
+		g_pMesh.vnormalsId = self.vnormalsId
+		g_pMesh.texCoordsId = self.texCoordsId
+		g_pMesh.vertexCount = self.vertexCount
+		g_pMesh.isQuad = self.isQuad
 
 
 		g_fVBOObjects.append(g_pMesh)
 
 	def initGL(self):
 		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
+		if not glInitVertexBufferObjectARB():
+			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
+			Global.quit = 1
+			return
+
 		#if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two") or self.IsExtensionSupported("GL_NV_texture_rectangle") or self.IsExtensionSupported("GL_EXT_texture_rectangle") or self.IsExtensionSupported("GL_ARB_texture_rectangle"):
 		if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two"):
 			Global.NPOTSupported = True
@@ -384,10 +421,14 @@ class Graphics:
 		#light_position = (150.0, 0.0, 75.0, 1.0)
 		#glLightfv(GL_LIGHT0, GL_POSITION, light_position)
 
-
 		glLoadIdentity()
+
+
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
+
+		self.skydome.draw()
+
 		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
 		#print -Global.Input.xpos, -Global.Input.ypos, -Global.Input.zpos
 
@@ -408,11 +449,12 @@ class Graphics:
 		#glEnable(GL_FOG)
 
 		# SkyDome
-		self.skydome.draw()
+		#self.skydome.draw()
 
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-		#glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+		glEnableClientState(GL_NORMAL_ARRAY)
 	
 
 		glPushMatrix()
@@ -422,21 +464,24 @@ class Graphics:
 		for i in xrange(len(g_fVBOObjects)):
 			#glEnable(GL_BLEND)
 			#glBlendFunc(GL_ONE, GL_ONE)
-			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].nTextureId)
-			#glEnable(GL_TEXTURE_2D)
+			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].textureId)
+			glEnable(GL_TEXTURE_2D)
 
 
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOVertices )
+			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].verticesId )
 			glVertexPointer(3, GL_FLOAT, 0, None)
-			#glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].m_nVBOTexCoords)
-			#glTexCoordPointer(2, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].normalsId)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].texCoordsId)
+			glTexCoordPointer(2, GL_FLOAT, 0, None)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].vnormalsId)
 			glNormalPointer(GL_FLOAT, 0, None)
 
-			glDrawArrays( GL_TRIANGLES, 0, g_fVBOObjects[i].m_nVertexCount )
+			if g_fVBOObjects[i].isQuad:
+				glDrawArrays(GL_QUADS, 0, g_fVBOObjects[i].vertexCount)
+			else:
+				glDrawArrays(GL_TRIANGLES, 0, g_fVBOObjects[i].vertexCount)
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
-			#glDisable(GL_TEXTURE_2D)
+			glDisable(GL_TEXTURE_2D)
 			#glDisable(GL_BLEND)
 
 		glPopMatrix()
@@ -444,7 +489,8 @@ class Graphics:
 
 		# // Disable Pointers
 		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-		#glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+		glDisableClientState(GL_NORMAL_ARRAY)
 
 		glDisable(GL_FOG)
 
@@ -495,14 +541,6 @@ class Graphics:
 		glDisableClientState(GL_COLOR_ARRAY)
 		glDisableClientState(GL_NORMAL_ARRAY)
 
-		i = 0
-		while i < len(normals):
-			glBegin(GL_LINES)
-			glVertex3f(normals[i], normals[i+1], normals[i+2])
-			glVertex3f(normals[i]*200, normals[i+1]*200, normals[i+2]*200)
-			glEnd()
-			i += 3
-		
 		glFlush()
 
 		pygame.display.flip()
