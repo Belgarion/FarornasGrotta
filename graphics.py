@@ -14,38 +14,8 @@ from octree import *
 import sys
 import math
 from skydome import Skydome
-vertices = []
-
-#g_Octree = COctree()
 
 import random
-
-"""def load_level(name):
-	f = open(name, "r")
-	lines = f.readlines()
-	f.close()
-	level = []
-	#x = 0
-	#y = 0
-
-	for line in lines:
-		pos = line.rsplit(" ")
-		if len(pos) < 2:
-			continue
-		level.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
-		Global.vertices.append( (float(pos[0]), float(pos[1]), float(pos[2])) )
-		Global.numberOfVertices += 1
-		#line2 = []
-		#for i in line.rsplit(" "):
-		#	line2.append(float(i.replace("\n", "")))
-		#	y+=1
-		#	Global.vertices.append( (float(x), float(i.replace("\n","")), float(y)) )
-		#	Global.numberOfVertices += 1
-		#level.append(line2)
-		#x+=1
-		#y = 0
-
-	return level"""
 
 def nearestPowerOfTwo(v):
 	v -= 1
@@ -57,28 +27,11 @@ def nearestPowerOfTwo(v):
 	v += 1
 	return v
 
-"""def load_level(level):
-	WholeMap = []	
-
-	level = open(level, "r")
-	for line in level:
-		temp = line.split(" ")
-		#temp[2] = temp[2].replace("\r\n", "")
-
-		Global.vertices.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
-		WholeMap.append(CVector3(float(temp[0]),float(temp[1]),float(temp[2])))
-		Global.g_NumberOfVerts += 1
-	
-	level.close()
-	return WholeMap"""
-
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
 		self.y = 0
 		self.z = 0
-
-CVec = CVert
 
 class CTexCoord:
 	""" Texture Coordinate Class """
@@ -228,21 +181,6 @@ class Graphics:
 		self.g_Octree = COctree()
 
 	def addSurface(self, Mesh, Map, Texture):
-		"""global g_fVBOObjects
-		g_pMesh = CMesh (Mesh)
-		#Level = load_level(Map)
-		Level = loadRaw(Map)
-
-		g_pMesh.nTextureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
-
-		self.g_Octree.GetSceneDimensions(Level, Global.numberOfVertices)
-		self.g_Octree.CreateNode(Level, Global.numberOfVertices, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
-
-		g_pMesh.LoadHeightmap (CMesh.MESH_HEIGHTSCALE, Level, textureWidthRatio, textureHeightRatio)
-
-		g_pMesh.BuildVBOs()"""
-
-
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("terrain.obj")
 
@@ -329,21 +267,12 @@ class Graphics:
 		glEnable(GL_LIGHTING)
 		glDisable(GL_LIGHT0)
 		glEnable(GL_LIGHT1)
+		###########
 
-		#glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE)
-		#glEnable(GL_COLOR_MATERIAL)
-		############
-		#glEnable(GL_RESCALE_NORMAL)
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
 
-		#g_Octree.GetSceneDimensions(Global.vertices, Global.numberOfVertices)
-		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), g_Octree.GetWidth())
-		#g_Octree.CreateNode(Global.vertices, Global.numberOfVertices, g_Octree.GetCenter(), 100)
-
-		#Global.g_Debug.AddDebugRectangle(CVector3(-50,50,-50) , 100,100,100)
-		#Global.g_Debug.RenderDebugLines()
 		self.player = Player()
 
 	def IsExtensionSupported (self, TargetExtension):
@@ -398,6 +327,7 @@ class Graphics:
 	def printFPS(self):
 		while True:
 			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
+			#print self.g_nFrames
 			self.g_nFrames = 0
 			if sys.platform == "win32": break
 			time.sleep(1.0)
@@ -462,15 +392,13 @@ class Graphics:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 
-		#light_position = (150.0, 0.0, 75.0, 1.0)
-		#glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-
 		glLoadIdentity()
 
 
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
 
+		# SkyDome
 		self.skydome.draw()
 
 		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
@@ -491,9 +419,6 @@ class Graphics:
 		glFogf(GL_FOG_START, 1.0)
 		glFogf(GL_FOG_END, 110.0)
 		#glEnable(GL_FOG)
-
-		# SkyDome
-		#self.skydome.draw()
 
 		# // Enable Pointers
 		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays

@@ -33,7 +33,7 @@ class Sun:
 
 		now = time.gmtime()
 		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
-		#self.angle = 120 * (3.1415/180.0)
+		#self.angle = 160 * (3.1415/180.0)
 		#self.angle = 20 * (3.1415/180.0)
 		self.x = math.cos(self.angle) * 900
 		self.y = math.sin(self.angle) * 900
@@ -117,10 +117,9 @@ class Skydome:
 		self.sun = Sun()
 
 
-		#v = loadRaw("skydome.raw")
 		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("skydome.obj")
 
-		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("sky.png")
+		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("cl.jpg")
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
@@ -159,7 +158,7 @@ class Skydome:
 	def draw(self):
 		glPushMatrix()
 		
-		#glDisable(GL_LIGHTING)
+		glDisable(GL_LIGHTING)
 		glColor3f(0.0, 0.749, 1.0)
 
 		glScalef(10.0, 10.0, 10.0)
@@ -167,24 +166,26 @@ class Skydome:
 		
 		self.sun.draw()
 
+		#glColor3f(0.0, 0.749, 1.0)
+		glColor3f(1.0, 1.0, 1.0)
 		#glDisable(GL_DEPTH_TEST)
 		glEnableClientState(GL_VERTEX_ARRAY)
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
 		glBindTexture(GL_TEXTURE_2D, self.textureId)
-		#glEnable(GL_TEXTURE_2D)
+		glEnable(GL_TEXTURE_2D)
 		
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
 		glVertexPointer(3, GL_FLOAT, 0, None)
-		#glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-		#glTexCoordPointer(2, GL_FLOAT, 0, None)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
+		glTexCoordPointer(2, GL_FLOAT, 0, None)
 		if not self.isQuad:
 			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
 		else:
 			glDrawArrays(GL_QUADS, 0, self.vertexCount)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
-		#glDisable(GL_TEXTURE_2D)
+		glDisable(GL_TEXTURE_2D)
 		glDisableClientState(GL_VERTEX_ARRAY)
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -204,8 +205,10 @@ class Skydome:
 			glEnd()
 		glEnable(GL_LIGHTING)"""
 
-
 		if not light:
 			glDisable(GL_LIGHTING)
+
+		glEnable(GL_LIGHTING)
+
 
 		glPopMatrix()
