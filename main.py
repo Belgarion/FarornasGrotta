@@ -40,10 +40,13 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 from octree import *
 
+from gameObject import GameObject
+
 Global.Input = input()
 Global.menu = Menu()
 graphics = Graphics()
 physics = 0
+
 objects = []
 
 g_nFrames = 0.0
@@ -54,27 +57,24 @@ class TestObject:
 		self.position = position
 
 
-
-class GameObject:
-	def __init__(self, name, position, orientation, mass, velocity ):
-		self.name = name
-		self.position = position
-		self.orientation = orientation
-		self.mass = mass
-		self.velocity = velocity
-
 def init():
 	global physics
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
+
+	graphics.initGL()
+	Global.menu.init_font()
 
 	pygame.mouse.set_visible(0)
 	pygame.event.set_grab(1)
 
 	rel = pygame.mouse.get_rel()
 
-	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0,), 100, (0.0,0.0,0.0))
+	objects = []
+	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
 	objects.append(monster)
+	Global.player = Player()
+	objects.append(Global.player)
 	physics = Physics(objects)
 
 	print "F1 for switch between Qwerty and Dvorak"
@@ -84,29 +84,29 @@ def init():
 	print "+/- to increase/decrease number of debug-lines level"
 	print "WASD to move. Mouse to look"
 
+	graphics.addSurface(0, "Terrain.raw", "grass.jpg")
+
+	if sys.platform != "win32":
+		thread.start_new_thread(graphics.printFPS, ())
+
+	Global.menu.setBackground("img2.png")
+	Global.menu.addMenuEntry("Start", startGame)
+	Global.menu.addMenuEntry("Options", options)
+	Global.menu.addMenuEntry("Quit", quit)
+
+	thread.start_new_thread(Global.Input.handle_input, ())
 
 
-init()
-graphics.initGL()
-Global.menu.init_font()
-
-graphics.addSurface(0, "Terrain.raw", "grass.jpg")
-
-if sys.platform != "win32":
-	thread.start_new_thread(graphics.printFPS, ())
 
 def editpos():
 	Global.Input.xpos = -400
 	Global.Input.ypos = 360
 	Global.Input.zpos = -45
-	Global.Input.xrot = -333
-	Global.Input.yrot = -250
+	#Global.Input.xrot = -333
+	#Global.Input.yrot = -250
 
-
-thread.start_new_thread(Global.Input.handle_input, ())
 
 fpsTime = 0
-
 
 def startGame():
 	Global.mainMenuOpen = False
@@ -120,11 +120,7 @@ def options():
 def quit():
 	Global.quit = 1
 
-Global.menu.setBackground("img2.png")
-Global.menu.addMenuEntry("Start", startGame)
-Global.menu.addMenuEntry("Options", options)
-Global.menu.addMenuEntry("Quit", quit)
-
+init()
 while not Global.quit:
 	if sys.platform == "win32":
 		if time.time() - fpsTime >= 1.0:

@@ -21,7 +21,7 @@ class input:
 		# Qwerty = 0, Dvorak = 1
 		self.keyboardlayout = 0
 
-		self.speed = 250
+		self.speed = 15
 
 
 	def handleMainMenuInput(self):
@@ -44,7 +44,15 @@ class input:
 		for event in pygame.event.get([pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]):
 			if event.type == pygame.MOUSEMOTION:
 				self.xrot += event.rel[1] / 10.0 # It is y pos with mouse that rotates the X axis
-				self.yrot += event.rel[0] / 10.0
+				self.yrot = (self.yrot + event.rel[0] / 10.0) % 360
+				if self.xrot <= -90: self.xrot = -90
+				if self.xrot >= 90: self.xrot = 90
+				if not Global.spectator:
+					Global.player.orientation = (
+							Global.player.orientation[0],
+							(Global.player.orientation[1] - event.rel[0]/10.0) % 360,
+							Global.player.orientation[2]
+							)
 
 	def handle_input(self):
 		clock = pygame.time.Clock()
@@ -60,26 +68,54 @@ class input:
 			if self.up_pressed:
 				xrotrad = self.xrot / 180 * math.pi
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos += math.sin(yrotrad) * distance_moved
-				self.zpos -= math.cos(yrotrad) * distance_moved
-				self.ypos -= math.sin(xrotrad) * distance_moved
+				if Global.spectator:
+					self.xpos += math.sin(yrotrad) * distance_moved
+					self.zpos -= math.cos(yrotrad) * distance_moved
+					self.ypos -= math.sin(xrotrad) * distance_moved
+				else:
+					Global.player.position = (
+							Global.player.position[0] + math.sin(yrotrad) * distance_moved,
+							Global.player.position[1],
+							Global.player.position[2] - math.cos(yrotrad) * distance_moved
+							)
 
 			if self.down_pressed:
 				xrotrad = self.xrot / 180 * math.pi
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.sin(yrotrad) * distance_moved
-				self.zpos += math.cos(yrotrad) * distance_moved
-				self.ypos += math.sin(xrotrad) * distance_moved
+				if Global.spectator:
+					self.xpos -= math.sin(yrotrad) * distance_moved
+					self.zpos += math.cos(yrotrad) * distance_moved
+					self.ypos += math.sin(xrotrad) * distance_moved
+				else:
+					Global.player.position = (
+							Global.player.position[0] - math.sin(yrotrad) * distance_moved, 
+							Global.player.position[1], 
+							Global.player.position[2] + math.cos(yrotrad) * distance_moved
+							)
 
 			if self.left_pressed:
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos -= math.cos(yrotrad) * distance_moved
-				self.zpos -= math.sin(yrotrad) * distance_moved
+				if Global.spectator:
+					self.xpos -= math.cos(yrotrad) * distance_moved
+					self.zpos -= math.sin(yrotrad) * distance_moved
+				else:
+					Global.player.position = (
+							Global.player.position[0] - math.cos(yrotrad) * distance_moved,
+							Global.player.position[1],
+							Global.player.position[2] - math.sin(yrotrad) * distance_moved
+							)
 
 			if self.right_pressed:
 				yrotrad = self.yrot / 180 * math.pi
-				self.xpos += math.cos(yrotrad) * distance_moved
-				self.zpos += math.sin(yrotrad) * distance_moved
+				if Global.spectator:
+					self.xpos += math.cos(yrotrad) * distance_moved
+					self.zpos += math.sin(yrotrad) * distance_moved
+				else:
+					Global.player.position = (
+							Global.player.position[0] + math.cos(yrotrad) * distance_moved,
+							Global.player.position[1],
+							Global.player.position[2] + math.sin(yrotrad) * distance_moved
+							)
 			
 			if sys.platform != "win32":
 				self.handle_mouse()
@@ -97,6 +133,8 @@ class input:
 						elif event.key == pygame.K_F2:
 							Global.debugLines ^= 1
 							Global.g_bDebugLines ^= 1
+						elif event.key == pygame.K_F3:
+							Global.spectator ^= 1
 						elif event.key == pygame.K_F6:
 							Global.drawAxes ^= 1
 						elif event.key == pygame.K_F7:
@@ -108,6 +146,12 @@ class input:
 							if Global.g_MaxSubdivisions > 0:
 								Global.g_MaxSubdivisions -= 1
 								Global.reDraw = True
+						elif event.key == pygame.K_j:
+							self.speed += 100
+						elif event.key == pygame.K_k:
+							self.speed -= 100
+						elif event.key == pygame.K_SPACE:
+							Global.player.jump()
 
 					if event.key == pygame.K_UP:
 						self.up_pressed ^= 1

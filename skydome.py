@@ -13,7 +13,7 @@ import random
 
 class Sun:
 	def __init__(self):
-		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("sun.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("sun.obj")
 
 		self.verticesId = glGenBuffersARB(1)
 		self.normalsId = glGenBuffersARB(1)
@@ -32,6 +32,7 @@ class Sun:
 		# 15/60 = 0.25
 
 		now = time.gmtime()
+		#self.angle += 0.003
 		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
 		#self.angle = 160 * (3.1415/180.0)
 		#self.angle = 20 * (3.1415/180.0)
@@ -60,9 +61,9 @@ class Sun:
 
 		glColor3f(1.0, 1.0, 0.0)
 		
+		glRotatef(60.0, 0.0, 1.0, 0.0)
 		glScalef(0.1, 0.1, 0.1)
 		glTranslatef(self.x, self.y, 0.0)
-		#glRotatef(180.0, 0.0, 1.0, 0.0)
 
 		#glPushMatrix()
 		#glLightfv(GL_LIGHT0, GL_POSITION, (self.x, self.y, 0.0, 10000.0) )
@@ -94,10 +95,7 @@ class Sun:
 		glVertexPointer(3, GL_FLOAT, 0, None)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
 		glNormalPointer(GL_FLOAT, 0, None)
-		if not self.isQuad:
-			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		else:
-			glDrawArrays(GL_QUADS, 0, self.vertexCount)
+		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		glDisableClientState(GL_VERTEX_ARRAY)
@@ -117,7 +115,7 @@ class Skydome:
 		self.sun = Sun()
 
 
-		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("skydome.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("skydome.obj")
 
 		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("cl.jpg")
 
@@ -179,10 +177,7 @@ class Skydome:
 		glVertexPointer(3, GL_FLOAT, 0, None)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
 		glTexCoordPointer(2, GL_FLOAT, 0, None)
-		if not self.isQuad:
-			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		else:
-			glDrawArrays(GL_QUADS, 0, self.vertexCount)
+		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		glDisable(GL_TEXTURE_2D)

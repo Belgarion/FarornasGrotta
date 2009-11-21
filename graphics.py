@@ -14,6 +14,7 @@ from octree import *
 import sys
 import math
 from skydome import Skydome
+from player import Player
 
 import random
 
@@ -26,19 +27,16 @@ def nearestPowerOfTwo(v):
 	v |= v >> 16
 	v += 1
 	return v
-
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
 		self.y = 0
 		self.z = 0
-
 class CTexCoord:
 	""" Texture Coordinate Class """
 	def __init__ (self, u = 0.0, v = 0.0):
 		self.u = u # // U Component
 		self.v = v
-
 class CMesh:
 	""" Mesh Data """
 	MESH_HEIGHTSCALE = 1.0
@@ -115,62 +113,6 @@ class CMesh:
 			self.m_pTexCoords = None
 			self.normals = None
 		return
-
-class Player:
-	def __init__(self):
-		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("player.obj")
-
-		self.verticesId = glGenBuffersARB(1)
-		self.normalsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
-		self.x = 100
-		self.y = 100
-
-	
-	def draw(self):
-
-		glPushMatrix()
-
-
-		#glDisable(GL_COLOR_MATERIAL)
-
-		#glDisable(GL_LIGHTING)
-		light = glIsEnabled(GL_LIGHTING)
-		if not light:
-			glEnable(GL_LIGHTING)
-
-		glColor3f(1.0, 1.0, 0.0)
-		
-		glTranslatef(self.x, self.y, 0.0)
-		glScalef(10, 10, 10)
-		#glRotatef(180.0, 0.0, 1.0, 0.0)
-
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_NORMAL_ARRAY)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glVertexPointer(3, GL_FLOAT, 0, None)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glNormalPointer(GL_FLOAT, 0, None)
-		if not self.isQuad:
-			glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		else:
-			glDrawArrays(GL_QUADS, 0, self.vertexCount)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_NORMAL_ARRAY)
-
-		if not light:
-			glDisable(GL_LIGHTING)
-
-		glPopMatrix()
-
 class Graphics:
 	def __init__(self):
 		global g_fVBOObjects
@@ -179,10 +121,9 @@ class Graphics:
 		self.g_nFrames = 0
 
 		self.g_Octree = COctree()
-
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
-		vertices, vnormals, f, self.vertexCount, self.isQuad = loadObj("terrain.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("terrain.obj")
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
@@ -225,10 +166,8 @@ class Graphics:
 		g_pMesh.vnormalsId = self.vnormalsId
 		g_pMesh.texCoordsId = self.texCoordsId
 		g_pMesh.vertexCount = self.vertexCount
-		g_pMesh.isQuad = self.isQuad
 
 		g_fVBOObjects.append(g_pMesh)
-
 	def initGL(self):
 		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
 		if not glInitVertexBufferObjectARB():
@@ -272,8 +211,6 @@ class Graphics:
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
-
-		self.player = Player()
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -323,7 +260,6 @@ class Graphics:
 			return False
 
 		return True
-
 	def printFPS(self):
 		while True:
 			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
@@ -331,7 +267,6 @@ class Graphics:
 			self.g_nFrames = 0
 			if sys.platform == "win32": break
 			time.sleep(1.0)
-
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		light = glIsEnabled(GL_LIGHTING)
@@ -358,8 +293,6 @@ class Graphics:
 
 		if light:
 			glEnable(GL_LIGHTING)
-
-
 	def draw(self, objects):
 		global g_fVBOObjects
 
@@ -375,12 +308,6 @@ class Graphics:
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
 		glLoadIdentity()
 
-		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
-		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
-		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
-		
-		self.g_nFrames += 1
-
 		if Global.drawAxes:
 			self.drawAxes()
 
@@ -394,15 +321,20 @@ class Graphics:
 
 		glLoadIdentity()
 
-
 		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
 		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
 
 		# SkyDome
 		self.skydome.draw()
 
-		glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
-		#print -Global.Input.xpos, -Global.Input.ypos, -Global.Input.zpos
+		if Global.spectator:
+			glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
+		else:
+			glTranslated(
+					-Global.player.position[0]-0.2*math.sin(math.radians(Global.player.orientation[1])),
+					-Global.player.position[1]-2.2,
+					-Global.player.position[2]+0.2*math.cos(math.radians(Global.player.orientation[1]-180))
+					)
 
 		self.g_nFrames += 1
 
@@ -444,10 +376,7 @@ class Graphics:
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].vnormalsId)
 			glNormalPointer(GL_FLOAT, 0, None)
 
-			if g_fVBOObjects[i].isQuad:
-				glDrawArrays(GL_QUADS, 0, g_fVBOObjects[i].vertexCount)
-			else:
-				glDrawArrays(GL_TRIANGLES, 0, g_fVBOObjects[i].vertexCount)
+			glDrawArrays(GL_TRIANGLES, 0, g_fVBOObjects[i].vertexCount)
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 			glDisable(GL_TEXTURE_2D)
@@ -463,8 +392,6 @@ class Graphics:
 
 		glDisable(GL_FOG)
 
-		self.player.draw()
-
 		if Global.debugLines:
 			Global.g_Debug.RenderDebugLines()
 
@@ -477,45 +404,8 @@ class Graphics:
 				# Render the cube'd nodes to visualize the octree (in wire frame mode)
 				Global.g_Debug.RenderDebugLines()
 
-		s = 100.0
-		x = objects[0].position[0]
-		y = objects[0].position[1]
-		z = objects[0].position[2]
-		verts = [
-				x+s,y+s,z-s, x-s,y+s,z-s, x-s,y+s,z+s, x+s,y+s,z+s, #top
-				x+s,y-s,z+s, x-s,y-s,z+s, x-s,y-s,z-s, x+s,y-s,z-s, #bottom
-				x+s,y+s,z+s, x-s,y+s,z+s, x-s,y-s,z+s, x+s,y-s,z+s, #front
-				x+s,y-s,z-s, x-s,y-s,z-s, x-s,y+s,z-s, x+s,y+s,z-s, #back
-				x-s,y+s,z+s, x-s,y+s,z-s, x-s,y-s,z-s, x-s,y-s,z+s, #left
-				x+s,y+s,z-s, x+s,y+s,z+s, x+s,y-s,z+s, x+s,y-s,z-s  #right
-				]
-		colors = [
-				0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, #top
-				1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, 1.0,0.5,0.0, #bottom
-				1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, #front
-				1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, 1.0,1.0,0.0, #back
-				0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, #left
-				1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0, 1.0,0.0,1.0  #right
-				]
-		normals = [
-				0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 0.0,1.0,0.0, 	#top
-				0.0,-1.0,0.0, 0.0,-1.0,0.0, 0.0,-1.0,0.0, 0.0,-1.0,0.0, #bottom
-				0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0, 0.0,0.0,1.0,		#front
-				0.0,0.0,-1.0, 0.0,0.0,-1.0, 0.0,0.0,-1.0, 0.0,0.0,-1.0,	#back
-				-1.0,0.0,0.0, -1.0,0.0,0.0, -1.0,0.0,0.0, -1.0,0.0,0.0, #left
-				1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 1.0,0.0,0.0, 	#right
-				]
-
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_COLOR_ARRAY)
-		glEnableClientState(GL_NORMAL_ARRAY)
-		glVertexPointer(3, GL_FLOAT, 0, verts)
-		glColorPointer(3, GL_FLOAT, 0, colors)
-		glNormalPointer(GL_FLOAT, 0, normals)
-		glDrawArrays(GL_QUADS, 0, 24)
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_COLOR_ARRAY)
-		glDisableClientState(GL_NORMAL_ARRAY)
+		for obj in objects:
+			obj.draw()
 
 		glFlush()
 
