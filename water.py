@@ -10,8 +10,8 @@ import time
 
 class Water:
 	def __init__(self):
-		meshVertices, self.vertexCount = self.generateMesh()
-		self.verticesId = self.bindVBO(meshVertices)
+		meshVertices, self.vertexCount, meshNormals = self.generateMesh()
+		self.verticesId, self.normalsId = self.bindVBO(meshVertices, meshNormals)
 		self.initShader()
 		#
 	def initShader(self):
@@ -33,67 +33,100 @@ class Water:
 		vertexSource = ["""
 		uniform float time;
 
-		varying vec4 diffuse, ambient, ambientGlobal;
-		varying vec3 normal, lightDir, halfVector;
-		varying float dist;
+		varying vec3 normal, lightDir, eyeVec;
+
+		varying vec3 vNormal;
+
+		vec3 computeNormal(vec3 pos, vec3 tangent, vec3 binormal) {
+			mat3 J;
+			float y = pos.y + sin(0.2 * pos.x + time) * cos(0.2 * pos.z + time) * 2.0;
+
+			J[0][0] = 1.0;
+			J[0][1] = y * pos.x;
+			J[0][2] = 0.0;
+
+			J[1][0] = 0.0;
+			J[1][1] = 1.0;
+			J[1][2] = 0.0;
+
+			J[2][0] = 0.0;
+			J[2][1] = y * pos.z;
+			J[2][2] = 1.0;
+
+			vec3 u = J * tangent;
+			vec3 v = J * binormal;
+
+			vec3 n = cross(v, u);
+			return normalize(n);
+		}
 
 		void main() {
 			vec4 ecPos;
 			vec3 aux;
 
-			/*normal = normalize(gl_NormalMatrix * gl_Normal);*/
+			// Compute vertex position
 			vec4 a = gl_Vertex;
-
-			/*vec2 pos, n1, n2;
-			pos.x = a.x
-			pos.y = a.y
-			n1.x = pos.x + 1.0*/
-
-			a.y = a.y + sin(0.2 * a.x + time) * cos(0.2 * a.z + time) * 2;
+			a.y = a.y + sin(0.2 * a.x + time) * cos(0.2 * a.z + time) * 2.0;
 			gl_Position = gl_ModelViewProjectionMatrix * a;
+			///
+
+			// Compute normal
+			vec3 newNormal;
+			vec3 tangent;
+			vec3 binormal;
+
+			vec3 c1 = cross(gl_Normal, vec3(0.0, 0.0, 1.0));
+			vec3 c2 = cross(gl_Normal, vec3(0.0, 1.0, 0.0));
+
+			if (length(c1) > length(c2)) {
+				tangent = c1;
+			} else {
+				tangent = c2;
+			}
+			tangent = normalize(tangent);
+
+			binormal = cross(gl_Normal, tangent);
+			binormal = normalize(binormal);
+
+			newNormal = computeNormal(a.xyz, tangent.xyz, binormal);
+			vNormal = normalize(gl_NormalMatrix * newNormal);
+
+			normal = gl_NormalMatrix * newNormal.xyz;
+			//////////
 
 			ecPos = gl_ModelViewMatrix * gl_Vertex;
 			aux = vec3(gl_LightSource[1].position - ecPos);
 			lightDir = normalize(aux);
-			dist = length(aux);
-
-			halfVector = normalize(gl_LightSource[1].halfVector.xyz);
-
-			diffuse = gl_FrontMaterial.diffuse * gl_LightSource[1].diffuse;
-			ambient = gl_FrontMaterial.ambient * gl_LightSource[1].ambient;
-			ambientGlobal = gl_LightModel.ambient * gl_FrontMaterial.ambient;
-
+			eyeVec = -ecPos;
 		}
 		"""]
 		fragmentSource = ["""
-		varying vec4 diffuse, ambient, ambientGlobal;
-		varying vec3 normal, lightDir, halfVector;
-		varying float dist;
-
+		varying vec3 normal, lightDir, eyeVec;
+		
 		void main() {
-			/*vec3 n, halfV, viewV, ldir;
-			float NdotL, NdotHV;
-			vec4 color = ambientGlobal;
-			float att;
+			vec4 final_color = 
+				(gl_FrontLightModelProduct.sceneColor * gl_FrontMaterial.ambient) +
+				(gl_LightSource[1].ambient * gl_FrontMaterial.ambient);
 
-			n = normalize(normal);
+			vec3 N = normalize(normal);
+			vec3 L = normalize(lightDir);
 
-			NdotL = max(dot(n, normalize(lightDir)), 0.0);
+			float lambertTerm = max(dot(N, L), 0.0);
 
-			if (NdotL > 0.0) {
-				att = 1.0 / (gl_LightSource[1].constantAttenuation +
-								gl_LightSource[1].linearAttenuation * dist +
-								gl_LightSource[1].quadraticAttenuation * dist * dist);
-				color += att * (diffuse * NdotL + ambient);
-				halfV = normalize(halfVector);
-				NdotHV = max(dot(n, halfV), 0.0);
-				color += att * gl_FrontMaterial.specular * gl_LightSource[1].specular * 
-							pow(NdotHV, gl_FrontMaterial.shininess);
+			if (lambertTerm > 0.0) {
+				final_color += gl_LightSource[1].diffuse *
+								gl_FrontMaterial.diffuse *
+								lambertTerm;
+
+				vec3 E = normalize(eyeVec);
+				vec3 R = reflect(-L, N);
+				float specular = pow(max(dot(R, E), 0.0), 
+									gl_FrontMaterial.shininess);
+				final_color += gl_LightSource[1].specular *
+								gl_FrontMaterial.specular *
+								specular;
 			}
-			gl_FragColor = gl_Color;*/
-			gl_FragColor[0] = gl_FragCoord[0] / 400.0;
-			gl_FragColor[1] = gl_FragCoord[1] / 400.0;
-			gl_FragColor[2] = 1.0;
+			gl_FragColor = final_color;
 		}
 		"""]
 		glShaderSourceARB(vertexShader, vertexSource)
@@ -120,6 +153,7 @@ class Water:
 	def generateMesh(self):
 		nIndex = 0
 		mesh = Numeric.zeros( (99*99*6, 3), 'f')
+		normals = Numeric.zeros( (99*99*6, 3), 'f')
 		for x in xrange(0,99):
 			for z in xrange(0,99):
 				mesh[nIndex, 0] = float(x)
@@ -153,42 +187,66 @@ class Water:
 				mesh[nIndex, 2] = float(z+1)
 				nIndex += 1
 
-		return (mesh, nIndex)
+		n = 0
+		for x in xrange(0, 99):
+			for z in xrange(0, 99):
+				for i in xrange(0,6):
+					normals[n, 0] = 0.0
+					normals[n, 1] = 1.0
+					normals[n, 2] = 0.0
+					n += 1
+
+		return (mesh, nIndex, normals)
 		#
-	def bindVBO(self, vertices):
+	def bindVBO(self, vertices, normals):
 		verticesId = glGenBuffersARB(1)
+		normalsId = glGenBuffersARB(1)
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
 
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, normals, GL_STATIC_DRAW_ARB)
+
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
-		return verticesId
+		return (verticesId, normalsId)
 		#
 	def draw(self):
 		glPushMatrix()
 
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, (0.6, 0.6, 1.0, 1.0))
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (0.6, 0.6, 1.0, 1.0))
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
+
 		glTranslatef(-1000.0, -40.0, -1000.0)
+		glScalef(20.0, 8.0, 20.0)
 
 		glUseProgramObjectARB(self.program)
 
 		loc = glGetUniformLocation(self.program,'time')
 		glUniform1f(loc, time.time() % 360)
 
-		glScalef(20.0, 8.0, 20.0)
-		self.drawVBO(self.verticesId, self.vertexCount)
+		self.drawVBO(self.verticesId, self.vertexCount, self.normalsId)
 
 		glUseProgramObjectARB(0)
 
 		glPopMatrix()
 		#
-	def drawVBO(self, verticesId, vertexCount):
+	def drawVBO(self, verticesId, vertexCount, normalsId = None):
 		glEnableClientState(GL_VERTEX_ARRAY)
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
 		glVertexPointer(3, GL_FLOAT, 0, None)
 
+		if (self.normalsId != None):
+			glEnableClientState(GL_NORMAL_ARRAY)
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+			glNormalPointer(GL_FLOAT, 0, None)
+
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount)
 
 		glDisableClientState(GL_VERTEX_ARRAY)
+		if (self.normalsId != None):
+			glDisableClientState(GL_NORMAL_ARRAY)
 		#
