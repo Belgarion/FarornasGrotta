@@ -61,7 +61,7 @@ class Water:
 		}
 
 		void main() {
-			vec4 ecPos;
+			vec3 ecPos;
 			vec3 aux;
 
 			// Compute vertex position
@@ -94,7 +94,7 @@ class Water:
 			normal = gl_NormalMatrix * newNormal.xyz;
 			//////////
 
-			ecPos = gl_ModelViewMatrix * gl_Vertex;
+			ecPos = vec3(gl_ModelViewMatrix * a);
 			aux = vec3(gl_LightSource[1].position - ecPos);
 			lightDir = normalize(aux);
 			eyeVec = -ecPos;
