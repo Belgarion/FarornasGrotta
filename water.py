@@ -18,17 +18,6 @@ class Water:
 		program = glCreateProgramObjectARB()
 		vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB)
 		fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB)
-		vertexSource = ["""
-		uniform float time;
-		void main() {
-			gl_FrontColor = gl_Color;
-
-			vec4 a = gl_Vertex;
-			a.y = a.y + 2 * sin(a.x * 0.2 + time);
-
-			gl_Position = gl_ModelViewProjectionMatrix * a;
-		}
-		"""]
 
 		vertexSource = ["""
 		uniform float time;
@@ -95,8 +84,7 @@ class Water:
 			//////////
 
 			ecPos = vec3(gl_ModelViewMatrix * a);
-			aux = vec3(gl_LightSource[1].position - ecPos);
-			lightDir = normalize(aux);
+			lightDir = vec3(gl_LightSource[1].position.xyz - ecPos);
 			eyeVec = -ecPos;
 		}
 		"""]
