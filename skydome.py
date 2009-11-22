@@ -32,8 +32,8 @@ class Sun:
 		# 15/60 = 0.25
 
 		now = time.gmtime()
-		#self.angle += 0.003
-		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
+		self.angle += 0.003
+		#self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
 		#self.angle = 160 * (3.1415/180.0)
 		#self.angle = 20 * (3.1415/180.0)
 		self.x = math.cos(self.angle) * 900

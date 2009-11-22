@@ -18,6 +18,8 @@ from player import Player
 
 import random
 
+from water import Water
+
 def nearestPowerOfTwo(v):
 	v -= 1
 	v |= v >> 1
@@ -212,6 +214,8 @@ class Graphics:
 
 		self.skydome = Skydome()
 
+		self.water = Water()
+
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
 			Note, that this test only tells you if the OpenGL library supports
@@ -340,6 +344,9 @@ class Graphics:
 
 		if Global.drawAxes:
 			self.drawAxes()
+
+		# Water
+		self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
 
