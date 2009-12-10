@@ -302,6 +302,8 @@ class Global:
 	debugLines = False
 	spectator = False
 
+	player = None
+
 	g_Debug = CDebug()
 
 	

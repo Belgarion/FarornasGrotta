@@ -41,6 +41,10 @@ import traceback
 from octree import *
 
 from gameObject import GameObject
+import Network
+import cPickle
+
+import select
 
 Global.Input = input()
 Global.menu = Menu()
@@ -120,7 +124,65 @@ def options():
 def quit():
 	Global.quit = 1
 
+def handleNetwork():
+	global objects
+
+	addr = ('localhost', 30000)
+	myAddr = ('', 0)
+
+	Network.USend(addr, 0, "Nick")
+	while not Global.quit:
+		read_sockets, write_sockets, error_sockets = select.select([Network.uSock, Network.tSock], [], [], 1)
+		for sock in read_sockets:
+			print sock,"is ready for reading"
+			if sock == Network.uSock:
+				type, recvd, addr = Network.URecv()
+				print "len(recvd) =", len(recvd)
+				if len(recvd) == 0: continue
+				
+				if type == 0:
+					print "Connected"
+					myAddr = cPickle.loads(recvd)
+
+				elif type == 3:
+					print "Objects received"
+					objects = cPickle.loads(recvd)
+					for i in xrange(len(objects)):
+						if objects[i].addr == myAddr:
+							objects[i] = Global.player
+							break
+
+					physics.updateObjects(objects)
+					for i in objects:
+						print i.position
+
+			else:
+				#tcp
+				pass
+
+		Network.USend(addr, 2, cPickle.dumps(Global.player, 2))
+		#print cPickle.dumps(objects, 2)
+	
+		#try:
+		#	recvd, addr = Network.URecv()
+		#	if len(revcd) == 0: pass
+		#	else: print recvd
+		#except:
+		#	pass
+	
+		#Använd select för att kolla om det finns något att ta emot
+		#recvd = Network.TRecv(None, 256)
+		#while recvd:
+		#	print recvd
+		#	recvd = Nework.TRecv(None, 256)
+	
+	Network.USend(addr, 1, "")
+
+
 init()
+Network.Connect('localhost', 30000)
+thread.start_new_thread(handleNetwork, ())
+
 while not Global.quit:
 	if sys.platform == "win32":
 		if time.time() - fpsTime >= 1.0:
@@ -133,3 +195,5 @@ while not Global.quit:
 	else:
 		objects = physics.update()
 		graphics.draw(objects)
+
+Network.CloseConnections()
