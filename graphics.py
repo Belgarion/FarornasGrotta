@@ -27,6 +27,7 @@ def nearestPowerOfTwo(v):
 	v |= v >> 16
 	v += 1
 	return v
+
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
@@ -294,7 +295,7 @@ class Graphics:
 		if light:
 			glEnable(GL_LIGHTING)
 	def draw(self, objects):
-		global g_fVBOObjects
+		global g_fVBOObjects, g_MaxSubdivisions
 
 		if Global.reDraw:
 			Global.g_EndNodeCount = 0
@@ -395,7 +396,7 @@ class Graphics:
 		if Global.debugLines:
 			Global.g_Debug.RenderDebugLines()
 
-		if Global.g_MaxSubdivisions:
+		if g_MaxSubdivisions:
 			# Here we draw the octree, starting with the root node and recursing down each node.
 			# When we get to each of the end nodes we will draw the vertices assigned to them.
 			self.g_Octree.DrawOctree(self.g_Octree)
