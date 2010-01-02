@@ -21,8 +21,8 @@ class Player(GameObject):
 		self.x = 100
 		self.y = 100
 	def jump(self):
-		#if checkCollisionY():
-		self.position = (self.position[0], self.position[1] + 1.2*10, self.position[2])
+		if self.velocity[1] < 1 and self.velocity[1] > -1:
+			self.velocity = (self.velocity[0], self.velocity[1] - 9.82, self.velocity[2])
 	def draw(self):
 		glPushMatrix()
 
