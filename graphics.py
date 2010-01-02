@@ -262,12 +262,8 @@ class Graphics:
 
 		return True
 	def printFPS(self):
-		while True:
-			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
-			#print self.g_nFrames
-			self.g_nFrames = 0
-			if sys.platform == "win32": break
-			time.sleep(1.0)
+		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
+		self.g_nFrames = 0
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		light = glIsEnabled(GL_LIGHTING)
