@@ -18,10 +18,8 @@ class Menu:
 		self.texCoordsId = None
 		self.menuEntries = []
 		self.font = None
-	
 	def init_font(self):
 		self.font = Font()
-
 	def setBackground(self, filename):
 		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = loadTexture(filename)
 
@@ -50,8 +48,6 @@ class Menu:
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		self.hasBackground = True
-
-
 	def draw(self):
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
@@ -111,7 +107,6 @@ class Menu:
 
 		glFlush()
 		pygame.display.flip()
-		
 	def addMenuEntry(self, title, function):
 		print "Adding menu entry:", title
 		self.menuEntries.append( (title, function) )

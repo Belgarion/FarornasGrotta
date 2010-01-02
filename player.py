@@ -3,20 +3,14 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 
 from Global import *
 from gameObject import GameObject
+import graphics
 
 class Player(GameObject):
 	def __init__(self):
 		GameObject.__init__(self, "Player 1", (0.0, 20.0, -40.0), (0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
 
 		vertices, vnormals, f, self.vertexCount = loadObj("player.obj")
-
-		self.verticesId = glGenBuffersARB(1)
-		self.normalsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
 		self.x = 100
 		self.y = 100
@@ -39,18 +33,7 @@ class Player(GameObject):
 		glTranslatef(self.position[0], self.position[1], self.position[2])
 		glRotatef(self.orientation[1], 0.0, 1.0, 0.0)
 
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_NORMAL_ARRAY)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glVertexPointer(3, GL_FLOAT, 0, None)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glNormalPointer(GL_FLOAT, 0, None)
-		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_NORMAL_ARRAY)
+		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
 		if not light:
 			glDisable(GL_LIGHTING)

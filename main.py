@@ -22,6 +22,7 @@ from Global import *
 from physics import Physics
 from graphics import *
 from menu import *
+from player import Player
 
 #OpenGL.FULL_LOGGING = True
 
@@ -50,6 +51,7 @@ objects = []
 
 g_nFrames = 0.0
 
+Input = input()
 inputThread = None
 
 class TestObject:
