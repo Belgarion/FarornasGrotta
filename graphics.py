@@ -213,8 +213,9 @@ class Graphics:
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
-
-		self.water = Water()
+		
+		if not Global.disableWater:
+			self.water = Water()
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -346,7 +347,8 @@ class Graphics:
 			self.drawAxes()
 
 		# Water
-		self.water.draw()
+		if not Global.disableWater:
+			self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
 

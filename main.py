@@ -59,6 +59,12 @@ class TestObject:
 
 def init():
 	global physics
+
+	if len(sys.argv) > 1:
+		for arg in sys.argv:
+			if arg == "--nowater":
+				Global.disableWater = True
+
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
 
