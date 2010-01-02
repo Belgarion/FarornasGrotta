@@ -30,7 +30,7 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 import Image
 
-Global.Input = input()
+self.input = input()
 graphics = Graphics()
 
 g_nFrames = 0.0
@@ -44,7 +44,6 @@ texture = 0
 
 NO_VBOS = True
 
-g_fVBOSupported = False
 g_pMesh = None
 g_pMesh2 = None
 g_flYRot = 0.0
@@ -58,7 +57,7 @@ class Leveleditor:
 	"""This class was made so we can integrated the leveleditor in the game"""
 
 	def __init__ (self):
-		thread.start_new_thread(Global.Input.handle_input, ())
+		thread.start_new_thread(self.input.handle_input, ())
 
 
 	def draw (self):
@@ -80,7 +79,7 @@ graphics.addSurface(50, "level", "test.bmp")
 t = threading.Timer(2.0, main.editpos)
 t.start()
 
-thread.start_new_thread(Global.Input.handle_input, ())
+thread.start_new_thread(self.input.handle_input, ())
 
 
 

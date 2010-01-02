@@ -1,7 +1,9 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL.ARB.vertex_buffer_object import *
-from Global import Global, loadRaw, loadTexture, loadObj
+from Global import Global
+from graphics import loadObj
+
 try:
 	import numpy as Numeric
 except:
@@ -111,13 +113,14 @@ class Sun:
 		glPopMatrix()
 
 class Skydome:
-	def __init__(self):
+	def __init__(self, graphics):
 		self.sun = Sun()
+		self.graphics = graphics
 
 
 		vertices, vnormals, f, self.vertexCount = loadObj("skydome.obj")
 
-		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("cl.jpg")
+		self.textureId, textureWidthRatio, textureHeightRatio = self.graphics.loadTexture("cl.jpg")
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]

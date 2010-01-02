@@ -9,7 +9,6 @@ except:
 	sys.exit()
 import math
 import random
-import threading
 import thread
 try:
 	import OpenGL
@@ -18,7 +17,6 @@ except:
 	sys.exit()
 import logging
 
-import thread
 from Global import *
 from physics import Physics
 from graphics import *
@@ -33,6 +31,7 @@ from OpenGL import GL
 from OpenGL import GLU
 from input import *
 try:
+	
 	import numpy as Numeric
 except:
 	import Numeric
@@ -41,95 +40,108 @@ import traceback
 from octree import *
 
 from gameObject import GameObject
+from player import Player
 
-Global.Input = input()
-Global.menu = Menu()
-graphics = Graphics()
 physics = 0
 
 objects = []
 
 g_nFrames = 0.0
 
+fpsTime = 0
+
 class TestObject:
 	def __init__(self, name, position):
 		self.name = name
 		self.position = position
+class Main:
+
+	def __init__(self):
+		global physics			
+		
+		self.mainMenuOpen = True
+
+		pygame.init()
+		pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
+		objects = []
+		self.player = None
+		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
+		objects.append(monster)
+
+		self.octree = COctree()
+
+		self.graphics = Graphics(self.octree, self)
+		self.graphics.initGL()
+
+		self.menu = Menu(self.graphics)
+		self.player = Player()
+		objects.append(self.player)
+		physics = Physics(objects)
+		self.menu.init_font()
 
 
-def init():
-	global physics
-	pygame.init()
-	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
+		pygame.mouse.set_visible(0)
+		pygame.event.set_grab(1)
 
-	graphics.initGL()
-	Global.menu.init_font()
+		rel = pygame.mouse.get_rel()
 
-	pygame.mouse.set_visible(0)
-	pygame.event.set_grab(1)
+		print "F1 for toggle between Qwerty and Dvorak"
+		print "F2 for toggle debugLines"
+		print "F6 for toggle drawAxes"
+		print "F7 for toggle wireframe"
+		print "+/- to increase/decrease number of debug-lines level"
+		print "WASD to move. Mouse to look"
 
-	rel = pygame.mouse.get_rel()
+		self.graphics.addSurface(0, "Terrain.raw", "grass.jpg")
 
-	objects = []
-	monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
-	objects.append(monster)
-	Global.player = Player()
-	objects.append(Global.player)
-	physics = Physics(objects)
+		if sys.platform != "win32":
+			thread.start_new_thread(self.graphics.printFPS, ())
 
-	print "F1 for switch between Qwerty and Dvorak"
-	print "F2 for switch debugLines"
-	print "F6 for switch drawAxes"
-	print "F7 for switch wireframe"
-	print "+/- to increase/decrease number of debug-lines level"
-	print "WASD to move. Mouse to look"
+		self.menu.setBackground("img2.png")
+		self.menu.addMenuEntry("Start", self.startGame)
+		self.menu.addMenuEntry("Options", self.options)
+		self.menu.addMenuEntry("Quit", self.quit)
+		self.Input = input(self.octree, self.graphics,self.menu, self.player, self)		
+		thread.start_new_thread(self.Input.handle_input, ())
 
-	graphics.addSurface(0, "Terrain.raw", "grass.jpg")
+	def run(self):
 
-	if sys.platform != "win32":
-		thread.start_new_thread(graphics.printFPS, ())
+		while not Global.quit:
+			if sys.platform == "win32":
+				if time.time() - fpsTime >= 1.0:
+					fpsTime = time.time()
+					graphics.printFPS()
+				self.Input.handle_mouse()
 
-	Global.menu.setBackground("img2.png")
-	Global.menu.addMenuEntry("Start", startGame)
-	Global.menu.addMenuEntry("Options", options)
-	Global.menu.addMenuEntry("Quit", quit)
+			if self.mainMenuOpen:
+				self.menu.draw()
+			else:
+				objects = physics.update()
+				self.graphics.draw(objects)
+				
 
-	thread.start_new_thread(Global.Input.handle_input, ())
-
-
-
-def editpos():
-	Global.Input.xpos = -400
-	Global.Input.ypos = 360
-	Global.Input.zpos = -45
-	#Global.Input.xrot = -333
-	#Global.Input.yrot = -250
+	def editpos(self):
+		self.Input.xpos = -400
+		self.Input.ypos = 360
+		self.Input.zpos = -45
+		#Global.Input.xrot = -333
+		#Global.Input.yrot = -250
 
 
-fpsTime = 0
+	def startGame(self):
+		self.mainMenuOpen = False
+		self.editpos()
+		physics.lastTime = time.time()
 
-def startGame():
-	Global.mainMenuOpen = False
-	editpos()
-	physics.lastTime = time.time()
+	def options(self):
+		print "Not implemented (yet)"
+		# TODO: Implement submenus
 
-def options():
-	print "Not implemented (yet)"
-	# TODO: Implement submenus
+	def quit(self):
+		Global.quit = 1
 
-def quit():
-	Global.quit = 1
+	
 
-init()
-while not Global.quit:
-	if sys.platform == "win32":
-		if time.time() - fpsTime >= 1.0:
-			fpsTime = time.time()
-			graphics.printFPS()
-		Global.Input.handle_mouse()
-
-	if Global.mainMenuOpen:
-		Global.menu.draw()
-	else:
-		objects = physics.update()
-		graphics.draw(objects)
+if __name__ == '__main__':
+	main = Main()
+	main.run()

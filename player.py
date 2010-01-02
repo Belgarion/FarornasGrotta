@@ -3,6 +3,7 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 
 from Global import *
 from gameObject import GameObject
+from graphics import loadObj
 
 class Player(GameObject):
 	def __init__(self):
