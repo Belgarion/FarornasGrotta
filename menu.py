@@ -32,10 +32,10 @@ class Menu:
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
-			vertices[1, 0] = float(self.config['reswidth'])
-			vertices[2, 0] = float(self.config['reswidth'])
-			vertices[2, 1] = float(self.config['resheight'])
-			vertices[3, 1] = float(self.config['resheight'])
+			vertices[1, 0] = self.config.getfloat('Resolution', 'Width')
+			vertices[2, 0] = self.config.getfloat('Resolution', 'Width')
+			vertices[2, 1] = self.config.getfloat('Resolution', 'Height')
+			vertices[3, 1] = self.config.getfloat('Resolution', 'Height')
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)

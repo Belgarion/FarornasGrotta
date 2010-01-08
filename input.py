@@ -165,7 +165,7 @@ class input():
 					elif event.key == pygame.K_RIGHT:
 						self.right_pressed ^= 1
 
-					if self.config['keyboard'] == "dvorak":
+					if self.config.get('Input', 'KeyboardLayout') == "dvorak":
 						if int(event.key) == 228:
 							self.up_pressed ^= 1
 						elif int(event.key) == 111:
@@ -174,7 +174,7 @@ class input():
 							self.left_pressed ^= 1
 						elif int(event.key) == 101:
 							self.right_pressed ^= 1
-					elif self.config['keyboard'] == "qwerty":
+					elif self.config.get('Input', 'KeyboardLayout') == "qwerty":
 						if event.key == pygame.K_w:
 							self.up_pressed ^= 1
 						elif event.key == pygame.K_s:

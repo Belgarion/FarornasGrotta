@@ -34,11 +34,14 @@ try:
 	import numpy as Numeric
 except:
 	import Numeric
+import ConfigParser
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 from octree import *
 from gameObject import GameObject
 from player import Player
+
+import StringIO
 
 physics = 0
 objects = []
@@ -59,7 +62,10 @@ class Main:
 		self.mainMenuOpen = True
 
 		pygame.init()
-		pygame.display.set_mode((config['reswidth'],(config['resheight'])), pygame.DOUBLEBUF | pygame.OPENGL)
+		pygame.display.set_mode(
+				(config.getint('Resolution','Width'),
+					config.getint('Resolution', 'Height')),
+				pygame.DOUBLEBUF | pygame.OPENGL)
 		objects = []
 		self.player = None
 		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
@@ -102,7 +108,6 @@ class Main:
 		thread.start_new_thread(self.Input.handle_input, ())
 
 	def run(self):
-
 		while not Global.quit:
 			if sys.platform == "win32":
 				if time.time() - fpsTime >= 1.0:
@@ -124,7 +129,6 @@ class Main:
 		#Global.Input.xrot = -333
 		#Global.Input.yrot = -250
 
-
 	def startGame(self):
 		self.mainMenuOpen = False
 		self.editpos()
@@ -139,42 +143,21 @@ class Main:
 
 	def init_config(self):
 		
-		# Just add new values		
-		dict = {
-			"reswidth" : 640,
-			"resheight" : 480,
-			"keyboard" : "qwerty",
-			}
+		# Just add new values
+		defaultConfig = StringIO.StringIO("""\
+[Resolution]
+Width: 640
+Height: 480
 
-		if os.path.exists("config"):
-			
-			file = open("config")
-			while 1:
-				line = file.readline()
-				if not line: break
-				line = line.replace("\n", "")
-				try: key, value = line.rsplit('=')
-				except ValueError: # All lines may not be key=value
-					pass
-				try: value = int(value)
-				except ValueError:
-					pass # Ooops. It was a string :)
-				dict[key] = value
+[Input]
+KeyboardLayout: qwerty
+				""")
 
-			file.close
+		config = ConfigParser.SafeConfigParser()
+		config.readfp(defaultConfig)
+		config.read('config')
 
-		# Write everything. Everything not key=values will be erased
-		string = ""
-		for key in dict:
-			string += str(key) + "=" + str(dict[key]) + "\n" 
-		file = open("config", 'w')
-		file.write(string)
-		file.close
-
-		return dict
-		
-
-	
+		return config
 
 if __name__ == '__main__':
 	main = Main()

@@ -299,14 +299,16 @@ class Graphics:
 		glDepthFunc(GL_LEQUAL)
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
-		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-		glViewport (0, 0, self.config['reswidth'], self.config['resheight'])
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+		glViewport(0, 0, self.config.getint('Resolution', 'Width'),
+				self.config.getint('Resolution', 'Height'))
 		glMatrixMode(GL_PROJECTION)
 
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60.0, float(self.config['reswidth'])/float(self.config['resheight']), 0.1, 5000.0)
+		gluPerspective(60.0, self.config.getfloat('Resolution','Width')
+				/ self.config.getfloat('Resolution', 'Height'), 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting
