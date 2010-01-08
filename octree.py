@@ -7,159 +7,6 @@ from Global import *
 
 import math
 
-# This is our constructor that allows us to initialize our data upon creating an instance
-class CVector3:
-
-	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
-
-	def __add__(self, v):
-		return CVector3(self.x + v.x, self.y + v.y, self.z + v.z)
-		
-	def __sub__(self, v):
-		return CVector3(self.x - v.x, self.y - v.y, self.z - v.z)
-	
-	def __mul__(self, num):
-		return CVector3(self.x * num, self.y * num, self.z * num)
-
-	def __div__(self, num):
-		return CVector3(self.x / num, self.y / num, self.z / num)
-
-# Variables for the CDebug
-
-# Turn lighting on initially
-g_bLighting = 1
-
-# Visually Octrees
-class CDebug:
-
-	def __init__(self):
-		self.m_vLines = []
-	
-	# This adds a line to out list of debug lines
-	def AddDebugLine(self, vPoint1, vPoint2):
-		# Add the 2 points that make up the line into our line list.
-		self.m_vLines.push_back(vPoint1)
-		self.m_vLines.push_back(vPoint2)
-
-	# This adds a rectangle with a given center, width, height and depth to our list
-	def AddDebugRectangle(self, vCenter, width, height, depth):
-		# So we can work with the code better, we divide the dimensions in half.
-		# That way we can create the cube from the center outwards.
-		width /= 2.0
-		height /= 2.0
-		depth /= 2.0
-
-		# Below we create all the 8 points so it will be easier to input the lines
-		# of the cube.  With the dimensions we calculate the points.
-		vTopLeftFront = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z + depth)
-		vTopLeftBack = CVector3( vCenter.x - width, vCenter.y + height, vCenter.z - depth)
-		vTopRightBack = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z - depth)
-		vTopRightFront = CVector3( vCenter.x + width, vCenter.y + height, vCenter.z + depth)
-
-		vBottomLeftFront = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z + depth)
-		vBottomLeftBack = CVector3( vCenter.x - width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightBack = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z - depth)
-		vBottomRightFront = CVector3( vCenter.x + width, vCenter.y - height, vCenter.z + depth)
-
-
-		## TOP LINES
-		self.m_vLines.append(vTopLeftFront)
-		self.m_vLines.append(vTopRightFront)
-
-		self.m_vLines.append(vTopLeftBack)
-		self.m_vLines.append(vTopRightBack)
-
-		self.m_vLines.append(vTopLeftFront)
-		self.m_vLines.append(vTopLeftBack)
-
-		self.m_vLines.append(vTopRightFront)
-		self.m_vLines.append(vTopRightBack)
-
-
-		## BOTTOM LINES
-		self.m_vLines.append(vBottomLeftFront)
-		self.m_vLines.append(vBottomRightFront)
-
-		self.m_vLines.append(vBottomLeftBack)
-		self.m_vLines.append(vBottomRightBack)
-
-		self.m_vLines.append(vBottomLeftFront)
-		self.m_vLines.append(vBottomLeftBack)
-
-		self.m_vLines.append(vBottomRightFront)
-		self.m_vLines.append(vBottomRightBack)
-
-
-		## SIDE LINES
-		self.m_vLines.append(vTopLeftFront)
-		self.m_vLines.append(vBottomLeftFront)
-
-		self.m_vLines.append(vTopLeftBack)
-		self.m_vLines.append(vBottomLeftBack)
-
-		self.m_vLines.append(vTopRightBack)
-		self.m_vLines.append(vBottomRightBack)
-
-		self.m_vLines.append(vTopRightFront)
-		self.m_vLines.append(vBottomRightFront)
-
-
-	# This renders all of the lines
-	def RenderDebugLines(self):
-		global g_bLighting
-
-		# Turn OFF lighting so the debug lines are bright yellow
-		
-		glDisable(GL_LIGHTING)
-		# Start rendering lines
-		glBegin(GL_LINES)
-
-		# Turn the lines yellow
-		glColor3ub(255, 255, 0)
-
-		# Go through the whole list of lines stored in the vector m_vLines.
-		for i in xrange(len(self.m_vLines)):
-			# Pass in the current point to be rendered as part of a line
-			glVertex3f(self.m_vLines[i].x, self.m_vLines[i].y, self.m_vLines[i].z)
-
-		# Stop rendering lines
-		glEnd()
-
-		# If we have lighting turned on, turn the lights back on
-		if( g_bLighting ):
-			glEnable(GL_LIGHTING)
-
-	# Destroy the list by set them to 0 again
-	def Clear(self):
-		self.m_vLines = None
-		self.m_vLines = []
-
-
-# Variables for the octree
-g_Debug = CDebug()
-
-# This holds the current amount of subdivisions we are currently at.
-# This is used to make sure we don't go over the max amount
-g_CurrentSubdivision = 0
-
-# The maximum amount of triangles per node.  If a node has equal or less 
-# than this, stop subdividing and store the face indices in that node
-g_MaxTriangles = 100
-
-# The maximum amount of subdivisions allow (Levels of subdivision)
-g_MaxSubdivisions = 0
-
-# The current amount of end nodes in our tree (The nodes with vertices stored in them)
-g_EndNodeCount = 0
-
-# This stores the amount of nodes that are in the frustum
-g_TotalNodesDrawn = 0
-
-
-
 # This returns the cross product between 2 vectors
 def Cross(vVector1, vVector2):
 	vNormal = CVector3(0, 0, 0)
@@ -325,7 +172,6 @@ class COctree:
 
 
 	def CreateNewNode(self, pVertices, pList, g_NumberOfVerts, vCenter, width, triangleCount, nodeID):
-		global g_CurrentSubdivision
 		# This function helps us set up the new node that is being created.  We only
 		# want to create a new node if it found triangles in it's area.  If there were
 		# no triangle found in this node's cube, then we ignore it and don't create a node.
@@ -355,17 +201,16 @@ class COctree:
 			# of the level of subdivision that we are in.  This way we can restrict it.
 
 			# Increase the current level of subdivision
-			g_CurrentSubdivision += 1
+			Global.g_CurrentSubdivision += 1
 
 			# Recurse through this node and subdivide it if necessary
 			self.m_pOctreeNodes[nodeID].CreateNode(pNodeVertices, triangleCount * 3, vNodeCenter, width/2.0)
 
 			# Decrease the current level of subdivision
-			g_CurrentSubdivision -= 1
+			Global.g_CurrentSubdivision -= 1
 
 
 	def CreateNode(self, pVertices, g_NumberOfVerts, vCenter, width):
-		global g_CurrentSubdivision, g_MaxTriangles, g_MaxSubdivisions
 		# This is our main function that creates the octree.  We will recurse through
 		# this function until we finish subdividing.  Either this will be because we
 		# subdivided too many levels or we divided all of the triangles up.
@@ -382,12 +227,12 @@ class COctree:
 		# Add the current node to our debug rectangle list so we can visualize it.
 		# We can now see this node visually as a cube when we render the rectangles.
 		# Since it's a cube we pass in the width for width, height and depth.
-		g_Debug.AddDebugRectangle(vCenter, width, width, width)
+		Global.g_Debug.AddDebugRectangle(vCenter, width, width, width)
 		
 		# Check if we have too many triangles in this node and we haven't subdivided
 		# above our max subdivisions.  If so, then we need to break this node into
 		# 8 more nodes (hence the word OCTree).  Both must be True to divide this node.
-		if (numberOfTriangles > g_MaxTriangles)  and  (g_CurrentSubdivision < g_MaxSubdivisions):
+		if (numberOfTriangles > Global.g_MaxTriangles)  and  (Global.g_CurrentSubdivision < Global.g_MaxSubdivisions):
 			# Since we need to subdivide more we set the divided flag to True.
 			# This let's us know that this node does NOT have any vertices assigned to it,
 			# but nodes that perhaps have vertices stored in them (Or their nodes, etc....)
@@ -521,7 +366,6 @@ class COctree:
 			self.AssignVerticesToNode(pVertices, g_NumberOfVerts)
 
 	def AssignVerticesToNode(self, pVertices, g_NumberOfVerts):
-		global g_EndNodeCount
 		# Since we did not subdivide this node we want to set our flag to false
 		self.m_bSubDivided = False
 
@@ -532,12 +376,11 @@ class COctree:
 		self.m_pVertices = pVertices
 
 		# Increase the amount of end nodes created (Nodes with vertices stored)
-		g_EndNodeCount += 1
+		Global.g_EndNodeCount += 1
 
 	# This goes through each of the nodes and then draws the end nodes vertices.
 	# This function should be called by starting with the root node.
 	def DrawOctree(self, pNode):
-		global g_TotalNodesDrawn
 		# We should already have the octree created before we call this function.
 		# This only goes through the nodes that are in our frustum, then renders those
 		# vertices stored in their end nodes.  Before we draw a node we check to
@@ -569,7 +412,7 @@ class COctree:
 				DrawOctree(pNode.m_pOctreeNodes[7])
 			else:
 				# Increase the amount of nodes in our viewing frustum (camera's view)
-				g_TotalNodesDrawn += 1
+				Global.g_TotalNodesDrawn += 1
 
 				# Make sure we have valid vertices assigned to this node
 				if not pNode.m_pVertices:
