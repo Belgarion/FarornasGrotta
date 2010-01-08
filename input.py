@@ -6,12 +6,14 @@ from octree import *
 from Global import *
 
 class input():
-	def __init__(self, octree, graphics, menu, player, main):
+	def __init__(self, octree, graphics, menu, player, config, main):
 		self.player = player
 		self.octree = octree
 		self.main = main
 		self.graphics = graphics
+		self.config = config
 		self.menu = menu
+		
 
 		self.down_pressed = 0
 		self.up_pressed = 0
@@ -24,9 +26,6 @@ class input():
 
 		self.xrot = 0
 		self.yrot = 0
-
-		# Qwerty = 0, Dvorak = 1
-		self.keyboardlayout = 0
 
 		self.speed = 15	
 
@@ -134,8 +133,6 @@ class input():
 					if event.type == pygame.KEYDOWN:
 						if event.key == pygame.K_ESCAPE:
 							Global.quit = 1
-						elif event.key == pygame.K_F1:
-							self.keyboardlayout ^= 1
 						elif event.key == pygame.K_F2:
 							self.octree.debugLines ^= 1
 						elif event.key == pygame.K_F3:
@@ -168,7 +165,7 @@ class input():
 					elif event.key == pygame.K_RIGHT:
 						self.right_pressed ^= 1
 
-					if self.keyboardlayout:
+					if self.config['keyboard'] == "dvorak":
 						if int(event.key) == 228:
 							self.up_pressed ^= 1
 						elif int(event.key) == 111:
@@ -177,7 +174,7 @@ class input():
 							self.left_pressed ^= 1
 						elif int(event.key) == 101:
 							self.right_pressed ^= 1
-					else:
+					elif self.config['keyboard'] == "qwerty":
 						if event.key == pygame.K_w:
 							self.up_pressed ^= 1
 						elif event.key == pygame.K_s:

@@ -231,12 +231,13 @@ class Graphics:
 	spectator = False
 	numberOfVertices = 0	
 
-	def __init__(self, octree, main):
+	def __init__(self, octree, main, config):
 		global g_fVBOObjects
 		g_fVBOObjects = []
 		
 		self.octree = octree
 		self.main = main # TODO: Away with it BLURP!
+		self.config = config
 
 		self.g_nFrames = 0
 		self.NPOTSupported = self.IsExtensionSupported("GL_ARB_texture_non_power_of_two")
@@ -299,13 +300,13 @@ class Graphics:
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-		glViewport (0, 0, 640, 480)
+		glViewport (0, 0, self.config['reswidth'], self.config['resheight'])
 		glMatrixMode(GL_PROJECTION)
 
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60.0, 640.0/480.0, 0.1, 5000.0)
+		gluPerspective( 60.0, float(self.config['reswidth'])/float(self.config['resheight']), 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting

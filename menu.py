@@ -11,7 +11,7 @@ except:
 from font import Font
 
 class Menu:
-	def __init__(self, graphics):
+	def __init__(self, graphics,config):
 		self.graphics = graphics
 			
 		self.hasBackground = False
@@ -21,6 +21,7 @@ class Menu:
 		self.menuEntries = []
 		self.font = None
 		self.mainMenuRow = 0
+		self.config = config
 		
 	
 	def init_font(self):
@@ -31,10 +32,10 @@ class Menu:
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
-			vertices[1, 0] = 640.0
-			vertices[2, 0] = 640.0
-			vertices[2, 1] = 480.0
-			vertices[3, 1] = 480.0
+			vertices[1, 0] = float(self.config['reswidth'])
+			vertices[2, 0] = float(self.config['reswidth'])
+			vertices[2, 1] = float(self.config['resheight'])
+			vertices[3, 1] = float(self.config['resheight'])
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)

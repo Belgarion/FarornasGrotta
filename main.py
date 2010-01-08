@@ -1,6 +1,7 @@
 #!/usr/bin/python -OO
 # -*- coding: utf-8 -*-
 import sys
+import os
 import time
 try:
 	import pygame
@@ -21,9 +22,7 @@ from Global import *
 from physics import Physics
 from graphics import *
 from menu import *
-
 #OpenGL.FULL_LOGGING = True
-
 logging.basicConfig()
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -38,31 +37,29 @@ except:
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import traceback
 from octree import *
-
 from gameObject import GameObject
 from player import Player
 
 physics = 0
-
 objects = []
-
 g_nFrames = 0.0
-
 fpsTime = 0
+
 
 class TestObject:
 	def __init__(self, name, position):
 		self.name = name
 		self.position = position
 class Main:
-
 	def __init__(self):
 		global physics			
 		
+		config = self.init_config()
+	
 		self.mainMenuOpen = True
 
 		pygame.init()
-		pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
+		pygame.display.set_mode((config['reswidth'],(config['resheight'])), pygame.DOUBLEBUF | pygame.OPENGL)
 		objects = []
 		self.player = None
 		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
@@ -70,10 +67,10 @@ class Main:
 
 		self.octree = COctree()
 
-		self.graphics = Graphics(self.octree, self)
+		self.graphics = Graphics(self.octree, self,config)
 		self.graphics.initGL()
 
-		self.menu = Menu(self.graphics)
+		self.menu = Menu(self.graphics, config)
 		self.player = Player()
 		objects.append(self.player)
 		physics = Physics(objects)
@@ -85,7 +82,7 @@ class Main:
 
 		rel = pygame.mouse.get_rel()
 
-		print "F1 for toggle between Qwerty and Dvorak"
+		print "Edit config for settings"
 		print "F2 for toggle debugLines"
 		print "F6 for toggle drawAxes"
 		print "F7 for toggle wireframe"
@@ -101,7 +98,7 @@ class Main:
 		self.menu.addMenuEntry("Start", self.startGame)
 		self.menu.addMenuEntry("Options", self.options)
 		self.menu.addMenuEntry("Quit", self.quit)
-		self.Input = input(self.octree, self.graphics,self.menu, self.player, self)		
+		self.Input = input(self.octree, self.graphics,self.menu, self.player, config, self)		
 		thread.start_new_thread(self.Input.handle_input, ())
 
 	def run(self):
@@ -139,6 +136,43 @@ class Main:
 
 	def quit(self):
 		Global.quit = 1
+
+	def init_config(self):
+		
+		# Just add new values		
+		dict = {
+			"reswidth" : 640,
+			"resheight" : 480,
+			"keyboard" : "qwerty",
+			}
+
+		if os.path.exists("config"):
+			
+			file = open("config")
+			while 1:
+				line = file.readline()
+				if not line: break
+				line = line.replace("\n", "")
+				try: key, value = line.rsplit('=')
+				except ValueError: # All lines may not be key=value
+					pass
+				try: value = int(value)
+				except ValueError:
+					pass # Ooops. It was a string :)
+				dict[key] = value
+
+			file.close
+
+		# Write everything. Everything not key=values will be erased
+		string = ""
+		for key in dict:
+			string += str(key) + "=" + str(dict[key]) + "\n" 
+		file = open("config", 'w')
+		file.write(string)
+		file.close
+
+		return dict
+		
 
 	
 
