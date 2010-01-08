@@ -285,7 +285,6 @@ class CDebug:
 		self.m_vLines = []
 
 class Global:
-
 	quit = 0
 	Input = None
 	menu = None
@@ -301,6 +300,7 @@ class Global:
 	drawAxes = False
 	debugLines = False
 	spectator = False
+	disableWater = False
 
 	g_Debug = CDebug()
 

@@ -18,6 +18,8 @@ from player import Player
 
 import random
 
+from water import Water
+
 def nearestPowerOfTwo(v):
 	v -= 1
 	v |= v >> 1
@@ -211,6 +213,9 @@ class Graphics:
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
+		
+		if not Global.disableWater:
+			self.water = Water()
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -340,6 +345,10 @@ class Graphics:
 
 		if Global.drawAxes:
 			self.drawAxes()
+
+		# Water
+		if not Global.disableWater:
+			self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
 
