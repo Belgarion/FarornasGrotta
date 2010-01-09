@@ -1,9 +1,8 @@
-from Global import Global
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL.ARB.vertex_buffer_object import *
-from graphics import nearestPowerOfTwo
+import graphics
 try:
 	import numpy as Numeric
 except:
@@ -11,9 +10,9 @@ except:
 from font import Font
 
 class Menu:
-	def __init__(self, graphics,config):
+	def __init__(self, graphics, config):
 		self.graphics = graphics
-			
+
 		self.hasBackground = False
 		self.backgroundTextureId = None
 		self.verticesId = None
@@ -26,9 +25,8 @@ class Menu:
 	
 	def init_font(self):
 		self.font = Font()
-
 	def setBackground(self, filename):
-		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = self.graphics.loadTexture(filename)
+		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = graphics.loadTexture(filename)
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
@@ -55,8 +53,6 @@ class Menu:
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
 		self.hasBackground = True
-
-
 	def draw(self):
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
@@ -116,7 +112,6 @@ class Menu:
 
 		glFlush()
 		pygame.display.flip()
-		
 	def addMenuEntry(self, title, function):
 		print "Adding menu entry:", title
 		self.menuEntries.append( (title, function) )

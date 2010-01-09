@@ -102,28 +102,19 @@ def loadObj(filename):
 		nIndex += 3
 
 	return (vertices, vnormals, (facesv, facest, facesn), vertexCount)
-
 class CVector3:
-
 	def __init__(self, x, y, z):
 		self.x = x
 		self.y = y
 		self.z = z
-
 	def __add__(self, v):
 		return CVector3(self.x + v.x, self.y + v.y, self.z + v.z)
-		
 	def __sub__(self, v):
 		return CVector3(self.x - v.x, self.y - v.y, self.z - v.z)
-	
 	def __mul__(self, num):
 		return CVector3(self.x * num, self.y * num, self.z * num)
-
 	def __div__(self, num):
 		return CVector3(self.x / num, self.y / num, self.z / num)
-
-
-
 def nearestPowerOfTwo(v):
 	v -= 1
 	v |= v >> 1
@@ -133,6 +124,150 @@ def nearestPowerOfTwo(v):
 	v |= v >> 16
 	v += 1
 	return v
+def createVBO(vertices, vnormals, texCoords = None):
+	verticesId = glGenBuffersARB(1)
+	normalsId = glGenBuffersARB(1)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+
+	if texCoords != None:
+		texCoordsId = glGenBuffersARB(1)
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, texCoordsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	if texCoords != None:
+		return verticesId, normalsId, texCoordsId
+	return verticesId, normalsId
+def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
+	glEnableClientState(GL_VERTEX_ARRAY)
+
+	if normalsId != None:
+		glEnableClientState(GL_NORMAL_ARRAY)
+
+	if texCoordsId != None:
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
+	glVertexPointer(3, GL_FLOAT, 0, None)
+
+	if normalsId != None:
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+		glNormalPointer(GL_FLOAT, 0, None)
+
+	if texCoordsId != None:
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, texCoordsId)
+		glTexCoordPointer(2, GL_FLOAT, 0, None)
+
+	glDrawArrays(GL_TRIANGLES, 0, vertexCount)
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	if texCoordsId != None:
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
+	if normalsId != None:
+		glDisableClientState(GL_NORMAL_ARRAY)
+
+	glDisableClientState(GL_VERTEX_ARRAY)
+def loadTexture(filename):
+	""" Loads a texture from file, returns (textureId, textureWidthRatio, textureHeightRatio) """
+	image = pygame.image.load(filename)
+
+	width = image.get_width()
+	height = image.get_height()
+
+	textureWidthRatio = 1.0
+	textureHeightRatio = 1.0
+
+	NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
+
+	if not NPOTSupported:
+		width = nearestPowerOfTwo(image.get_width())
+		height = nearestPowerOfTwo(image.get_height())
+
+		textureWidthRatio = float(image.get_width()) / width
+		textureHeightRatio = float(image.get_height()) / height
+
+	if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
+		sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
+		Global.quit = 1
+		return
+
+	textureId = glGenTextures(1)
+
+	glBindTexture(GL_TEXTURE_2D, textureId)
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+	
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT )
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT )
+
+	if not NPOTSupported:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+	else:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, None)
+		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0,
+				image.get_width(), image.get_height(), GL_RGBA,
+				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+
+	return (textureId, textureWidthRatio, textureHeightRatio)	
+def extensionSupported(TargetExtension):
+	""" Accesses the rendering context to see if it supports an extension.
+		Note, that this test only tells you if the OpenGL library supports
+		the extension. The PyOpenGL system might not actually support the extension.
+	"""
+	Extensions = glGetString (GL_EXTENSIONS)
+	if (not TargetExtension in Extensions):
+		gl_supports_extension = False
+		print "OpenGL does not support '%s'" % (TargetExtension)
+		return False
+
+	gl_supports_extension = True
+
+	# Now determine if Python supports the extension
+	# Exentsion names are in the form GL_<group>_<extension_name>
+	# e.g.  GL_EXT_fog_coord
+	# Python divides extension into modules
+	# from OpenGL.GL.EXT.fog_coord import *
+	if (TargetExtension [:3] != "GL_"):
+		# Doesn't appear to following extension naming convention.
+		# Don't have a means to find a module for this exentsion type.
+		return False
+
+	# extension name after GL_
+	afterGL = TargetExtension [3:]
+	try:
+		group_name_end = afterGL.index ("_")
+	except:
+		# Doesn't appear to following extension naming convention.
+		# Don't have a means to find a module for this exentsion type.
+		return False
+
+	group_name = afterGL [:group_name_end]
+	extension_name = afterGL [len (group_name) + 1:]
+	extension_module_name = "OpenGL.GL.ARB.%s" % (extension_name)
+
+	import traceback
+	try:
+		__import__ (extension_module_name)
+		print "PyOpenGL supports '%s'" % (TargetExtension)
+	except:
+		traceback.print_exc()
+		print "Failed to import", extension_module_name
+		print "OpenGL rendering context supports '%s'" % (TargetExtension),
+		return False
+
+	return True
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
@@ -186,7 +321,7 @@ class CMesh:
 
 		nIndex = 0
 		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i.x 
+			self.m_pVertices[nIndex, 0] = i.x
 			self.m_pVertices[nIndex, 1] = i.y * flHeightScale + self.position_y
 			self.m_pVertices[nIndex, 2] = i.z
 			self.m_pTexCoords[nTIndex, 0] = (i.x-xMin) / sizeX * textureWidthRatio
@@ -221,9 +356,6 @@ class CMesh:
 		return
 class Graphics:
 	
-	from skydome import Skydome
-	from player import Player	
-	
 	wireframe = False	
 	vertices = []
 	reDraw = False
@@ -240,13 +372,13 @@ class Graphics:
 		self.config = config
 
 		self.g_nFrames = 0
-		self.NPOTSupported = self.IsExtensionSupported("GL_ARB_texture_non_power_of_two")
+		self.NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
 		
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount = loadObj("terrain.obj")
 
-		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = self.loadTexture(Texture)
+		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
@@ -270,17 +402,8 @@ class Graphics:
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
-
-		self.verticesId = glGenBuffersARB(1)
-		self.vnormalsId = glGenBuffersARB(1)
-		self.texCoordsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.vnormalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+		self.verticesId, self.vnormalsId, self.texCoordsId = createVBO(
+				vertices, vnormals, texCoords)
 
 		g_pMesh.verticesId = self.verticesId
 		g_pMesh.vnormalsId = self.vnormalsId
@@ -289,6 +412,8 @@ class Graphics:
 
 		g_fVBOObjects.append(g_pMesh)
 	def initGL(self):
+		from skydome import Skydome
+
 		if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
 			Global.quit = 1
@@ -327,64 +452,14 @@ class Graphics:
 
 		glEnable(GL_NORMALIZE)
 
-		self.skydome = self.Skydome(self)
+		self.skydome = Skydome()
+		
+		if not Global.disableWater:
+			self.water = Water()
 
-		self.water = Water()
-
-	def IsExtensionSupported (self, TargetExtension):
-		""" Accesses the rendering context to see if it supports an extension.
-			Note, that this test only tells you if the OpenGL library supports
-			the extension. The PyOpenGL system might not actually support the extension.
-		"""
-		Extensions = glGetString (GL_EXTENSIONS)
-		if (not TargetExtension in Extensions):
-			gl_supports_extension = False
-			print "OpenGL does not support '%s'" % (TargetExtension)
-			return False
-
-		gl_supports_extension = True
-
-		# Now determine if Python supports the extension
-		# Exentsion names are in the form GL_<group>_<extension_name>
-		# e.g.  GL_EXT_fog_coord
-		# Python divides extension into modules
-		# from OpenGL.GL.EXT.fog_coord import *
-		if (TargetExtension [:3] != "GL_"):
-			# Doesn't appear to following extension naming convention.
-			# Don't have a means to find a module for this exentsion type.
-			return False
-
-		# extension name after GL_
-		afterGL = TargetExtension [3:]
-		try:
-			group_name_end = afterGL.index ("_")
-		except:
-			# Doesn't appear to following extension naming convention.
-			# Don't have a means to find a module for this exentsion type.
-			return False
-
-		group_name = afterGL [:group_name_end]
-		extension_name = afterGL [len (group_name) + 1:]
-		extension_module_name = "OpenGL.GL.ARB.%s" % (extension_name)
-
-		import traceback
-		try:
-			__import__ (extension_module_name)
-			print "PyOpenGL supports '%s'" % (TargetExtension)
-		except:
-			traceback.print_exc()
-			print "Failed to import", extension_module_name
-			print "OpenGL rendering context supports '%s'" % (TargetExtension),
-			return False
-
-		return True
 	def printFPS(self):
-		while True:
-			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
-			#print self.g_nFrames
-			self.g_nFrames = 0
-			if sys.platform == "win32": break
-			time.sleep(1.0)
+		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
+		self.g_nFrames = 0
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		light = glIsEnabled(GL_LIGHTING)
@@ -423,7 +498,7 @@ class Graphics:
 			self.reDraw = False
 
 
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
 		glLoadIdentity()
 
 		if self.toggleDrawAxes:
@@ -460,7 +535,8 @@ class Graphics:
 			self.drawAxes()
 
 		# Water
-		self.water.draw()
+		if not Global.disableWater:
+			self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
 
@@ -489,16 +565,9 @@ class Graphics:
 			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].textureId)
 			glEnable(GL_TEXTURE_2D)
 
-
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].verticesId )
-			glVertexPointer(3, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].texCoordsId)
-			glTexCoordPointer(2, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].vnormalsId)
-			glNormalPointer(GL_FLOAT, 0, None)
-
-			glDrawArrays(GL_TRIANGLES, 0, g_fVBOObjects[i].vertexCount)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+			
+			drawVBO(g_fVBOObjects[i].verticesId, g_fVBOObjects[i].vnormalsId, 
+					g_fVBOObjects[i].vertexCount, g_fVBOObjects[i].texCoordsId)
 
 			glDisable(GL_TEXTURE_2D)
 			#glDisable(GL_BLEND)
@@ -526,7 +595,8 @@ class Graphics:
 				self.octree.debug.RenderDebugLines()
 
 		for obj in objects:
-			obj.draw()
+			if obj != self.main.player or self.spectator:
+				obj.draw()
 
 		glFlush()
 
@@ -536,43 +606,3 @@ class Graphics:
 		if err:
 			print "OpenGL Error:",err,"(",gluErrorString(err),")"
 
-	def loadTexture(self,filename):
-		""" Loads a texture from file, returns (textureId, textureWidthRatio, textureHeightRatio) """
-		image = pygame.image.load(filename)
-
-		width = image.get_width()
-		height = image.get_height()
-
-		textureWidthRatio = 1.0
-		textureHeightRatio = 1.0
-
-		if not self.NPOTSupported:
-			width = nearestPowerOfTwo(image.get_width())
-			height = nearestPowerOfTwo(image.get_height())
-
-			textureWidthRatio = float(image.get_width()) / width
-			textureHeightRatio = float(image.get_height()) / height
-
-		if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
-			sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
-			Global.quit = 1
-			return
-
-		textureId = glGenTextures(1)
-
-		glBindTexture(GL_TEXTURE_2D, textureId)
-
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-		
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT )
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT )
-
-		if self.NPOTSupported:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
-		else:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
-			glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0, image.get_width(), image.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
-
-		return (textureId, textureWidthRatio, textureHeightRatio)	

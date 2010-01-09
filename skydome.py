@@ -1,7 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL.ARB.vertex_buffer_object import *
-from Global import Global
 from graphics import loadObj
 
 try:
@@ -12,30 +11,23 @@ import pygame
 import math
 import time
 import random
+import graphics
 
 class Sun:
 	def __init__(self):
 		vertices, vnormals, f, self.vertexCount = loadObj("sun.obj")
 
-		self.verticesId = glGenBuffersARB(1)
-		self.normalsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
+		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 	
 		#self.angle = 3.1415/4.0 #in radians
 		self.angle = 90.0 * (3.1415/180.0)
-
 	def update(self):
 		# 360 / 24 = 15
 		# 15/60 = 0.25
 
 		now = time.gmtime()
-		self.angle += 0.003
-		#self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
+		#self.angle += 0.003
+		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
 		#self.angle = 160 * (3.1415/180.0)
 		#self.angle = 20 * (3.1415/180.0)
 		self.x = math.cos(self.angle) * 900
@@ -47,7 +39,6 @@ class Sun:
 		else:
 			#print "night"
 			pass
-
 	def draw(self):
 		self.update()
 
@@ -90,18 +81,7 @@ class Sun:
 		#glMaterialfv(GL_FRONT, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
 		#glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.0, 0.0, 0.0, 1.0))
 
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_NORMAL_ARRAY)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glVertexPointer(3, GL_FLOAT, 0, None)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glNormalPointer(GL_FLOAT, 0, None)
-		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_NORMAL_ARRAY)
+		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
 		glMaterialfv(GL_FRONT, GL_EMISSION, (0.0, 0.0, 0.0, 1.0))
 
@@ -113,14 +93,13 @@ class Sun:
 		glPopMatrix()
 
 class Skydome:
-	def __init__(self, graphics):
+	def __init__(self):
 		self.sun = Sun()
-		self.graphics = graphics
 
 
 		vertices, vnormals, f, self.vertexCount = loadObj("skydome.obj")
 
-		self.textureId, textureWidthRatio, textureHeightRatio = self.graphics.loadTexture("cl.jpg")
+		self.textureId, textureWidthRatio, textureHeightRatio = graphics.loadTexture("cl.jpg")
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
@@ -142,20 +121,11 @@ class Skydome:
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
-		self.verticesId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		self.texCoordsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
-		self.normalsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+		self.verticesId, self.normalsId, self.texCoordsId = graphics.createVBO(
+				vertices, vnormals, texCoords)
 
 		self.vertices = vertices
 		self.normals = vnormals
-
 	def draw(self):
 		glPushMatrix()
 		
@@ -170,22 +140,14 @@ class Skydome:
 		#glColor3f(0.0, 0.749, 1.0)
 		glColor3f(1.0, 1.0, 1.0)
 		#glDisable(GL_DEPTH_TEST)
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
 		glBindTexture(GL_TEXTURE_2D, self.textureId)
 		glEnable(GL_TEXTURE_2D)
 		
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glVertexPointer(3, GL_FLOAT, 0, None)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-		glTexCoordPointer(2, GL_FLOAT, 0, None)
-		glDrawArrays(GL_TRIANGLES, 0, self.vertexCount)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount,
+				self.texCoordsId)
 
 		glDisable(GL_TEXTURE_2D)
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
 		#glEnable(GL_DEPTH_TEST)
 		light = glIsEnabled(GL_LIGHTING)

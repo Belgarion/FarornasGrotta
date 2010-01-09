@@ -10,7 +10,7 @@ except:
 	sys.exit()
 import math
 import random
-import thread
+import threading
 try:
 	import OpenGL
 except:
@@ -22,6 +22,9 @@ from Global import *
 from physics import Physics
 from graphics import *
 from menu import *
+
+from player import Player
+
 #OpenGL.FULL_LOGGING = True
 logging.basicConfig()
 from OpenGL.GL import *
@@ -43,20 +46,23 @@ from player import Player
 
 import StringIO
 
-physics = 0
-objects = []
-g_nFrames = 0.0
-fpsTime = 0
+class InputThread(threading.Thread):
+	def __init__(self, input):
+		self.input = input
+		threading.Thread.__init__(self)
+	def run(self):
+		self.input.handle_input()
 
-
-class TestObject:
-	def __init__(self, name, position):
-		self.name = name
-		self.position = position
 class Main:
 	def __init__(self):
-		global physics			
-		
+		if not self.IsExtensionSupported("GL_ARB_vertex_buffer_object"):
+			sys.exit()
+
+		if len(sys.argv) > 1:
+			for arg in sys.argv:
+				if arg == "--nowater":
+					Global.disableWater = True
+
 		config = self.init_config()
 	
 		self.mainMenuOpen = True
@@ -66,21 +72,24 @@ class Main:
 				(config.getint('Resolution','Width'),
 					config.getint('Resolution', 'Height')),
 				pygame.DOUBLEBUF | pygame.OPENGL)
+
 		objects = []
-		self.player = None
-		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
-		objects.append(monster)
 
 		self.octree = COctree()
 
-		self.graphics = Graphics(self.octree, self,config)
+		self.graphics = Graphics(self.octree, self, config)
 		self.graphics.initGL()
 
 		self.menu = Menu(self.graphics, config)
+		self.menu.init_font()
+
 		self.player = Player()
 		objects.append(self.player)
-		physics = Physics(objects)
-		self.menu.init_font()
+
+		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
+		objects.append(monster)
+
+		self.physics = Physics(objects)
 
 
 		pygame.mouse.set_visible(0)
@@ -97,42 +106,41 @@ class Main:
 
 		self.graphics.addSurface(0, "Terrain.raw", "grass.jpg")
 
-		if sys.platform != "win32":
-			thread.start_new_thread(self.graphics.printFPS, ())
-
 		self.menu.setBackground("img2.png")
 		self.menu.addMenuEntry("Start", self.startGame)
 		self.menu.addMenuEntry("Options", self.options)
 		self.menu.addMenuEntry("Quit", self.quit)
-		self.Input = input(self.octree, self.graphics,self.menu, self.player, config, self)		
-		thread.start_new_thread(self.Input.handle_input, ())
+
+		self.Input = input(self.octree, self.graphics, self.menu, self.player,
+				config, self)
+		self.inputThread = InputThread(self.Input)
+		self.inputThread.start()
 
 	def run(self):
+		fpsTime = 0
 		while not Global.quit:
+			if time.time() - fpsTime >= 1.0:
+				fpsTime = time.time()
+				self.graphics.printFPS()
+
 			if sys.platform == "win32":
-				if time.time() - fpsTime >= 1.0:
-					fpsTime = time.time()
-					graphics.printFPS()
 				self.Input.handle_mouse()
 
 			if self.mainMenuOpen:
 				self.menu.draw()
 			else:
-				objects = physics.update()
+				objects = self.physics.update()
 				self.graphics.draw(objects)
 				
-
 	def editpos(self):
 		self.Input.xpos = -400
 		self.Input.ypos = 360
 		self.Input.zpos = -45
-		#Global.Input.xrot = -333
-		#Global.Input.yrot = -250
 
 	def startGame(self):
 		self.mainMenuOpen = False
 		self.editpos()
-		physics.lastTime = time.time()
+		self.physics.lastTime = time.time()
 
 	def options(self):
 		print "Not implemented (yet)"
@@ -162,3 +170,4 @@ KeyboardLayout: qwerty
 if __name__ == '__main__':
 	main = Main()
 	main.run()
+	main.inputThread.join()

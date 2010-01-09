@@ -3,7 +3,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
-from Global import *
 
 import math
 
