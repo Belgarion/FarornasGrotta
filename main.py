@@ -18,11 +18,11 @@ except:
 	sys.exit()
 import logging
 
-import thread
 from Global import *
 from physics import Physics
 from graphics import *
 from menu import *
+from player import Player
 
 #OpenGL.FULL_LOGGING = True
 
@@ -55,14 +55,26 @@ objects = []
 
 g_nFrames = 0.0
 
+Input = input()
+inputThread = None
+
 class TestObject:
 	def __init__(self, name, position):
 		self.name = name
 		self.position = position
 
+class InputThread(threading.Thread):
+	def run(self):
+		Global.Input.handle_input()
 
 def init():
-	global physics
+	global physics, inputThread
+
+	if len(sys.argv) > 1:
+		for arg in sys.argv:
+			if arg == "--nowater":
+				Global.disableWater = True
+
 	pygame.init()
 	pygame.display.set_mode((640,480), pygame.DOUBLEBUF | pygame.OPENGL)
 
@@ -90,16 +102,13 @@ def init():
 
 	graphics.addSurface(0, "Terrain.raw", "grass.jpg")
 
-	if sys.platform != "win32":
-		thread.start_new_thread(graphics.printFPS, ())
-
 	Global.menu.setBackground("img2.png")
 	Global.menu.addMenuEntry("Start", startGame)
 	Global.menu.addMenuEntry("Options", options)
 	Global.menu.addMenuEntry("Quit", quit)
 
-	thread.start_new_thread(Global.Input.handle_input, ())
-
+	inputThread = InputThread()
+	inputThread.start()
 
 
 def editpos():
@@ -108,7 +117,6 @@ def editpos():
 	Global.Input.zpos = -45
 	#Global.Input.xrot = -333
 	#Global.Input.yrot = -250
-
 
 fpsTime = 0
 
@@ -184,10 +192,11 @@ Network.Connect('localhost', 30000)
 thread.start_new_thread(handleNetwork, ())
 
 while not Global.quit:
+	if time.time() - fpsTime >= 1.0:
+		fpsTime = time.time()
+		graphics.printFPS()
+
 	if sys.platform == "win32":
-		if time.time() - fpsTime >= 1.0:
-			fpsTime = time.time()
-			graphics.printFPS()
 		Global.Input.handle_mouse()
 
 	if Global.mainMenuOpen:
@@ -197,3 +206,5 @@ while not Global.quit:
 		graphics.draw(objects)
 
 Network.CloseConnections()
+
+inputThread.join()

@@ -14,9 +14,10 @@ from octree import *
 import sys
 import math
 from skydome import Skydome
-from player import Player
 
 import random
+
+from water import Water
 
 def nearestPowerOfTwo(v):
 	v -= 1
@@ -27,6 +28,57 @@ def nearestPowerOfTwo(v):
 	v |= v >> 16
 	v += 1
 	return v
+def createVBO(vertices, vnormals, texCoords = None):
+	verticesId = glGenBuffersARB(1)
+	normalsId = glGenBuffersARB(1)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
+
+	if texCoords != None:
+		texCoordsId = glGenBuffersARB(1)
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, texCoordsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	if texCoords != None:
+		return verticesId, normalsId, texCoordsId
+	return verticesId, normalsId
+def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
+	glEnableClientState(GL_VERTEX_ARRAY)
+
+	if normalsId != None:
+		glEnableClientState(GL_NORMAL_ARRAY)
+
+	if texCoordsId != None:
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
+	glVertexPointer(3, GL_FLOAT, 0, None)
+
+	if normalsId != None:
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
+		glNormalPointer(GL_FLOAT, 0, None)
+
+	if texCoordsId != None:
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, texCoordsId)
+		glTexCoordPointer(2, GL_FLOAT, 0, None)
+
+	glDrawArrays(GL_TRIANGLES, 0, vertexCount)
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	if texCoordsId != None:
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
+	if normalsId != None:
+		glDisableClientState(GL_NORMAL_ARRAY)
+
+	glDisableClientState(GL_VERTEX_ARRAY)
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
@@ -80,7 +132,7 @@ class CMesh:
 
 		nIndex = 0
 		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i.x 
+			self.m_pVertices[nIndex, 0] = i.x
 			self.m_pVertices[nIndex, 1] = i.y * flHeightScale + self.position_y
 			self.m_pVertices[nIndex, 2] = i.z
 			self.m_pTexCoords[nTIndex, 0] = (i.x-xMin) / sizeX * textureWidthRatio
@@ -150,17 +202,8 @@ class Graphics:
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
-
-		self.verticesId = glGenBuffersARB(1)
-		self.vnormalsId = glGenBuffersARB(1)
-		self.texCoordsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.vnormalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vnormals, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+		self.verticesId, self.vnormalsId, self.texCoordsId = createVBO(
+				vertices, vnormals, texCoords)
 
 		g_pMesh.verticesId = self.verticesId
 		g_pMesh.vnormalsId = self.vnormalsId
@@ -211,6 +254,9 @@ class Graphics:
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
+		
+		if not Global.disableWater:
+			self.water = Water()
 
 	def IsExtensionSupported (self, TargetExtension):
 		""" Accesses the rendering context to see if it supports an extension.
@@ -261,12 +307,8 @@ class Graphics:
 
 		return True
 	def printFPS(self):
-		while True:
-			pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
-			#print self.g_nFrames
-			self.g_nFrames = 0
-			if sys.platform == "win32": break
-			time.sleep(1.0)
+		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
+		self.g_nFrames = 0
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		light = glIsEnabled(GL_LIGHTING)
@@ -305,7 +347,7 @@ class Graphics:
 			Global.reDraw = False
 
 
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) 
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
 		glLoadIdentity()
 
 		if Global.drawAxes:
@@ -341,6 +383,10 @@ class Graphics:
 		if Global.drawAxes:
 			self.drawAxes()
 
+		# Water
+		if not Global.disableWater:
+			self.water.draw()
+
 		glColor3f(1.0, 1.0, 1.0)
 
 		#glClearColor(0.0, 0.0, 0.6, 0.5)
@@ -368,16 +414,9 @@ class Graphics:
 			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].textureId)
 			glEnable(GL_TEXTURE_2D)
 
-
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].verticesId )
-			glVertexPointer(3, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].texCoordsId)
-			glTexCoordPointer(2, GL_FLOAT, 0, None)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, g_fVBOObjects[i].vnormalsId)
-			glNormalPointer(GL_FLOAT, 0, None)
-
-			glDrawArrays(GL_TRIANGLES, 0, g_fVBOObjects[i].vertexCount)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+			
+			drawVBO(g_fVBOObjects[i].verticesId, g_fVBOObjects[i].vnormalsId, 
+					g_fVBOObjects[i].vertexCount, g_fVBOObjects[i].texCoordsId)
 
 			glDisable(GL_TEXTURE_2D)
 			#glDisable(GL_BLEND)
@@ -405,7 +444,8 @@ class Graphics:
 				Global.g_Debug.RenderDebugLines()
 
 		for obj in objects:
-			obj.draw()
+			if obj != Global.player or Global.spectator:
+				obj.draw()
 
 		glFlush()
 
