@@ -13,12 +13,108 @@ import time
 from octree import *
 import sys
 import math
-from skydome import Skydome
 
 import random
 
 from water import Water
 
+def loadObj(filename):
+	f = open(filename, "r")
+	lines = f.readlines()
+	f.close()
+
+	v = []
+	vn = []
+	facesv = []
+	facest = []
+	facesn = []
+	for line in lines:
+		pos = line.rsplit(" ")
+		if len(pos) < 4:
+			continue
+
+		if pos[0] == "v":
+			v.append( (float(pos[1]), float(pos[2]), float(pos[3])) )
+		elif pos[0] == "vn":
+			vn.append( (float(pos[1]), float(pos[2]), float(pos[3])) )
+		elif pos[0] == "f":
+			quad = False
+			a = pos[1].rsplit("/")
+			b = pos[2].rsplit("/")
+			c = pos[3].rsplit("/")
+			d = None
+			if len(pos) > 4:
+				d = pos[4].rsplit("/")
+				quad = True
+
+			facesv.append( (int(a[0])-1, int(b[0])-1, int(c[0])-1) )
+			if quad:
+				facesv.append( (int(a[0])-1, int(c[0])-1, int(d[0])-1) )
+
+			if a[1] != '':
+				facest.append( (int(a[1])-1, int(b[1])-1, int(c[1])-1 ) )
+				if quad:
+					facest.append( (int(a[1])-1, int(c[1])-1, int(d[1])-1 ) )
+			else:
+				facest.append( (0, 0, 0) )
+				if quad:
+					facest.append( (0, 0, 0) )
+
+			if a[2] != '':
+				facesn.append( (int(a[2])-1, int(b[2])-1, int(c[2])-1) )
+				if quad:
+					facesn.append( (int(a[2])-1, int(c[2])-1, int(d[2])-1) )
+			else:
+				facesn.append( (0, 0, 0) )
+				if quad:
+					facesn.append( (0, 0, 0) )
+
+	vertices = Numeric.zeros((len(facesv)*3, 3), 'f')
+	vnormals = Numeric.zeros((len(facesn)*3, 3), 'f')
+	#texCoords = Numeric.zeros((len(facest*3), 2), 'f')
+	vertexCount = len(facesv)*3
+	quad = False
+	
+	nIndex = 0
+	for i in facesv:
+		vertices[nIndex, 0] = v[i[0]][0]
+		vertices[nIndex, 1] = v[i[0]][1]
+		vertices[nIndex, 2] = v[i[0]][2]
+		vertices[nIndex + 1, 0] = v[i[1]][0]
+		vertices[nIndex + 1, 1] = v[i[1]][1]
+		vertices[nIndex + 1, 2] = v[i[1]][2]
+		vertices[nIndex + 2, 0] = v[i[2]][0]
+		vertices[nIndex + 2, 1] = v[i[2]][1]
+		vertices[nIndex + 2, 2] = v[i[2]][2]
+		nIndex += 3
+
+	nIndex = 0
+	for i in facesn:
+		vnormals[nIndex, 0] = vn[i[0]][0]
+		vnormals[nIndex, 1] = vn[i[0]][1]
+		vnormals[nIndex, 2] = vn[i[0]][2]
+		vnormals[nIndex + 1, 0] = vn[i[1]][0]
+		vnormals[nIndex + 1, 1] = vn[i[1]][1]
+		vnormals[nIndex + 1, 2] = vn[i[1]][2]
+		vnormals[nIndex + 2, 0] = vn[i[2]][0]
+		vnormals[nIndex + 2, 1] = vn[i[2]][1]
+		vnormals[nIndex + 2, 2] = vn[i[2]][2]
+		nIndex += 3
+
+	return (vertices, vnormals, (facesv, facest, facesn), vertexCount)
+class CVector3:
+	def __init__(self, x, y, z):
+		self.x = x
+		self.y = y
+		self.z = z
+	def __add__(self, v):
+		return CVector3(self.x + v.x, self.y + v.y, self.z + v.z)
+	def __sub__(self, v):
+		return CVector3(self.x - v.x, self.y - v.y, self.z - v.z)
+	def __mul__(self, num):
+		return CVector3(self.x * num, self.y * num, self.z * num)
+	def __div__(self, num):
+		return CVector3(self.x / num, self.y / num, self.z / num)
 def nearestPowerOfTwo(v):
 	v -= 1
 	v |= v >> 1
@@ -79,6 +175,99 @@ def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
 		glDisableClientState(GL_NORMAL_ARRAY)
 
 	glDisableClientState(GL_VERTEX_ARRAY)
+def loadTexture(filename):
+	""" Loads a texture from file, returns (textureId, textureWidthRatio, textureHeightRatio) """
+	image = pygame.image.load(filename)
+
+	width = image.get_width()
+	height = image.get_height()
+
+	textureWidthRatio = 1.0
+	textureHeightRatio = 1.0
+
+	NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
+
+	if not NPOTSupported:
+		width = nearestPowerOfTwo(image.get_width())
+		height = nearestPowerOfTwo(image.get_height())
+
+		textureWidthRatio = float(image.get_width()) / width
+		textureHeightRatio = float(image.get_height()) / height
+
+	if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
+		sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
+		Global.quit = 1
+		return
+
+	textureId = glGenTextures(1)
+
+	glBindTexture(GL_TEXTURE_2D, textureId)
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+	
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT )
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT )
+
+	if not NPOTSupported:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+	else:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, None)
+		glTexSubImage2D(GL_TEXTURE_2D, 0 , 0, 0,
+				image.get_width(), image.get_height(), GL_RGBA,
+				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
+
+	return (textureId, textureWidthRatio, textureHeightRatio)	
+def extensionSupported(TargetExtension):
+	""" Accesses the rendering context to see if it supports an extension.
+		Note, that this test only tells you if the OpenGL library supports
+		the extension. The PyOpenGL system might not actually support the extension.
+	"""
+	Extensions = glGetString (GL_EXTENSIONS)
+	if (not TargetExtension in Extensions):
+		gl_supports_extension = False
+		print "OpenGL does not support '%s'" % (TargetExtension)
+		return False
+
+	gl_supports_extension = True
+
+	# Now determine if Python supports the extension
+	# Exentsion names are in the form GL_<group>_<extension_name>
+	# e.g.  GL_EXT_fog_coord
+	# Python divides extension into modules
+	# from OpenGL.GL.EXT.fog_coord import *
+	if (TargetExtension [:3] != "GL_"):
+		# Doesn't appear to following extension naming convention.
+		# Don't have a means to find a module for this exentsion type.
+		return False
+
+	# extension name after GL_
+	afterGL = TargetExtension [3:]
+	try:
+		group_name_end = afterGL.index ("_")
+	except:
+		# Doesn't appear to following extension naming convention.
+		# Don't have a means to find a module for this exentsion type.
+		return False
+
+	group_name = afterGL [:group_name_end]
+	extension_name = afterGL [len (group_name) + 1:]
+	extension_module_name = "OpenGL.GL.ARB.%s" % (extension_name)
+
+	import traceback
+	try:
+		__import__ (extension_module_name)
+		print "PyOpenGL supports '%s'" % (TargetExtension)
+	except:
+		traceback.print_exc()
+		print "Failed to import", extension_module_name
+		print "OpenGL rendering context supports '%s'" % (TargetExtension),
+		return False
+
+	return True
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
@@ -144,35 +333,47 @@ class CMesh:
 
 	def BuildVBOs (self):
 		""" Generate And Bind The Vertex Buffer """
-		if (Global.VBOSupported):
-			self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
-			# // Load The Data
-			glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pVertices, GL_STATIC_DRAW_ARB )
+		
+		self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
+		# // Load The Data
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pVertices, GL_STATIC_DRAW_ARB )
 
-			# // Generate And Bind The Texture Coordinate Buffer
-			self.m_nVBOTexCoords = int(glGenBuffersARB( 1))						# // Get A Valid Name
-			glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOTexCoords )		# // Bind The Buffer
-			# // Load The Data
-			glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pTexCoords, GL_STATIC_DRAW_ARB )
+		# // Generate And Bind The Texture Coordinate Buffer
+		self.m_nVBOTexCoords = int(glGenBuffersARB( 1))						# // Get A Valid Name
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOTexCoords )		# // Bind The Buffer
+		# // Load The Data
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pTexCoords, GL_STATIC_DRAW_ARB )
 
-			self.normalsId = glGenBuffersARB(1)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB, self.normals, GL_STATIC_DRAW_ARB)
+		self.normalsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, self.normals, GL_STATIC_DRAW_ARB)
 
-			# // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card
-			self.m_pVertices = None
-			self.m_pTexCoords = None
-			self.normals = None
+		# // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card
+		self.m_pVertices = None
+		self.m_pTexCoords = None
+		self.normals = None
 		return
 class Graphics:
-	def __init__(self):
+	
+	wireframe = False	
+	vertices = []
+	reDraw = False
+	toggleDrawAxes = False
+	spectator = False
+	numberOfVertices = 0	
+
+	def __init__(self, octree, main, config):
 		global g_fVBOObjects
-
 		g_fVBOObjects = []
-		self.g_nFrames = 0
+		
+		self.octree = octree
+		self.main = main # TODO: Away with it BLURP!
+		self.config = config
 
-		self.g_Octree = COctree()
+		self.g_nFrames = 0
+		self.NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
+		
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount = loadObj("models/terrain.obj")
@@ -195,9 +396,8 @@ class Graphics:
 
 		nIndex = 0
 		for i in vertices:
-			Global.vertices.append( CVector3(i[0], i[1], i[2]) )
-			Global.numberOfVertices += 1
-			Global.g_NumberOfVerts += 1
+			self.vertices.append( CVector3(i[0], i[1], i[2]) )
+			self.numberOfVertices += 1
 			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
@@ -212,29 +412,28 @@ class Graphics:
 
 		g_fVBOObjects.append(g_pMesh)
 	def initGL(self):
-		Global.VBOSupported = self.IsExtensionSupported("GL_ARB_vertex_buffer_object")
+		from skydome import Skydome
+
 		if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
 			Global.quit = 1
 			return
-
-		#if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two") or self.IsExtensionSupported("GL_NV_texture_rectangle") or self.IsExtensionSupported("GL_EXT_texture_rectangle") or self.IsExtensionSupported("GL_ARB_texture_rectangle"):
-		if self.IsExtensionSupported("GL_ARB_texture_non_power_of_two"):
-			Global.NPOTSupported = True
 
 		glClearColor( 0.0, 0.0, 0.0, 0.0)
 		glClearDepth(1.0)
 		glDepthFunc(GL_LEQUAL)
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
-		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-		glViewport (0, 0, 640, 480)
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+		glViewport(0, 0, self.config.getint('Resolution', 'Width'),
+				self.config.getint('Resolution', 'Height'))
 		glMatrixMode(GL_PROJECTION)
 
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective( 60.0, 640.0/480.0, 0.1, 5000.0)
+		gluPerspective(60.0, self.config.getfloat('Resolution','Width')
+				/ self.config.getfloat('Resolution', 'Height'), 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting
@@ -258,54 +457,6 @@ class Graphics:
 		if not Global.disableWater:
 			self.water = Water()
 
-	def IsExtensionSupported (self, TargetExtension):
-		""" Accesses the rendering context to see if it supports an extension.
-			Note, that this test only tells you if the OpenGL library supports
-			the extension. The PyOpenGL system might not actually support the extension.
-		"""
-		Extensions = glGetString (GL_EXTENSIONS)
-		if (not TargetExtension in Extensions):
-			gl_supports_extension = False
-			print "OpenGL does not support '%s'" % (TargetExtension)
-			return False
-
-		gl_supports_extension = True
-
-		# Now determine if Python supports the extension
-		# Exentsion names are in the form GL_<group>_<extension_name>
-		# e.g.  GL_EXT_fog_coord
-		# Python divides extension into modules
-		# g_fVBOSupported = IsExtensionSupported ("GL_ARB_vertex_buffer_object")
-		# from OpenGL.GL.EXT.fog_coord import *
-		if (TargetExtension [:3] != "GL_"):
-			# Doesn't appear to following extension naming convention.
-			# Don't have a means to find a module for this exentsion type.
-			return False
-
-		# extension name after GL_
-		afterGL = TargetExtension [3:]
-		try:
-			group_name_end = afterGL.index ("_")
-		except:
-			# Doesn't appear to following extension naming convention.
-			# Don't have a means to find a module for this exentsion type.
-			return False
-
-		group_name = afterGL [:group_name_end]
-		extension_name = afterGL [len (group_name) + 1:]
-		extension_module_name = "OpenGL.GL.ARB.%s" % (extension_name)
-
-		import traceback
-		try:
-			__import__ (extension_module_name)
-			print "PyOpenGL supports '%s'" % (TargetExtension)
-		except:
-			traceback.print_exc()
-			print "Failed to import", extension_module_name
-			print "OpenGL rendering context supports '%s'" % (TargetExtension),
-			return False
-
-		return True
 	def printFPS(self):
 		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 		self.g_nFrames = 0
@@ -338,24 +489,24 @@ class Graphics:
 	def draw(self, objects):
 		global g_fVBOObjects
 
-		if Global.reDraw:
-			Global.g_EndNodeCount = 0
-			Global.g_Debug.Clear()
-			self.g_Octree.DestroyOctree()
-			self.g_Octree.GetSceneDimensions(Global.vertices, Global.g_NumberOfVerts)
-			self.g_Octree.CreateNode(Global.vertices, Global.g_NumberOfVerts, self.g_Octree.GetCenter(), self.g_Octree.GetWidth())
-			Global.reDraw = False
+		if self.reDraw:
+			self.octree.g_EndNodeCount = 0
+			self.octree.debug.Clear()
+			self.octree.DestroyOctree()
+			self.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
+			self.octree.CreateNode(self.vertices, self.numberOfVertices, self.octree.GetCenter(), self.octree.GetWidth())
+			self.reDraw = False
 
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
 		glLoadIdentity()
 
-		if Global.drawAxes:
+		if self.toggleDrawAxes:
 			self.drawAxes()
 
 		glClearColor(0.4, 0.4, 0.4, 0.0)
 
-		if Global.wireframe:
+		if self.wireframe:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 		else:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -363,24 +514,24 @@ class Graphics:
 
 		glLoadIdentity()
 
-		glRotatef(Global.Input.xrot, 1.0, 0.0, 0.0)
-		glRotatef(Global.Input.yrot, 0.0, 1.0, 0.0)
+		glRotatef(self.main.Input.xrot, 1.0, 0.0, 0.0)
+		glRotatef(self.main.Input.yrot, 0.0, 1.0, 0.0)
 
 		# SkyDome
 		self.skydome.draw()
 
-		if Global.spectator:
-			glTranslated(-Global.Input.xpos, -Global.Input.ypos,-Global.Input.zpos)
+		if self.spectator:
+			glTranslated(-self.main.Input.xpos, -self.main.Input.ypos,-self.main.Input.zpos)
 		else:
 			glTranslated(
-					-Global.player.position[0]-0.2*math.sin(math.radians(Global.player.orientation[1])),
-					-Global.player.position[1]-2.2,
-					-Global.player.position[2]+0.2*math.cos(math.radians(Global.player.orientation[1]-180))
+					-self.main.player.position[0]-0.2*math.sin(math.radians(self.main.player.orientation[1])),
+					-self.main.player.position[1]-2.2,
+					-self.main.player.position[2]+0.2*math.cos(math.radians(self.main.player.orientation[1]-180))
 					)
 
 		self.g_nFrames += 1
 
-		if Global.drawAxes:
+		if self.toggleDrawAxes:
 			self.drawAxes()
 
 		# Water
@@ -431,20 +582,20 @@ class Graphics:
 
 		glDisable(GL_FOG)
 
-		if Global.debugLines:
-			Global.g_Debug.RenderDebugLines()
-
-		if Global.g_MaxSubdivisions:
+		if self.octree.debugLines:
+			self.octree.debug.RenderDebugLines()
+		
+		if self.octree.g_MaxSubdivisions:
 			# Here we draw the octree, starting with the root node and recursing down each node.
 			# When we get to each of the end nodes we will draw the vertices assigned to them.
-			self.g_Octree.DrawOctree(self.g_Octree)
+			self.octree.DrawOctree(self.octree)
 			
-			if Global.g_bDebugLines:
+			if self.octree.debugLines:
 				# Render the cube'd nodes to visualize the octree (in wire frame mode)
-				Global.g_Debug.RenderDebugLines()
+				self.octree.debug.RenderDebugLines()
 
 		for obj in objects:
-			if obj != Global.player or Global.spectator:
+			if obj != self.main.player or self.spectator:
 				obj.draw()
 
 		glFlush()
@@ -454,3 +605,4 @@ class Graphics:
 		err = glGetError()
 		if err:
 			print "OpenGL Error:",err,"(",gluErrorString(err),")"
+

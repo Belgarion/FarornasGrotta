@@ -1,9 +1,8 @@
-from Global import Global, loadTexture
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL.ARB.vertex_buffer_object import *
-from graphics import nearestPowerOfTwo
+import graphics
 try:
 	import numpy as Numeric
 except:
@@ -11,24 +10,30 @@ except:
 from font import Font
 
 class Menu:
-	def __init__(self):
+	def __init__(self, graphics, config):
+		self.graphics = graphics
+
 		self.hasBackground = False
 		self.backgroundTextureId = None
 		self.verticesId = None
 		self.texCoordsId = None
 		self.menuEntries = []
 		self.font = None
+		self.mainMenuRow = 0
+		self.config = config
+		
+	
 	def init_font(self):
 		self.font = Font()
 	def setBackground(self, filename):
-		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = loadTexture(filename)
+		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = graphics.loadTexture(filename)
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
-			vertices[1, 0] = 640.0
-			vertices[2, 0] = 640.0
-			vertices[2, 1] = 480.0
-			vertices[3, 1] = 480.0
+			vertices[1, 0] = self.config.getfloat('Resolution', 'Width')
+			vertices[2, 0] = self.config.getfloat('Resolution', 'Width')
+			vertices[2, 1] = self.config.getfloat('Resolution', 'Height')
+			vertices[3, 1] = self.config.getfloat('Resolution', 'Height')
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
@@ -55,7 +60,7 @@ class Menu:
 
 		glDisable(GL_LIGHTING)
 
-		if Global.wireframe:
+		if self.graphics.wireframe:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 		else:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -86,13 +91,13 @@ class Menu:
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
 
-		if Global.mainMenuRow > len(self.menuEntries)  - 1:
-			Global.mainMenuRow = len(self.menuEntries) - 1
+		if self.mainMenuRow > len(self.menuEntries)  - 1:
+			self.mainMenuRow = len(self.menuEntries) - 1
 
 		row = 7
 		i = 0
 		for entry in self.menuEntries:
-			if Global.mainMenuRow == i:
+			if self.mainMenuRow == i:
 				glColor3f(0.0, 1.0, 0.0)
 			else:
 				glColor3f(1.0, 0.0, 0.0)

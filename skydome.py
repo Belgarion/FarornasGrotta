@@ -1,7 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL.ARB.vertex_buffer_object import *
-from Global import Global, loadRaw, loadTexture, loadObj
+
 try:
 	import numpy as Numeric
 except:
@@ -14,7 +14,7 @@ import graphics
 
 class Sun:
 	def __init__(self):
-		vertices, vnormals, f, self.vertexCount = loadObj("models/sun.obj")
+		vertices, vnormals, f, self.vertexCount = graphics.loadObj("models/sun.obj")
 
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 	
@@ -25,8 +25,8 @@ class Sun:
 		# 15/60 = 0.25
 
 		now = time.gmtime()
-		self.angle += 0.003
-		#self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
+		#self.angle += 0.003
+		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
 		#self.angle = 160 * (3.1415/180.0)
 		#self.angle = 20 * (3.1415/180.0)
 		self.x = math.cos(self.angle) * 900
@@ -96,9 +96,9 @@ class Skydome:
 		self.sun = Sun()
 
 
-		vertices, vnormals, f, self.vertexCount = loadObj("models/skydome.obj")
+		vertices, vnormals, f, self.vertexCount = graphics.loadObj("models/skydome.obj")
 
-		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("cl.jpg")
+		self.textureId, textureWidthRatio, textureHeightRatio = graphics.loadTexture("cl.jpg")
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
