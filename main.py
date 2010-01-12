@@ -55,9 +55,6 @@ class InputThread(threading.Thread):
 
 class Main:
 	def __init__(self):
-		if not self.IsExtensionSupported("GL_ARB_vertex_buffer_object"):
-			sys.exit()
-
 		if len(sys.argv) > 1:
 			for arg in sys.argv:
 				if arg == "--nowater":
