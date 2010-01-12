@@ -9,7 +9,7 @@ class Player(GameObject):
 	def __init__(self):
 		GameObject.__init__(self, "Player 1", (0.0, 20.0, -40.0), (0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
 
-		vertices, vnormals, f, self.vertexCount = loadObj("player.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("models/player.obj")
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
 		self.x = 100

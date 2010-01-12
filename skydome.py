@@ -14,7 +14,7 @@ import graphics
 
 class Sun:
 	def __init__(self):
-		vertices, vnormals, f, self.vertexCount = loadObj("sun.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("models/sun.obj")
 
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 	
@@ -96,7 +96,7 @@ class Skydome:
 		self.sun = Sun()
 
 
-		vertices, vnormals, f, self.vertexCount = loadObj("skydome.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("models/skydome.obj")
 
 		self.textureId, textureWidthRatio, textureHeightRatio = loadTexture("cl.jpg")
 

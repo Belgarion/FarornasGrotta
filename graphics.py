@@ -175,7 +175,7 @@ class Graphics:
 		self.g_Octree = COctree()
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
-		vertices, vnormals, f, self.vertexCount = loadObj("terrain.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("models/terrain.obj")
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
 
