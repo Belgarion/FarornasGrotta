@@ -55,10 +55,11 @@ class InputThread(threading.Thread):
 
 class Main:
 	def __init__(self):
+		args = {'disableWater': False}
 		if len(sys.argv) > 1:
 			for arg in sys.argv:
 				if arg == "--nowater":
-					Global.disableWater = True
+					args['disableWater'] = True
 
 		config = self.init_config()
 	
@@ -74,7 +75,7 @@ class Main:
 
 		self.octree = COctree()
 
-		self.graphics = Graphics(self.octree, self, config)
+		self.graphics = Graphics(self.octree, self, config, args)
 		self.graphics.initGL()
 
 		self.menu = Menu(self.graphics, config)

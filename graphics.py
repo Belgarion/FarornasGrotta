@@ -363,13 +363,14 @@ class Graphics:
 	spectator = False
 	numberOfVertices = 0	
 
-	def __init__(self, octree, main, config):
+	def __init__(self, octree, main, config, args):
 		global g_fVBOObjects
 		g_fVBOObjects = []
 		
 		self.octree = octree
 		self.main = main # TODO: Away with it BLURP!
 		self.config = config
+		self.args = args
 
 		self.g_nFrames = 0
 		self.NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
@@ -454,7 +455,7 @@ class Graphics:
 
 		self.skydome = Skydome()
 		
-		if not Global.disableWater:
+		if not self.args['disableWater']:
 			self.water = Water()
 
 	def printFPS(self):
@@ -535,7 +536,7 @@ class Graphics:
 			self.drawAxes()
 
 		# Water
-		if not Global.disableWater:
+		if not self.args['disableWater']:
 			self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
