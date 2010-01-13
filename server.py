@@ -31,7 +31,7 @@ if __name__ == '__main__':
 					try:
 						type, recvd, addr = Network.URecv()
 						print "len(recvd):",len(recvd)
-						if len(recvd) == 0: pass
+						if type == None: pass
 						else: 
 							if type == 0:
 								print "Client connected UDP:", addr
@@ -63,7 +63,6 @@ if __name__ == '__main__':
 								for i in objects:
 									print "Name:",i.name
 									print "Position:",i.position
-								print "heja"
 					except Exception, e:
 						traceback.print_exc()
 
