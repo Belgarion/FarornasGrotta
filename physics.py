@@ -26,7 +26,7 @@ class Physics:
 		y = obj.position[1]
 		velY = obj.velocity[1]
 
-		if obj.checkCollision() and velY > 0:
+		if obj.checkCollision():# and velY > 0:
 			velY = 0
 		else:
 			velY += -9.82*relTime
