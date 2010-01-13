@@ -25,19 +25,12 @@ class Sun:
 		# 15/60 = 0.25
 
 		now = time.gmtime()
-		#self.angle += 0.003
 		self.angle = (15 * (now.tm_hour - 6) + 0.25*now.tm_min) * (3.1415/180.0)
-		#self.angle = 160 * (3.1415/180.0)
-		#self.angle = 20 * (3.1415/180.0)
+
+		#self.angle += 0.003
+
 		self.x = math.cos(self.angle) * 900
 		self.y = math.sin(self.angle) * 900
-
-		if -3.1415 < self.angle < 3.1415:
-			#print "day"
-			pass
-		else:
-			#print "night"
-			pass
 	def draw(self):
 		self.update()
 
@@ -67,7 +60,7 @@ class Sun:
 		glLightfv(GL_LIGHT1, GL_POSITION, (0.0, 0.0, 0.0, 1.0))
 		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.5, 0.5, 0.5, 1.0))
 		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, (1.0, 1.0, 0.0, 1.0))
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.3, 0.3, 0.2, 1.0))
 
 		#glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 180)
 		#glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, (1.0, 1.0, 1.0))
@@ -91,9 +84,81 @@ class Sun:
 
 		glPopMatrix()
 
+class Moon:
+	def __init__(self):
+		vertices, vnormals, f, self.vertexCount = graphics.loadObj("models/moon.obj")
+
+		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+	
+		self.angle = 270.0 * (3.1415/180.0)
+	def update(self):
+		# 360 / 24 = 15
+		# 15/60 = 0.25
+
+		now = time.gmtime()
+		self.angle = (15 * (now.tm_hour - 18) + 0.25*now.tm_min) * (3.1415/180.0)
+
+		#self.angle += 0.003
+
+		self.x = math.cos(self.angle) * 900
+		self.y = math.sin(self.angle) * 900
+	def draw(self):
+		self.update()
+
+		glPushMatrix()
+
+
+		#glDisable(GL_COLOR_MATERIAL)
+
+		#glDisable(GL_LIGHTING)
+		light = glIsEnabled(GL_LIGHTING)
+		if not light:
+			glEnable(GL_LIGHTING)
+
+		glColor3f(0.4, 0.4, 0.4)
+		
+		glRotatef(60.0, 0.0, 1.0, 0.0)
+		glScalef(0.1, 0.1, 0.1)
+		glTranslatef(self.x, self.y, 0.0)
+
+		#glPushMatrix()
+		#glLightfv(GL_LIGHT0, GL_POSITION, (self.x, self.y, 0.0, 10000.0) )
+
+		#glLightfv(GL_LIGHT1, GL_POSITION, (1.0, 1.0, 0.0, 0.0) )
+		#glLightfv(GL_LIGHT1, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0) )
+		#glLightfv(GL_LIGHT1, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0) )
+
+		glLightfv(GL_LIGHT1, GL_POSITION, (0.0, 0.0, 0.0, 1.0))
+		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.5, 0.5, 0.5, 1.0))
+		glLightfv(GL_LIGHT1, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.3, 0.3, 0.3, 1.0))
+
+		#glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 180)
+		#glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, (1.0, 1.0, 1.0))
+		#glPopMatrix()
+	
+		#glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0)
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0.1, 0.1, 0.1, 1.0))
+		#glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.5, 0.5, 0.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_DIFFUSE, (1.0, 1.0, 1.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_AMBIENT, (0.0, 0.0, 0.0, 1.0))
+		#glMaterialfv(GL_FRONT, GL_DIFFUSE, (0.0, 0.0, 0.0, 1.0))
+
+		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
+
+		glMaterialfv(GL_FRONT, GL_EMISSION, (0.0, 0.0, 0.0, 1.0))
+
+		#glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, (0.0, 0.0, 0.0, 1.0))
+
+		if not light:
+			glDisable(GL_LIGHTING)
+
+		glPopMatrix()
+
 class Skydome:
 	def __init__(self):
 		self.sun = Sun()
+		self.moon = Moon()
 
 
 		vertices, vnormals, f, self.vertexCount = graphics.loadObj("models/skydome.obj")
@@ -134,7 +199,11 @@ class Skydome:
 		glScalef(10.0, 10.0, 10.0)
 		glTranslatef(0.0, -20.0, 0.0)
 		
-		self.sun.draw()
+		now = time.gmtime()
+		if now.tm_hour > 6 and now.tm_hour < 18:
+			self.sun.draw()
+		else:
+			self.moon.draw()
 
 		#glColor3f(0.0, 0.749, 1.0)
 		glColor3f(1.0, 1.0, 1.0)
