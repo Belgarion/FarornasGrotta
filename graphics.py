@@ -74,7 +74,7 @@ def loadObj(filename):
 	#texCoords = Numeric.zeros((len(facest*3), 2), 'f')
 	vertexCount = len(facesv)*3
 	quad = False
-	
+
 	nIndex = 0
 	for i in facesv:
 		vertices[nIndex, 0] = v[i[0]][0]
@@ -176,7 +176,9 @@ def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
 
 	glDisableClientState(GL_VERTEX_ARRAY)
 def loadTexture(filename):
-	""" Loads a texture from file, returns (textureId, textureWidthRatio, textureHeightRatio) """
+	""" Loads a texture from file,
+	returns (textureId, textureWidthRatio, textureHeightRatio)
+	"""
 	image = pygame.image.load(filename)
 
 	width = image.get_width()
@@ -195,7 +197,8 @@ def loadTexture(filename):
 		textureHeightRatio = float(image.get_height()) / height
 
 	if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
-		sys.stderr.write("ERROR: Texture is bigger than the maximum texture size of your graphics card\n")
+		sys.stderr.write("ERROR: Texture is bigger than the maximum"\
+				"texture size of your graphics card\n")
 		Global.quit = 1
 		return
 
@@ -206,7 +209,7 @@ def loadTexture(filename):
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-	
+
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT )
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT )
 
@@ -220,11 +223,12 @@ def loadTexture(filename):
 				image.get_width(), image.get_height(), GL_RGBA,
 				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 
-	return (textureId, textureWidthRatio, textureHeightRatio)	
+	return (textureId, textureWidthRatio, textureHeightRatio)
 def extensionSupported(TargetExtension):
 	""" Accesses the rendering context to see if it supports an extension.
 		Note, that this test only tells you if the OpenGL library supports
-		the extension. The PyOpenGL system might not actually support the extension.
+		the extension.
+		The PyOpenGL system might not actually support the extension.
 	"""
 	Extensions = glGetString (GL_EXTENSIONS)
 	if (not TargetExtension in Extensions):
@@ -276,7 +280,7 @@ class CVert:
 class CTexCoord:
 	""" Texture Coordinate Class """
 	def __init__ (self, u = 0.0, v = 0.0):
-		self.u = u # // U Component
+		self.u = u
 		self.v = v
 class CMesh:
 	""" Mesh Data """
@@ -284,102 +288,42 @@ class CMesh:
 
 	def __init__ (self,position_y):
 		self.position_y = position_y
-		self.m_nVertexCount = 0								# // Vertex Count
+		self.m_nVertexCount = 0				# Vertex Count
 
-		self.m_pVertices = None # Numeric.array ( (), 'f') 		# // Vertex Data array
-		self.m_pVertices_as_string = None						# raw memory string for VertexPointer ()
+		self.m_pVertices = None				# Vertex Data array
+		self.m_pTexCoords = None			# Texture Coordinates array
+		self.m_nTextureId = None			# Texture ID
 
-		self.m_pTexCoords = None # Numeric.array ( (), 'f') 	# // Texture Coordinates array
-		self.m_pTexCoords_as_string = None						# raw memory string for TexPointer ()
+		# Vertex Buffer Object Names
+		self.m_nVBOVertices = None			# Vertex VBO Name
+		self.m_nVBOTexCoords = None			# Texture Coordinate VBO Name
 
-		self.m_nTextureId = None								# // Texture ID
-
-		# // Vertex Buffer Object Names
-		self.m_nVBOVertices = None								# // Vertex VBO Name
-		self.m_nVBOTexCoords = None							# // Texture Coordinate VBO Name
-
-	def LoadHeightmap(self, flHeightScale, iLevel, textureWidthRatio, textureHeightRatio):
-		""" Heightmap Loader """
-
-		xMax = xMin = iLevel[0].x
-		zMax = zMin = iLevel[0].z
-		for i in iLevel:
-			if i.x < xMin: xMin = i.x
-			elif i.x > xMax: xMax = i.x
-
-			if i.z < zMin: zMin = i.z
-			elif i.z > zMax: zMax = i.z
-
-		sizeX = xMax - xMin
-		sizeY = zMax - zMin
-
-		self.m_nVertexCount = len(iLevel)
-		
-		self.m_pVertices = Numeric.zeros ((self.m_nVertexCount, 3), 'f')	# // Vertex Data
-		self.normals = Numeric.zeros ((self.m_nVertexCount, 3), 'f')
-		self.m_pTexCoords = Numeric.zeros ((self.m_nVertexCount, 2), 'f')	# // Texture Coordinates
-
-		nIndex = 0
-		for i in iLevel:
-			self.m_pVertices[nIndex, 0] = i.x
-			self.m_pVertices[nIndex, 1] = i.y * flHeightScale + self.position_y
-			self.m_pVertices[nIndex, 2] = i.z
-			self.m_pTexCoords[nTIndex, 0] = (i.x-xMin) / sizeX * textureWidthRatio
-			self.m_pTexCoords[nTIndex, 1] = (i.z-zMin) / sizeY * textureHeightRatio
-			nIndex += 1
-
-		self.m_pVertices_as_string = self.m_pVertices.tostring ()
-		self.m_pTexCoords_as_string = self.m_pTexCoords.tostring ()
-
-	def BuildVBOs (self):
-		""" Generate And Bind The Vertex Buffer """
-		
-		self.m_nVBOVertices = int(glGenBuffersARB( 1))						# // Get A Valid Name
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOVertices )	# // Bind The Buffer
-		# // Load The Data
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pVertices, GL_STATIC_DRAW_ARB )
-
-		# // Generate And Bind The Texture Coordinate Buffer
-		self.m_nVBOTexCoords = int(glGenBuffersARB( 1))						# // Get A Valid Name
-		glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.m_nVBOTexCoords )		# // Bind The Buffer
-		# // Load The Data
-		glBufferDataARB( GL_ARRAY_BUFFER_ARB, self.m_pTexCoords, GL_STATIC_DRAW_ARB )
-
-		self.normalsId = glGenBuffersARB(1)
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, self.normals, GL_STATIC_DRAW_ARB)
-
-		# // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card
-		self.m_pVertices = None
-		self.m_pTexCoords = None
-		self.normals = None
-		return
 class Graphics:
-	
-	wireframe = False	
+
+	wireframe = False
 	vertices = []
 	reDraw = False
 	toggleDrawAxes = False
 	spectator = False
-	numberOfVertices = 0	
+	numberOfVertices = 0
 
 	def __init__(self, octree, main, config, args):
 		global g_fVBOObjects
 		g_fVBOObjects = []
-		
+
 		self.octree = octree
 		self.main = main # TODO: Away with it BLURP!
 		self.config = config
 		self.args = args
 
 		self.g_nFrames = 0
-		self.NPOTSupported = extensionSupported("GL_ARB_texture_non_power_of_two")
-		
+
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount = loadObj("models/terrain.obj")
 
-		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = loadTexture(Texture)
+		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
+				loadTexture(Texture)
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
@@ -454,7 +398,7 @@ class Graphics:
 		glEnable(GL_NORMALIZE)
 
 		self.skydome = Skydome()
-		
+
 		if not self.args['disableWater']:
 			self.water = Water()
 
@@ -495,7 +439,8 @@ class Graphics:
 			self.octree.debug.Clear()
 			self.octree.DestroyOctree()
 			self.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
-			self.octree.CreateNode(self.vertices, self.numberOfVertices, self.octree.GetCenter(), self.octree.GetWidth())
+			self.octree.CreateNode(self.vertices, self.numberOfVertices,
+					self.octree.GetCenter(), self.octree.GetWidth())
 			self.reDraw = False
 
 
@@ -522,12 +467,18 @@ class Graphics:
 		self.skydome.draw()
 
 		if self.spectator:
-			glTranslated(-self.main.Input.xpos, -self.main.Input.ypos,-self.main.Input.zpos)
+			glTranslated(-self.main.Input.xpos,
+					-self.main.Input.ypos,
+					-self.main.Input.zpos)
 		else:
 			glTranslated(
-					-self.main.player.position[0]-0.2*math.sin(math.radians(self.main.player.orientation[1])),
+					-self.main.player.position[0]-0.2*math.sin(
+						math.radians(self.main.player.orientation[1])
+						),
 					-self.main.player.position[1]-2.2,
-					-self.main.player.position[2]+0.2*math.cos(math.radians(self.main.player.orientation[1]-180))
+					-self.main.player.position[2]+0.2*math.cos(
+						math.radians(self.main.player.orientation[1]-180)
+						)
 					)
 
 		self.g_nFrames += 1
@@ -550,11 +501,10 @@ class Graphics:
 		glFogf(GL_FOG_END, 110.0)
 		#glEnable(GL_FOG)
 
-		# // Enable Pointers
-		glEnableClientState( GL_VERTEX_ARRAY )						# // Enable Vertex Arrays
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY )				# // Enable Texture Coord Arrays
+		glEnableClientState(GL_VERTEX_ARRAY)
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 		glEnableClientState(GL_NORMAL_ARRAY)
-	
+
 
 		glPushMatrix()
 		glColor3f(1.0, 1.0, 1.0)
@@ -566,8 +516,8 @@ class Graphics:
 			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].textureId)
 			glEnable(GL_TEXTURE_2D)
 
-			
-			drawVBO(g_fVBOObjects[i].verticesId, g_fVBOObjects[i].vnormalsId, 
+
+			drawVBO(g_fVBOObjects[i].verticesId, g_fVBOObjects[i].vnormalsId,
 					g_fVBOObjects[i].vertexCount, g_fVBOObjects[i].texCoordsId)
 
 			glDisable(GL_TEXTURE_2D)
@@ -576,23 +526,25 @@ class Graphics:
 		glPopMatrix()
 
 
-		# // Disable Pointers
-		glDisableClientState( GL_VERTEX_ARRAY )					# // Disable Vertex Arrays
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY )			# // Disable Texture Coord Arrays
+		glDisableClientState(GL_VERTEX_ARRAY)
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 		glDisableClientState(GL_NORMAL_ARRAY)
 
 		glDisable(GL_FOG)
 
 		if self.octree.debugLines:
 			self.octree.debug.RenderDebugLines()
-		
+
 		if self.octree.g_MaxSubdivisions:
-			# Here we draw the octree, starting with the root node and recursing down each node.
-			# When we get to each of the end nodes we will draw the vertices assigned to them.
+			# Here we draw the octree, starting with
+			# the root node and recursing down each node.
+			# When we get to each of the end nodes we
+			# will draw the vertices assigned to them.
 			self.octree.DrawOctree(self.octree)
-			
+
 			if self.octree.debugLines:
-				# Render the cube'd nodes to visualize the octree (in wire frame mode)
+				# Render the cube'd nodes to visualize the octree
+				# (in wireframe mode)
 				self.octree.debug.RenderDebugLines()
 
 		for obj in objects:

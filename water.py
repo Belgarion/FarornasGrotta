@@ -11,7 +11,8 @@ import time
 class Water:
 	def __init__(self):
 		meshVertices, self.vertexCount, meshNormals = self.generateMesh()
-		self.verticesId, self.normalsId = self.bindVBO(meshVertices, meshNormals)
+		self.verticesId, self.normalsId = \
+				self.bindVBO(meshVertices, meshNormals)
 		self.initShader()
 		#
 	def initShader(self):
@@ -95,11 +96,12 @@ class Water:
 
 		fragmentSource = ["""
 		varying vec3 normal, lightDir, eyeVec;
-		
+
 		void main() {
-			vec4 final_color = 
-				(gl_FrontLightModelProduct.sceneColor * gl_FrontMaterial.ambient) +
-				(gl_LightSource[1].ambient * gl_FrontMaterial.ambient);
+			vec4 final_color =
+				(gl_FrontLightModelProduct.sceneColor
+					* gl_FrontMaterial.ambient)
+				+ (gl_LightSource[1].ambient * gl_FrontMaterial.ambient);
 
 			vec3 N = normalize(normal);
 			vec3 L = normalize(lightDir);
@@ -113,7 +115,7 @@ class Water:
 
 				vec3 E = normalize(eyeVec);
 				vec3 R = reflect(-L, N);
-				float specular = pow(max(dot(R, E), 0.0), 
+				float specular = pow(max(dot(R, E), 0.0),
 									gl_FrontMaterial.shininess);
 				final_color += gl_LightSource[1].specular *
 								gl_FrontMaterial.specular *
@@ -126,7 +128,7 @@ class Water:
 		"""]
 		glShaderSourceARB(vertexShader, vertexSource)
 		glShaderSourceARB(fragmentShader, fragmentSource)
-	
+
 		glCompileShaderARB(vertexShader)
 		compiled = glGetObjectParameterivARB(vertexShader, GL_COMPILE_STATUS)
 		if not compiled:
@@ -136,7 +138,7 @@ class Water:
 		compiled = glGetObjectParameterivARB(fragmentShader, GL_COMPILE_STATUS)
 		if not compiled:
 			print glGetInfoLogARB(fragmentShader)
-	
+
 		glAttachObjectARB(program, vertexShader)
 		glAttachObjectARB(program, fragmentShader)
 

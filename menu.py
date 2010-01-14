@@ -24,7 +24,8 @@ class Menu:
 	def init_font(self):
 		self.font = Font()
 	def setBackground(self, filename):
-		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = graphics.loadTexture(filename)
+		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = \
+				graphics.loadTexture(filename)
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
@@ -35,7 +36,7 @@ class Menu:
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB) # Vertices
+			glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
 
 		if self.texCoordsId == None:
 			texCoords = Numeric.zeros((4, 2), 'f')
@@ -46,7 +47,7 @@ class Menu:
 
 			self.texCoordsId = glGenBuffersARB(1)
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
-			glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB) # TexCoords
+			glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
 
@@ -80,7 +81,7 @@ class Menu:
 			glVertexPointer(3, GL_FLOAT, 0, None)
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.texCoordsId)
 			glTexCoordPointer(2, GL_FLOAT, 0, None)
-			
+
 			glDrawArrays(GL_QUADS, 0, 4)
 
 			glDisable(GL_TEXTURE_2D)

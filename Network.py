@@ -15,7 +15,7 @@ typeDict = {
 		5:"Pong",
 		}
 
-def Connect(host, port): 
+def Connect(host, port):
 	global uSock, tSock
 	uSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	tSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,7 +51,11 @@ def USend(addr, type, msg):
 	udpSeq = (udpSeq + 1) % 255
 
 	try:
-		packet = ( chr(udpSeq) + chr(type) + struct.pack("I", (len(msg))) + str(msg))
+		packet = (
+				chr(udpSeq) \
+				+ chr(type) \
+				+ struct.pack("I", (len(msg))) + str(msg)
+				)
 		while len(packet) > 0:
 			uSock.sendto(packet[:65500], addr)
 			packet = packet[65500:]
@@ -66,7 +70,7 @@ def URecv():
 	msg = ""
 
 	data, addr = uSock.recvfrom(65500)
-	
+
 	if len(data) > 5:
 		print "UDP packet received"
 		udpSeq = ord(data[0])

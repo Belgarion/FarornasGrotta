@@ -13,7 +13,7 @@ class input():
 		self.graphics = graphics
 		self.config = config
 		self.menu = menu
-		
+
 
 		self.down_pressed = 0
 		self.up_pressed = 0
@@ -27,7 +27,7 @@ class input():
 		self.xrot = 0
 		self.yrot = 0
 
-		self.speed = 15	
+		self.speed = 15
 
 	def handleMainMenuInput(self):
 		for event in pygame.event.get():
@@ -46,16 +46,20 @@ class input():
 						print sys.exc_info()
 
 	def handle_mouse(self):
-		for event in pygame.event.get([pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]):
+		for event in pygame.event.get(\
+				[pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]
+				):
 			if event.type == pygame.MOUSEMOTION:
-				self.xrot += event.rel[1] / 10.0 # It is y pos with mouse that rotates the X axis
+				# It is y pos with mouse that rotates the X axis
+				self.xrot += event.rel[1] / 10.0
 				self.yrot = (self.yrot + event.rel[0] / 10.0) % 360
 				if self.xrot <= -90: self.xrot = -90
 				if self.xrot >= 90: self.xrot = 90
 				if not self.graphics.spectator:
 					self.player.orientation = (
 							self.player.orientation[0],
-							(self.player.orientation[1] - event.rel[0]/10.0) % 360,
+							(self.player.orientation[1] \
+									- event.rel[0]/10.0) % 360,
 							self.player.orientation[2]
 							)
 
@@ -79,9 +83,11 @@ class input():
 					self.ypos -= math.sin(xrotrad) * distance_moved
 				else:
 					self.player.position = (
-							self.player.position[0] + math.sin(yrotrad) * distance_moved,
+							self.player.position[0] \
+									+ math.sin(yrotrad) * distance_moved,
 							self.player.position[1],
-							self.player.position[2] - math.cos(yrotrad) * distance_moved
+							self.player.position[2] \
+									- math.cos(yrotrad) * distance_moved
 							)
 
 			if self.down_pressed:
@@ -93,9 +99,11 @@ class input():
 					self.ypos += math.sin(xrotrad) * distance_moved
 				else:
 					self.player.position = (
-							self.player.position[0] - math.sin(yrotrad) * distance_moved, 
-							self.player.position[1], 
-							self.player.position[2] + math.cos(yrotrad) * distance_moved
+							self.player.position[0] \
+									- math.sin(yrotrad) * distance_moved,
+							self.player.position[1],
+							self.player.position[2] \
+									+ math.cos(yrotrad) * distance_moved
 							)
 
 			if self.left_pressed:
@@ -105,9 +113,11 @@ class input():
 					self.zpos -= math.sin(yrotrad) * distance_moved
 				else:
 					self.player.position = (
-							self.player.position[0] - math.cos(yrotrad) * distance_moved,
+							self.player.position[0] \
+									- math.cos(yrotrad) * distance_moved,
 							self.player.position[1],
-							self.player.position[2] - math.sin(yrotrad) * distance_moved
+							self.player.position[2] \
+									- math.sin(yrotrad) * distance_moved
 							)
 
 			if self.right_pressed:
@@ -117,11 +127,13 @@ class input():
 					self.zpos += math.sin(yrotrad) * distance_moved
 				else:
 					self.player.position = (
-							self.player.position[0] + math.cos(yrotrad) * distance_moved,
+							self.player.position[0] \
+									+ math.cos(yrotrad) * distance_moved,
 							self.player.position[1],
-							self.player.position[2] + math.sin(yrotrad) * distance_moved
+							self.player.position[2] \
+									+ math.sin(yrotrad) * distance_moved
 							)
-			
+
 			if sys.platform != "win32":
 				self.handle_mouse()
 
@@ -141,11 +153,13 @@ class input():
 							self.graphics.toggleDrawAxes ^= 1
 						elif event.key == pygame.K_F7:
 							self.graphics.wireframe ^= 1
-						elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS:
+						elif event.key == pygame.K_PLUS \
+								or event.key == pygame.K_KP_PLUS:
 							#self.octree.g_MaxSubdivisions += 1
 							COctree.g_MaxSubdivisions += 1
 							self.graphics.reDraw = True
-						elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
+						elif event.key == pygame.K_MINUS \
+								or event.key == pygame.K_KP_MINUS:
 							if self.octree.g_MaxSubdivisions > 0:
 								COctree.g_MaxSubdivisions -= 1
 								self.main.graphics.reDraw = True

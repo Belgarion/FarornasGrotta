@@ -13,7 +13,7 @@ class Physics:
 
 		for i in xrange(len(self.objects)):
 			self.objects[i] = self.updatePos(self.objects[i], relTime)
-			
+
 		self.lastTime = time.time()
 
 		return self.objects
@@ -32,8 +32,10 @@ class Physics:
 			velY += -9.82*relTime
 			y += velY*relTime
 
-		obj.velocity = (velocity[0], velY , velocity[2]) 
-		obj.position = (obj.position[0]+obj.velocity[0]*relTime, y, obj.position[2] + obj.velocity[2]*relTime)
-		
+		obj.velocity = (velocity[0], velY , velocity[2])
+		obj.position = (obj.position[0]+obj.velocity[0]*relTime,
+				y,
+				obj.position[2] + obj.velocity[2]*relTime)
+
 
 		return obj

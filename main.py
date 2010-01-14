@@ -33,7 +33,6 @@ from OpenGL import GL
 from OpenGL import GLU
 from input import *
 try:
-	
 	import numpy as Numeric
 except:
 	import Numeric
@@ -80,7 +79,7 @@ class NetworkThread(threading.Thread):
 					type, recvd, addr = Network.URecv()
 					print "len(recvd) =", len(recvd)
 					if len(recvd) == 0: continue
-					
+
 					if type == 0:
 						print "Connected"
 						myAddr = cPickle.loads(recvd)
@@ -103,20 +102,20 @@ class NetworkThread(threading.Thread):
 
 			Network.USend(self.addr, 2, cPickle.dumps(self.player, 2))
 			#print cPickle.dumps(objects, 2)
-		
+
 			#try:
 			#	recvd, addr = Network.URecv()
 			#	if len(revcd) == 0: pass
 			#	else: print recvd
 			#except:
 			#	pass
-		
+
 			#Använd select för att kolla om det finns något att ta emot
 			#recvd = Network.TRecv(None, 256)
 			#while recvd:
 			#	print recvd
 			#	recvd = Nework.TRecv(None, 256)
-		
+
 		Network.USend(self.addr, 1, "")
 
 class Main:
@@ -146,7 +145,7 @@ class Main:
 					self.args['port'] = sys.argv[index + 1]
 
 		config = self.init_config()
-	
+
 		self.mainMenuOpen = True
 
 		pygame.init()
@@ -242,8 +241,6 @@ class Main:
 		Global.quit = 1
 
 	def init_config(self):
-		
-		# Just add new values
 		defaultConfig = StringIO.StringIO(\
 				"[Resolution]\n"\
 				"Width: 640\n"\
