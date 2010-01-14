@@ -64,15 +64,16 @@ class NetworkThread(threading.Thread):
 		self.physics = physics
 		self.player = player
 		threading.Thread.__init__(self)
+		self.addr = ('', 0)
 	def run(self):
 		self.handleNetwork()
 	def handleNetwork(self):
-		addr = ('localhost', 30000)
 		myAddr = ('', 0)
 
-		Network.USend(addr, 0, "Nick")
+		Network.USend(self.addr, 0, "Nick")
 		while not Global.quit:
-			read_sockets, write_sockets, error_sockets = select.select([Network.uSock, Network.tSock], [], [], 1)
+			read_sockets, write_sockets, error_sockets = \
+					select.select([Network.uSock, Network.tSock], [], [], 1)
 			for sock in read_sockets:
 				print sock,"is ready for reading"
 				if sock == Network.uSock:
@@ -100,7 +101,7 @@ class NetworkThread(threading.Thread):
 					#tcp
 					pass
 
-			Network.USend(addr, 2, cPickle.dumps(self.player, 2))
+			Network.USend(self.addr, 2, cPickle.dumps(self.player, 2))
 			#print cPickle.dumps(objects, 2)
 		
 			#try:
@@ -116,7 +117,7 @@ class NetworkThread(threading.Thread):
 			#	print recvd
 			#	recvd = Nework.TRecv(None, 256)
 		
-		Network.USend(addr, 1, "")
+		Network.USend(self.addr, 1, "")
 
 class Main:
 	def __init__(self):
@@ -167,7 +168,8 @@ class Main:
 		self.player = Player()
 		objects.append(self.player)
 
-		monster = GameObject("monster1", (0.0, 100.0, 0.0), (0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
+		monster = GameObject("monster1", (0.0, 100.0, 0.0),
+				(0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
 		objects.append(monster)
 
 		self.physics = Physics(objects)
@@ -203,7 +205,8 @@ class Main:
 
 	def run(self):
 		if self.args['host'] != None:
-			Network.Connect(self.args['host'], self.args['port']) #TODO: Add connect submenu
+			self.networkThread.addr = (self.args['host'], self.args['port'])
+			Network.Connect(self.args['host'], self.args['port'])
 			self.networkThread.start()
 
 		fpsTime = 0
