@@ -21,8 +21,6 @@ class Menu:
 		self.font = None
 		self.mainMenuRow = 0
 		self.config = config
-		
-	
 	def init_font(self):
 		self.font = Font()
 	def setBackground(self, filename):
@@ -30,10 +28,10 @@ class Menu:
 
 		if self.verticesId == None:
 			vertices = Numeric.zeros((4, 3), 'f')
-			vertices[1, 0] = self.config.getfloat('Resolution', 'Width')
-			vertices[2, 0] = self.config.getfloat('Resolution', 'Width')
-			vertices[2, 1] = self.config.getfloat('Resolution', 'Height')
-			vertices[3, 1] = self.config.getfloat('Resolution', 'Height')
+			vertices[1, 0] = 640
+			vertices[2, 0] = 640
+			vertices[2, 1] = 480
+			vertices[3, 1] = 480
 			self.verticesId = glGenBuffersARB(1)
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.verticesId)
