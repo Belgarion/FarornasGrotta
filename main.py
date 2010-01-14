@@ -120,11 +120,29 @@ class NetworkThread(threading.Thread):
 
 class Main:
 	def __init__(self):
-		args = {'disableWater': False}
+		self.args = {'disableWater': False,
+				'host': None,
+				'port': 30000}
 		if len(sys.argv) > 1:
-			for arg in sys.argv:
-				if arg == "--nowater":
-					args['disableWater'] = True
+			for index, arg in enumerate(sys.argv):
+				if arg == "--help" or arg == "-h":
+					print "Arguments: \n"\
+							"	--nowater		Disable water\n"\
+							"	--host			Connect to host\n"\
+							"	--port			Port (Default: 30000)\n"
+					sys.exit(0)
+				elif arg == "--nowater":
+					self.args['disableWater'] = True
+				elif arg == "--host":
+					if not len(sys.argv) > index + 1:
+						print "No host specified for --host"
+						continue
+					self.args['host'] = sys.argv[index + 1]
+				elif arg == "--port":
+					if not len(sys.argv) > index + 1:
+						print "No port specified for --port"
+						continue
+					self.args['port'] = sys.argv[index + 1]
 
 		config = self.init_config()
 	
@@ -140,7 +158,7 @@ class Main:
 
 		self.octree = COctree()
 
-		self.graphics = Graphics(self.octree, self, config, args)
+		self.graphics = Graphics(self.octree, self, config, self.args)
 		self.graphics.initGL()
 
 		self.menu = Menu(self.graphics, config)
@@ -184,8 +202,9 @@ class Main:
 		self.networkThread = NetworkThread(self.physics, self.player)
 
 	def run(self):
-		Network.Connect('localhost', 30000) #TODO: Add connect submenu
-		self.networkThread.start()
+		if self.args['host'] != None:
+			Network.Connect(self.args['host'], self.args['port']) #TODO: Add connect submenu
+			self.networkThread.start()
 
 		fpsTime = 0
 		while not Global.quit:
@@ -222,14 +241,14 @@ class Main:
 	def init_config(self):
 		
 		# Just add new values
-		defaultConfig = StringIO.StringIO("""\
-[Resolution]
-Width: 640
-Height: 480
-
-[Input]
-KeyboardLayout: qwerty
-				""")
+		defaultConfig = StringIO.StringIO(\
+				"[Resolution]\n"\
+				"Width: 640\n"\
+				"Height: 480\n"\
+				"\n"\
+				"[Input]\n"\
+				"KeyboardLayout: qwerty\n"\
+				)
 
 		config = ConfigParser.SafeConfigParser()
 		config.readfp(defaultConfig)
@@ -241,4 +260,4 @@ if __name__ == '__main__':
 	main = Main()
 	main.run()
 	main.inputThread.join()
-	main.networkThread.join()
+	if main.networkThread.isAlive(): main.networkThread.join()
