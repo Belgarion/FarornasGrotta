@@ -145,6 +145,7 @@ class Main:
 					self.args['port'] = sys.argv[index + 1]
 
 		config = self.init_config()
+		self.config = config
 
 		self.mainMenuOpen = True
 
@@ -161,8 +162,6 @@ class Main:
 		self.graphics = Graphics(self.octree, self, config, self.args)
 		self.graphics.initGL()
 
-		self.menu = Menu(self.graphics, config)
-		self.menu.init_font()
 
 		self.player = Player()
 		objects.append(self.player)
@@ -172,7 +171,6 @@ class Main:
 		objects.append(monster)
 
 		self.physics = Physics(objects)
-
 
 		pygame.mouse.set_visible(0)
 		pygame.event.set_grab(1)
@@ -188,19 +186,89 @@ class Main:
 
 		self.graphics.addSurface(0, "Terrain.raw", "grass.jpg")
 
-		self.menu.setBackground("img2.png")
-		self.menu.addMenuEntry("Start", self.startGame)
-		self.menu.addMenuEntry("Options", self.options)
-		self.menu.addMenuEntry("Quit", self.quit)
-
+		self.initMenus()
 
 		self.Input = input(self.octree, self.graphics, self.menu, self.player,
 				config, self)
 		self.inputThread = InputThread(self.Input)
 		self.inputThread.start()
 
-
 		self.networkThread = NetworkThread(self.physics, self.player)
+
+	def initMenus(self):
+		self.menu = Menu(self.graphics, self.config)
+		self.menu.init_font()
+
+		self.menu.setBackground("img2.png")
+		self.menu.addMenuEntry("Start", self.startGame)
+
+		def MOptions():
+			self.menu.current = self.optionsMenu
+		self.menu.addMenuEntry("Options", MOptions)
+
+		def MQuit():
+			Global.quit = 1
+		self.menu.addMenuEntry("Quit", MQuit)
+
+		self.optionsMenu = Menu(self.graphics, self.config)
+		self.optionsMenu.init_font()
+
+		self.optionsMenu.setBackground("img2.png")
+
+		resolutions = [(640, 480),
+				(800, 600),
+				(1024, 768),
+				(1280, 960),
+				(1400, 1050),
+				(1600, 1200),
+				(1680, 1260),
+				(1920, 1440),
+				(2048, 1536)]
+
+		def OMResolution():
+			om = self.optionsMenu
+			wstr, hstr = om.menuEntries[om.row][0].split(":")[1] \
+					.lstrip().split("x")
+			w, h = int(wstr), int(hstr)
+			for i, r in enumerate(resolutions):
+				if r[0] == w or \
+						(len(resolutions) > i + 1 and resolutions[i+1][0] > w):
+					index = (i + 1) % (len(resolutions))
+					nw, nh = resolutions[index]
+					self.config.set("Resolution", "Width", str(nw))
+					self.config.set("Resolution", "Height", str(nh))
+					om.menuEntries[om.row] = ("Resolution: " + \
+							str(nw) + "x" + str(nh),
+							om.menuEntries[om.row][1])
+					break
+
+		self.optionsMenu.addMenuEntry(
+				"Resolution: " + self.config.get("Resolution","Width") \
+						+ "x" + \
+						self.config.get("Resolution","Height"),
+				OMResolution)
+
+		keyboardLayouts = ["qwerty", "dvorak"]
+		def OMKeyboardLayout():
+			om = self.optionsMenu
+			layout = om.menuEntries[om.row][0].split(":")[1].lstrip()
+			for i, l in enumerate(keyboardLayouts):
+				if layout == l:
+					index = (i + 1) % (len(keyboardLayouts))
+					nl = keyboardLayouts[index]
+					self.config.set("Input", "KeyboardLayout", nl)
+					om.menuEntries[om.row] = \
+							("Keyboard Layout: " + nl,
+									om.menuEntries[om.row][1])
+
+		self.optionsMenu.addMenuEntry(
+			"Keyboard Layout: " + self.config.get("Input", "KeyboardLayout"),
+			OMKeyboardLayout)
+
+		def OMBack():
+			self.menu.current = self.menu
+
+		self.optionsMenu.addMenuEntry("Back", OMBack)
 
 	def run(self):
 		if self.args['host'] != None:
@@ -218,7 +286,7 @@ class Main:
 				self.Input.handle_mouse()
 
 			if self.mainMenuOpen:
-				self.menu.draw()
+				self.menu.current.draw()
 			else:
 				objects = self.physics.update()
 				self.graphics.draw(objects)
@@ -232,13 +300,6 @@ class Main:
 		self.mainMenuOpen = False
 		self.editpos()
 		self.physics.lastTime = time.time()
-
-	def options(self):
-		print "Not implemented (yet)"
-		# TODO: Implement submenus
-
-	def quit(self):
-		Global.quit = 1
 
 	def init_config(self):
 		defaultConfig = StringIO.StringIO(\
@@ -261,3 +322,5 @@ if __name__ == '__main__':
 	main.run()
 	main.inputThread.join()
 	if main.networkThread.isAlive(): main.networkThread.join()
+	with open("config", "wb") as configfile:
+		main.config.write(configfile)

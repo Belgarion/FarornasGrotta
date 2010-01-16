@@ -29,22 +29,6 @@ class input():
 
 		self.speed = 15
 
-	def handleMainMenuInput(self):
-		for event in pygame.event.get():
-			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_ESCAPE:
-					Global.quit = 1
-				elif event.key == pygame.K_UP:
-					if self.menu.mainMenuRow > 0: self.menu.mainMenuRow -= 1
-				elif event.key == pygame.K_DOWN:
-					self.menu.mainMenuRow += 1
-				elif event.key == pygame.K_RETURN:
-					try:
-						self.menu.menuEntries[self.menu.mainMenuRow][1]()
-					except:
-						print "Error running function for menu entry"
-						print sys.exc_info()
-
 	def handle_mouse(self):
 		for event in pygame.event.get(\
 				[pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]
@@ -71,7 +55,7 @@ class input():
 
 		while not Global.quit:
 			if self.main.mainMenuOpen:
-				self.handleMainMenuInput()
+				self.menu.current.KeyHandler()
 				continue
 
 			if self.up_pressed:

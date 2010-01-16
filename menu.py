@@ -8,6 +8,9 @@ try:
 except:
 	import Numeric
 from font import Font
+from Global import Global
+import sys
+import traceback
 
 class Menu:
 	def __init__(self, graphics, config):
@@ -19,10 +22,36 @@ class Menu:
 		self.texCoordsId = None
 		self.menuEntries = []
 		self.font = None
-		self.mainMenuRow = 0
+		self.row = 0
 		self.config = config
+		self.current = self
 	def init_font(self):
 		self.font = Font()
+	def KeyHandler(self):
+		for event in pygame.event.get():
+			if self.keyHandler(event):
+				# Key already handled
+				continue
+
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					Global.quit = 1
+				elif event.key == pygame.K_UP:
+					if self.row > 0:
+						self.row -= 1
+				elif event.key == pygame.K_DOWN:
+					if self.row < len(self.menuEntries) - 1:
+						self.row += 1
+				elif event.key == pygame.K_RETURN:
+					try:
+						self.menuEntries[self.row][1]()
+					except:
+						print "Error running function for menu entry"
+						#print sys.exc_info
+						traceback.print_exc()
+	def keyHandler(self, event):
+		# Custom handler
+		return 0
 	def setBackground(self, filename):
 		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = \
 				graphics.loadTexture(filename)
@@ -89,14 +118,10 @@ class Menu:
 		glDisableClientState(GL_VERTEX_ARRAY)
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
-
-		if self.mainMenuRow > len(self.menuEntries)  - 1:
-			self.mainMenuRow = len(self.menuEntries) - 1
-
 		row = 7
 		i = 0
 		for entry in self.menuEntries:
-			if self.mainMenuRow == i:
+			if self.row == i:
 				glColor3f(0.0, 1.0, 0.0)
 			else:
 				glColor3f(1.0, 0.0, 0.0)
