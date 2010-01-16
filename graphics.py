@@ -401,7 +401,6 @@ class Graphics:
 
 		if not self.args['disableWater']:
 			self.water = Water()
-
 	def printFPS(self):
 		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 		self.g_nFrames = 0

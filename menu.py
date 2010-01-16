@@ -13,7 +13,7 @@ import sys
 import traceback
 
 class Menu:
-	def __init__(self, graphics, config):
+	def __init__(self, graphics, config, font):
 		self.graphics = graphics
 
 		self.hasBackground = False
@@ -21,12 +21,10 @@ class Menu:
 		self.verticesId = None
 		self.texCoordsId = None
 		self.menuEntries = []
-		self.font = None
+		self.font = font
 		self.row = 0
 		self.config = config
 		self.current = self
-	def init_font(self):
-		self.font = Font()
 	def KeyHandler(self):
 		for event in pygame.event.get():
 			if self.keyHandler(event):

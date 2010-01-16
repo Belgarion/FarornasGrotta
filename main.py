@@ -196,8 +196,9 @@ class Main:
 		self.networkThread = NetworkThread(self.physics, self.player)
 
 	def initMenus(self):
-		self.menu = Menu(self.graphics, self.config)
-		self.menu.init_font()
+		self.font = Font()
+
+		self.menu = Menu(self.graphics, self.config, self.font)
 
 		self.menu.setBackground("img2.png")
 		self.menu.addMenuEntry("Start", self.startGame)
@@ -210,8 +211,7 @@ class Main:
 			Global.quit = 1
 		self.menu.addMenuEntry("Quit", MQuit)
 
-		self.optionsMenu = Menu(self.graphics, self.config)
-		self.optionsMenu.init_font()
+		self.optionsMenu = Menu(self.graphics, self.config, self.font)
 
 		self.optionsMenu.setBackground("img2.png")
 
@@ -266,6 +266,8 @@ class Main:
 			OMKeyboardLayout)
 
 		def OMBack():
+			with open("config", "wb") as configfile:
+				main.config.write(configfile)
 			self.menu.current = self.menu
 
 		self.optionsMenu.addMenuEntry("Back", OMBack)
@@ -322,5 +324,3 @@ if __name__ == '__main__':
 	main.run()
 	main.inputThread.join()
 	if main.networkThread.isAlive(): main.networkThread.join()
-	with open("config", "wb") as configfile:
-		main.config.write(configfile)
