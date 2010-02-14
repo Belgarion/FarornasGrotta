@@ -24,6 +24,7 @@ from graphics import *
 from menu import *
 
 from player import Player
+from gingerbreadMonster import GingerbreadMonster
 
 #OpenGL.FULL_LOGGING = True
 logging.basicConfig()
@@ -50,6 +51,8 @@ import select
 from player import Player
 
 import StringIO
+
+threads = []
 
 class InputThread(threading.Thread):
 	def __init__(self, input):
@@ -166,9 +169,15 @@ class Main:
 		self.player = Player()
 		objects.append(self.player)
 
-		monster = GameObject("monster1", (0.0, 100.0, 0.0),
-				(0.0, 0.0, 0.0), 100, (0.0,0.0,0.0))
-		objects.append(monster)
+		gingerbreadMonster = GingerbreadMonster(
+				"Gingerbread 1", (0.0, 50.0, 40.0),
+				(0.0, 0.0, 0.0), 100.0, objects)
+		objects.append(gingerbreadMonster)
+
+		gingerbreadIntelligenceThread = \
+			gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
+		gingerbreadIntelligenceThread.start()
+		threads.append(gingerbreadIntelligenceThread)
 
 		self.physics = Physics(objects)
 
@@ -324,3 +333,5 @@ if __name__ == '__main__':
 	main.run()
 	main.inputThread.join()
 	if main.networkThread.isAlive(): main.networkThread.join()
+	for i in threads:
+		if i.isAlive(): i.join()

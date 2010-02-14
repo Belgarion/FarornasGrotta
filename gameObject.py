@@ -1,5 +1,5 @@
 class GameObject:
-	def __init__(self, name, position, orientation, mass, velocity ):
+	def __init__(self, name, position, orientation, mass, velocity):
 		self.name = name
 		self.position = position
 		self.orientation = orientation

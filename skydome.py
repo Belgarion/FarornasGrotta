@@ -167,9 +167,6 @@ class Skydome:
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("models/skydome.obj")
 
-		self.textureId, textureWidthRatio, textureHeightRatio = \
-				graphics.loadTexture("cl.jpg")
-
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
 		for i in vertices:
@@ -183,12 +180,28 @@ class Skydome:
 		sizeY = zMax - zMin
 
 		texCoords = Numeric.zeros((self.vertexCount, 2), 'f')
+		nightTexCoords = Numeric.zeros((self.vertexCount, 2), 'f')
+
+		self.textureId, textureWidthRatio, textureHeightRatio = \
+				graphics.loadTexture("cl.jpg")
 
 		nIndex = 0
 		for i in vertices:
 			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
+
+		self.nightTextureId, textureWidthRatio, textureHeightRatio = \
+				graphics.loadTexture("nightsky.jpg")
+		nIndex = 0
+		for i in vertices:
+			nightTexCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			nightTexCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			nIndex += 1
+
+		self.nightTexCoordsId = glGenBuffersARB(1)
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.nightTexCoordsId)
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, nightTexCoords, GL_STATIC_DRAW_ARB)
 
 		self.verticesId, self.normalsId, self.texCoordsId = graphics.createVBO(
 				vertices, vnormals, texCoords)
@@ -199,7 +212,6 @@ class Skydome:
 		glPushMatrix()
 
 		glDisable(GL_LIGHTING)
-		glColor3f(0.0, 0.749, 1.0)
 
 		glScalef(10.0, 10.0, 10.0)
 		glTranslatef(0.0, -20.0, 0.0)
@@ -207,18 +219,25 @@ class Skydome:
 		now = time.gmtime()
 		if now.tm_hour > 6 and now.tm_hour < 18:
 			self.sun.draw()
+			brightness = \
+					((15 * (now.tm_hour - 6) + \
+							0.25*now.tm_min) * (3.1415/180.0)) / 6.28
+			texCoordsId = self.texCoordsId
+			textureId = self.textureId
 		else:
 			self.moon.draw()
+			brightness = 1.0
+			texCoordsId = self.nightTexCoordsId
+			textureId = self.nightTextureId
 
-		#glColor3f(0.0, 0.749, 1.0)
-		glColor3f(1.0, 1.0, 1.0)
+		glColor3f(brightness, brightness, brightness)
 		#glDisable(GL_DEPTH_TEST)
 
-		glBindTexture(GL_TEXTURE_2D, self.textureId)
+		glBindTexture(GL_TEXTURE_2D, textureId)
 		glEnable(GL_TEXTURE_2D)
 
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount,
-				self.texCoordsId)
+				texCoordsId)
 
 		glDisable(GL_TEXTURE_2D)
 
