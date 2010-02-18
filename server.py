@@ -7,21 +7,54 @@ import traceback
 import select
 import time
 
+from gingerbreadMonster import GingerbreadMonster
+from physics import Physics
+from Global import Global
+from gameObject import GameObject
+
 #TODO: ? Keepalive packets ?
 #TODO: Player buffer
+
+objects = []
+threads = []
+
+def spawnMonsters():
+	print "spawnMonsters()"
+	print objdata
+	gingerbreadMonster = GingerbreadMonster(
+			"GingerbreadMonster", "Gingerbread 1",
+			(0.0, 50.0, 40.0), (0.0, 0.0, 0.0),
+			100.0, objects, True)
+	objects.append(gingerbreadMonster)
+
+	objdata.append(gingerbreadMonster.data)
+
+	gingerbreadIntelligenceThread = \
+		gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
+	gingerbreadIntelligenceThread.start()
+	threads.append(gingerbreadIntelligenceThread)
 
 if __name__ == '__main__':
 	Network.Listen('0.0.0.0', 30000)
 
 	startTime = time.time()
 
-	objects = []
+	objdata = []
 	players = []
+
+	physics = Physics(objects)
+
+	spawnMonsters()
+
 	try:
 		while True:
-			sendObjects = False
+			objects = physics.update()
 
-			read_sockets, write_sockets, error_sockets = select.select(Network.tcpConnections + [Network.uSock], [], [], 1)
+			sendObjdata = False
+
+			read_sockets, write_sockets, error_sockets = \
+					select.select(
+							Network.tcpConnections + [Network.uSock], [], [], 0.1)
 			for sock in read_sockets:
 				if sock == Network.tSock: #new connection on server socket
 					addr = Network.Accept()
@@ -32,7 +65,7 @@ if __name__ == '__main__':
 						type, recvd, addr = Network.URecv()
 						print "len(recvd):",len(recvd)
 						if type == None: pass
-						else: 
+						else:
 							if type == 0:
 								print "Client connected UDP:", addr
 								players.append(addr)
@@ -40,27 +73,38 @@ if __name__ == '__main__':
 							elif type == 1:
 								print "Client disconnected UDP:", addr
 								players.remove(addr)
+								for i in objdata:
+									if i.id == recvd:
+										objdata.remove(i)
 								for i in objects:
-									if i.addr == addr:
+									if i.data.id == recvd:
 										objects.remove(i)
 							elif type == 2:
-								sendObjects = True
+								sendObjdata = True
 								obj = cPickle.loads(recvd)
 								obj.addr = addr
 
 								objectExists = False
-								for i in xrange(len(objects)):
-									if objects[i].addr == obj.addr:
+								for i in xrange(len(objdata)):
+									if objdata[i].id == obj.id:
 										objectExists = True
-										objects[i] = obj
+										objdata[i] = obj
 										break
+
+								for i in xrange(len(objects)):
+									if obj.id == objects[i].data.id:
+										objects[i].data = obj
 
 								if not objectExists:
 									print "Object not in list"
-									objects.append(obj)
+									objdata.append(obj)
+									g = GameObject(obj.type, obj.name,
+											obj.position, obj.orientation,
+											obj.mass, obj.velocity,
+											obj.id)
+									objects.append(g)
 
-								
-								for i in objects:
+								for i in objdata:
 									print "Name:",i.name
 									print "Position:",i.position
 					except Exception, e:
@@ -88,12 +132,16 @@ if __name__ == '__main__':
 
 			for addr in players:
 				print "Sending data"
-				if sendObjects: #fix this
-					print "Sending objects"
-					Network.USend(addr, 3, cPickle.dumps(objects, 2))
+				if sendObjdata: #fix this
+					print "Sending objdata"
+					Network.USend(addr, 3, cPickle.dumps(objdata, 2))
 
 
 	except:
 		traceback.print_exc()
 
 	Network.CloseConnections()
+
+	Global.quit = True
+	for i in threads:
+		if i.isAlive(): i.join()

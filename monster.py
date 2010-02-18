@@ -1,39 +1,42 @@
-from OpenGL.GL import *
-from OpenGL.GL.ARB.vertex_buffer_object import *
-
 from gameObject import GameObject
-import graphics
 
 import threading
 import time
 
 from Global import Global
 
+import sys, os
 
-#TODO: Monsters has to be handled by the server somehow
+if os.path.basename(sys.argv[0]) != "server.py":
+	from OpenGL.GL import *
+	from OpenGL.GL.ARB.vertex_buffer_object import *
+
+	import graphics
+
 
 class Monster(GameObject):
-	def __init__(self, name, position, orientation, mass, objects):
+	def __init__(self, type, name, position, orientation, mass, objects, \
+			server = False, guid = None):
 		self.objects = objects
 
-		GameObject.__init__(self, name, position,
-				orientation, mass, (0.0, 0.0, 0.0))
+		GameObject.__init__(self, type, name, position,
+				orientation, mass, (0.0, 0.0, 0.0), guid)
+
+		if server:
+			return
 
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj(self.objPath())
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
-
-		self.x = 100
-		self.y = 100
 	def jump(self):
-		if self.velocity[1] == 0:
-			self.position = (self.position[0],
-					self.position[1] + 0.1,
-					self.position[2])
+		if self.data.velocity[1] == 0:
+			self.data.position = (self.data.position[0],
+					self.data.position[1] + 0.1,
+					self.data.position[2])
 
-			self.velocity = (self.velocity[0],
-					self.velocity[1] - 9.82,
-					self.velocity[2])
+			self.data.velocity = (self.data.velocity[0],
+					self.data.velocity[1] - 9.82,
+					self.data.velocity[2])
 	def draw(self):
 		glPushMatrix()
 
@@ -46,9 +49,10 @@ class Monster(GameObject):
 
 		glColor3f(1.0, 0.0, 0.0)
 
-		#glTranslatef(self.x, self.y, 0.0)
-		glTranslatef(self.position[0], self.position[1], self.position[2])
-		glRotatef(self.orientation[1], 0.0, 1.0, 0.0)
+		glTranslatef(self.data.position[0],
+				self.data.position[1],
+				self.data.position[2])
+		glRotatef(self.data.orientation[1], 0.0, 1.0, 0.0)
 
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 

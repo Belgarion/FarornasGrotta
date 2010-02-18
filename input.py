@@ -40,11 +40,11 @@ class input():
 				if self.xrot <= -90: self.xrot = -90
 				if self.xrot >= 90: self.xrot = 90
 				if not self.graphics.spectator:
-					self.player.orientation = (
-							self.player.orientation[0],
-							(self.player.orientation[1] \
+					self.player.data.orientation = (
+							self.player.data.orientation[0],
+							(self.player.data.orientation[1] \
 									- event.rel[0]/10.0) % 360,
-							self.player.orientation[2]
+							self.player.data.orientation[2]
 							)
 
 	def handle_input(self):
@@ -66,11 +66,11 @@ class input():
 					self.zpos -= math.cos(yrotrad) * distance_moved
 					self.ypos -= math.sin(xrotrad) * distance_moved
 				else:
-					self.player.position = (
-							self.player.position[0] \
+					self.player.data.position = (
+							self.player.data.position[0] \
 									+ math.sin(yrotrad) * distance_moved,
-							self.player.position[1],
-							self.player.position[2] \
+							self.player.data.position[1],
+							self.player.data.position[2] \
 									- math.cos(yrotrad) * distance_moved
 							)
 
@@ -82,11 +82,11 @@ class input():
 					self.zpos += math.cos(yrotrad) * distance_moved
 					self.ypos += math.sin(xrotrad) * distance_moved
 				else:
-					self.player.position = (
-							self.player.position[0] \
+					self.player.data.position = (
+							self.player.data.position[0] \
 									- math.sin(yrotrad) * distance_moved,
-							self.player.position[1],
-							self.player.position[2] \
+							self.player.data.position[1],
+							self.player.data.position[2] \
 									+ math.cos(yrotrad) * distance_moved
 							)
 
@@ -96,11 +96,11 @@ class input():
 					self.xpos -= math.cos(yrotrad) * distance_moved
 					self.zpos -= math.sin(yrotrad) * distance_moved
 				else:
-					self.player.position = (
-							self.player.position[0] \
+					self.player.data.position = (
+							self.player.data.position[0] \
 									- math.cos(yrotrad) * distance_moved,
-							self.player.position[1],
-							self.player.position[2] \
+							self.player.data.position[1],
+							self.player.data.position[2] \
 									- math.sin(yrotrad) * distance_moved
 							)
 
@@ -110,11 +110,11 @@ class input():
 					self.xpos += math.cos(yrotrad) * distance_moved
 					self.zpos += math.sin(yrotrad) * distance_moved
 				else:
-					self.player.position = (
-							self.player.position[0] \
+					self.player.data.position = (
+							self.player.data.position[0] \
 									+ math.cos(yrotrad) * distance_moved,
-							self.player.position[1],
-							self.player.position[2] \
+							self.player.data.position[1],
+							self.player.data.position[2] \
 									+ math.sin(yrotrad) * distance_moved
 							)
 

@@ -471,12 +471,12 @@ class Graphics:
 					-self.main.Input.zpos)
 		else:
 			glTranslated(
-					-self.main.player.position[0]-0.2*math.sin(
-						math.radians(self.main.player.orientation[1])
+					-self.main.player.data.position[0]-0.2*math.sin(
+						math.radians(self.main.player.data.orientation[1])
 						),
-					-self.main.player.position[1]-2.2,
-					-self.main.player.position[2]+0.2*math.cos(
-						math.radians(self.main.player.orientation[1]-180)
+					-self.main.player.data.position[1]-2.2,
+					-self.main.player.data.position[2]+0.2*math.cos(
+						math.radians(self.main.player.data.orientation[1]-180)
 						)
 					)
 

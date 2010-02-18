@@ -54,6 +54,8 @@ import StringIO
 
 threads = []
 
+objdataToAdd = []
+
 class InputThread(threading.Thread):
 	def __init__(self, input):
 		self.input = input
@@ -88,22 +90,57 @@ class NetworkThread(threading.Thread):
 						myAddr = cPickle.loads(recvd)
 
 					elif type == 3:
-						print "Objects received"
-						objects = cPickle.loads(recvd)
-						for i in xrange(len(objects)):
-							if objects[i].addr == myAddr:
-								objects[i] = self.player
-								break
+						print "Object data received"
+
+						objects = self.physics.objects
+						objdata = cPickle.loads(recvd)
+						added = []
+
+						for od in objdata:
+							if od.id == self.player.data.id:
+								continue
+
+							for obj in objects:
+								if od.id == obj.data.id:
+									obj.data = od
+									added.append(od)
+
+						for obj in objects:
+							exists = False
+							if obj in objdataToAdd:
+								exists = True
+								continue
+
+							for od in objdata:
+								if obj.data.id == od.id:
+									exists = True
+									break
+
+							if not exists:
+								objects.remove(obj)
+
+						for i in objdata:
+							if i.id == self.player.data.id:
+								continue
+
+							alreadyAdded = False
+							for j in objdataToAdd:
+								if i.id == j.id:
+									alreadyAdded = True
+									break
+
+							if i not in added and not alreadyAdded:
+								objdataToAdd.append(i)
 
 						self.physics.updateObjects(objects)
 						for i in objects:
-							print i.position
+							print i.data.position
 
 				else:
 					#tcp
 					pass
 
-			Network.USend(self.addr, 2, cPickle.dumps(self.player, 2))
+			Network.USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
 			#print cPickle.dumps(objects, 2)
 
 			#try:
@@ -119,7 +156,7 @@ class NetworkThread(threading.Thread):
 			#	print recvd
 			#	recvd = Nework.TRecv(None, 256)
 
-		Network.USend(self.addr, 1, "")
+		Network.USend(self.addr, 1, self.player.data.id)
 
 class Main:
 	def __init__(self):
@@ -168,16 +205,6 @@ class Main:
 
 		self.player = Player()
 		objects.append(self.player)
-
-		gingerbreadMonster = GingerbreadMonster(
-				"Gingerbread 1", (0.0, 50.0, 40.0),
-				(0.0, 0.0, 0.0), 100.0, objects)
-		objects.append(gingerbreadMonster)
-
-		gingerbreadIntelligenceThread = \
-			gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
-		gingerbreadIntelligenceThread.start()
-		threads.append(gingerbreadIntelligenceThread)
 
 		self.physics = Physics(objects)
 
@@ -300,6 +327,19 @@ class Main:
 				self.menu.current.draw()
 			else:
 				objects = self.physics.update()
+				for i in objdataToAdd:
+					if i.type == "Player":
+						print "Append a player!"
+					elif i.type == "GingerbreadMonster":
+						print "Append a monster!"
+						g = GingerbreadMonster(
+								"GingerbreadMonster",
+								"Gingerbread 1",
+								i.position,
+								i.orientation,
+								i.mass, objects, False, i.id)
+						objects.append(g)
+					objdataToAdd.remove(i)
 				self.graphics.draw(objects)
 
 	def editpos(self):

@@ -1,6 +1,6 @@
 import time
 
-
+#TODO: Use acceleration to change velocity
 class Physics:
 	def __init__(self, objects):
 		self.objects = objects
@@ -18,13 +18,11 @@ class Physics:
 
 		return self.objects
 	def updatePos(self, obj, relTime):
-		#print "updating",obj.name
+		velocity = obj.data.velocity
+		mass = obj.data.mass
 
-		velocity = obj.velocity
-		mass = obj.mass
-
-		y = obj.position[1]
-		velY = obj.velocity[1]
+		y = obj.data.position[1]
+		velY = obj.data.velocity[1]
 
 		if obj.checkCollision():# and velY > 0:
 			velY = 0
@@ -32,10 +30,9 @@ class Physics:
 			velY += -9.82*relTime
 			y += velY*relTime
 
-		obj.velocity = (velocity[0], velY , velocity[2])
-		obj.position = (obj.position[0]+obj.velocity[0]*relTime,
+		obj.data.velocity = (velocity[0], velY , velocity[2])
+		obj.data.position = (obj.data.position[0]+obj.data.velocity[0]*relTime,
 				y,
-				obj.position[2] + obj.velocity[2]*relTime)
-
+				obj.data.position[2] + obj.data.velocity[2]*relTime)
 
 		return obj

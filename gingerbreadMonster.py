@@ -17,48 +17,57 @@ class GingerbreadMonster(Monster):
 		if time.time() - self.stopRunning > 5 and not self.running:
 			self.running = True
 			self.startRunning = time.time()
-			self.velocity = (1.0, 0.0, 0.0)
+			self.data.velocity = (1.0, 0.0, 0.0)
 
 		if time.time() - self.startRunning > 5 and self.running:
 			self.running = False
 			self.stopRunning = time.time()
-			self.velocity = (0.0, 0.0, 0.0)
+			self.data.velocity = (0.0, 0.0, 0.0)
 
 		distance = 1000000.0
 		for i in self.objects:
 			# Find the closest player
-			if i.name[0:6] == "Player":
-				dx = self.position[0] - i.position[0]
-				dy = self.position[1] - i.position[1]
-				dz = self.position[2] - i.position[2]
+			if i.data.type == "Player":
+				dx = self.data.position[0] - i.data.position[0]
+				dy = self.data.position[1] - i.data.position[1]
+				dz = self.data.position[2] - i.data.position[2]
 				d = math.sqrt(dx*dx + dy*dy + dz*dz)
 
 				if d < distance:
 					self.playerToFollow = i
 					distance = d
 
-		print "Following:", self.playerToFollow.name
+		#if self.playerToFollow != None:
+		#	print "Following:", self.playerToFollow.data.name
 
-		self.orientation = (
-				self.orientation[0],
+		if self.playerToFollow == None:
+			#print "No one to follow"
+			#print self.objects
+			self.data.velocity = (0.0, self.data.velocity[1], 0.0)
+			return
+
+		self.data.orientation = (
+				self.data.orientation[0],
 				(math.degrees(math.atan2(
-					self.playerToFollow.position[0] - self.position[0],
-					self.playerToFollow.position[2] - self.position[2])) \
+					self.playerToFollow.data.position[0] \
+							- self.data.position[0],
+					self.playerToFollow.data.position[2] \
+							- self.data.position[2])) \
 						+ 90.0) % 360,
-				self.orientation[2]
+				self.data.orientation[2]
 				)
 
 		if distance > 2.02:
-			self.velocity = (
-					3*math.sin(math.radians(self.orientation[1] + 90.0)),
-					self.velocity[1],
-					3*math.cos(math.radians(self.orientation[1] + 90.0))
+			self.data.velocity = (
+					3*math.sin(math.radians(self.data.orientation[1] + 90.0)),
+					self.data.velocity[1],
+					3*math.cos(math.radians(self.data.orientation[1] + 90.0))
 					)
 		elif distance < 1.98:
-			self.velocity = (
-					-3*math.sin(math.radians(self.orientation[1] + 90.0)),
-					self.velocity[1],
-					-3*math.cos(math.radians(self.orientation[1] + 90.0))
+			self.data.velocity = (
+					-3*math.sin(math.radians(self.data.orientation[1] + 90.0)),
+					self.data.velocity[1],
+					-3*math.cos(math.radians(self.data.orientation[1] + 90.0))
 					)
 		else:
-			self.velocity = (0.0, self.velocity[1], 0.0)
+			self.data.velocity = (0.0, self.data.velocity[1], 0.0)

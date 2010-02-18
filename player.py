@@ -6,7 +6,7 @@ import graphics
 
 class Player(GameObject):
 	def __init__(self):
-		GameObject.__init__(self, "Player 1", (0.0, 20.0, -40.0),
+		GameObject.__init__(self, "Player", "Player 1", (0.0, 20.0, -40.0),
 				(0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
 
 		vertices, vnormals, f, self.vertexCount = \
@@ -16,14 +16,14 @@ class Player(GameObject):
 		self.x = 100
 		self.y = 100
 	def jump(self):
-		if self.velocity[1] == 0:
-			self.position = (self.position[0],
-					self.position[1] + 0.1,
-					self.position[2])
+		if self.data.velocity[1] == 0:
+			self.data.position = (self.data.position[0],
+					self.data.position[1] + 0.1,
+					self.data.position[2])
 
-			self.velocity = (self.velocity[0],
-					self.velocity[1] - 9.82,
-					self.velocity[2])
+			self.data.velocity = (self.data.velocity[0],
+					self.data.velocity[1] - 9.82,
+					self.data.velocity[2])
 	def draw(self):
 		glPushMatrix()
 
@@ -37,8 +37,10 @@ class Player(GameObject):
 		glColor3f(1.0, 1.0, 0.0)
 
 		#glTranslatef(self.x, self.y, 0.0)
-		glTranslatef(self.position[0], self.position[1], self.position[2])
-		glRotatef(self.orientation[1], 0.0, 1.0, 0.0)
+		glTranslatef(self.data.position[0],
+				self.data.position[1],
+				self.data.position[2])
+		glRotatef(self.data.orientation[1], 0.0, 1.0, 0.0)
 
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
