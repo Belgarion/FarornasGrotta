@@ -182,7 +182,7 @@ class Main:
 					if not len(sys.argv) > index + 1:
 						print "No port specified for --port"
 						continue
-					self.args['port'] = sys.argv[index + 1]
+					self.args['port'] = int(sys.argv[index + 1])
 
 		config = self.init_config()
 		self.config = config
