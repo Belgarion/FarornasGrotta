@@ -12,7 +12,7 @@ class Font:
 		self.font_height = 24
 
 		try:
-			self.ft = ImageFont.truetype("Rufscript010.ttf", self.font_height)
+			self.ft = ImageFont.truetype("data/font/Rufscript010.ttf", self.font_height)
 		except:
 			print "WARNING: Unable to load font"
 			self.ft = ImageFont.load_default()

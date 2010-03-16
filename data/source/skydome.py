@@ -15,7 +15,7 @@ import graphics
 class Sun:
 	def __init__(self):
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("models/sun.obj")
+				graphics.loadObj("data/model/sun.obj")
 
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
@@ -88,7 +88,7 @@ class Sun:
 class Moon:
 	def __init__(self):
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("models/moon.obj")
+				graphics.loadObj("data/model/moon.obj")
 
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
@@ -165,7 +165,7 @@ class Skydome:
 
 
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("models/skydome.obj")
+				graphics.loadObj("data/model/skydome.obj")
 
 		xMax = xMin = vertices[0][0]
 		zMax = zMin = vertices[0][2]
@@ -183,7 +183,7 @@ class Skydome:
 		nightTexCoords = Numeric.zeros((self.vertexCount, 2), 'f')
 
 		self.textureId, textureWidthRatio, textureHeightRatio = \
-				graphics.loadTexture("cl.jpg")
+				graphics.loadTexture("data/image/cl.jpg")
 
 		nIndex = 0
 		for i in vertices:
@@ -192,7 +192,7 @@ class Skydome:
 			nIndex += 1
 
 		self.nightTextureId, textureWidthRatio, textureHeightRatio = \
-				graphics.loadTexture("nightsky.jpg")
+				graphics.loadTexture("data/image/nightsky.jpg")
 		nIndex = 0
 		for i in vertices:
 			nightTexCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio

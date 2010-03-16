@@ -320,7 +320,7 @@ class Graphics:
 
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
-		vertices, vnormals, f, self.vertexCount = loadObj("models/terrain.obj")
+		vertices, vnormals, f, self.vertexCount = loadObj("data/model/terrain.obj")
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
 				loadTexture(Texture)

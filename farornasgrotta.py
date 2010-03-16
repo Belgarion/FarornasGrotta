@@ -1,5 +1,6 @@
 #!/usr/bin/python -OO
 # -*- coding: utf-8 -*-
+
 import sys
 import os
 import time
@@ -17,6 +18,8 @@ except:
 	print "ERROR: pyopengl is not installed"
 	sys.exit()
 import logging
+
+sys.path.append("data/source/")
 
 from Global import *
 from physics import Physics
@@ -150,7 +153,7 @@ class NetworkThread(threading.Thread):
 			#except:
 			#	pass
 
-			#Använd select för att kolla om det finns något att ta emot
+			#Använd select för att kolla om det finns något att ta emot #TODO: swedish comment lol
 			#recvd = Network.TRecv(None, 256)
 			#while recvd:
 			#	print recvd
@@ -184,24 +187,22 @@ class Main:
 						continue
 					self.args['port'] = sys.argv[index + 1]
 
-		config = self.init_config()
-		self.config = config
+		self.config = self.init_config()
 
 		self.mainMenuOpen = True
 
 		pygame.init()
 		pygame.display.set_mode(
-				(config.getint('Resolution','Width'),
-					config.getint('Resolution', 'Height')),
+				(self.config.getint('Resolution','Width'),
+					self.config.getint('Resolution', 'Height')),
 				pygame.DOUBLEBUF | pygame.OPENGL)
 
 		objects = []
 
 		self.octree = COctree()
 
-		self.graphics = Graphics(self.octree, self, config, self.args)
+		self.graphics = Graphics(self.octree, self, self.config, self.args)
 		self.graphics.initGL()
-
 
 		self.player = Player()
 		objects.append(self.player)
@@ -213,19 +214,18 @@ class Main:
 
 		rel = pygame.mouse.get_rel()
 
-		print "Edit config for settings"
 		print "F2 for toggle debugLines"
 		print "F6 for toggle drawAxes"
 		print "F7 for toggle wireframe"
 		print "+/- to increase/decrease number of debug-lines level"
 		print "WASD to move. Mouse to look"
 
-		self.graphics.addSurface(0, "Terrain.raw", "grass.jpg")
+		self.graphics.addSurface(0, "Terrain.raw", "data/image/grass.jpg")
 
 		self.initMenus()
 
 		self.Input = input(self.octree, self.graphics, self.menu, self.player,
-				config, self)
+				self.config, self)
 		self.inputThread = InputThread(self.Input)
 		self.inputThread.start()
 
@@ -236,7 +236,7 @@ class Main:
 
 		self.menu = Menu(self.graphics, self.config, self.font)
 
-		self.menu.setBackground("img2.png")
+		self.menu.setBackground("data/image/img2.png")
 		self.menu.addMenuEntry("Start", self.startGame)
 
 		def MOptions():
@@ -249,7 +249,7 @@ class Main:
 
 		self.optionsMenu = Menu(self.graphics, self.config, self.font)
 
-		self.optionsMenu.setBackground("img2.png")
+		self.optionsMenu.setBackground("data/image/img2.png")
 
 		resolutions = [(640, 480),
 				(800, 600),
@@ -365,7 +365,6 @@ class Main:
 		config = ConfigParser.SafeConfigParser()
 		config.readfp(defaultConfig)
 		config.read('config')
-
 		return config
 
 if __name__ == '__main__':

@@ -10,7 +10,8 @@ class Player(GameObject):
 				(0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
 
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("models/player.obj")
+				graphics.loadObj("data/model/player.obj")
+		print vertices
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
 		self.x = 100
