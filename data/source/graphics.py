@@ -18,6 +18,45 @@ import random
 
 from water import Water
 
+def init_opengl(main):
+	if not glInitVertexBufferObjectARB():
+			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
+			Global.quit = 1
+			return
+
+	glClearColor( 0.0, 0.0, 0.0, 0.0)
+	glClearDepth(1.0)
+	glDepthFunc(GL_LEQUAL)
+	glEnable(GL_DEPTH_TEST)
+	glShadeModel(GL_SMOOTH)
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+	glViewport(0, 0, main.config.getint('Resolution', 'Width'),
+			main.config.getint('Resolution', 'Height'))
+	glMatrixMode(GL_PROJECTION)
+	#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
+
+	glLoadIdentity()
+	gluPerspective(60.0, main.config.getfloat('Resolution','Width')
+			/ main.config.getfloat('Resolution', 'Height'), 0.1, 5000.0)
+	glMatrixMode(GL_MODELVIEW)
+
+	#Lighting
+	diffuseMaterial = (0.5, 0.5, 0.0, 1.0)
+	mat_specular = (1.0, 1.0, 1.0, 1.0)
+	light_position = (150.0, 0.0, 75.0, 1.0)
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, diffuseMaterial)
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseMaterial)
+	glLightfv(GL_LIGHT1, GL_POSITION, light_position)
+
+	glEnable(GL_LIGHTING)
+	glDisable(GL_LIGHT0)
+	glEnable(GL_LIGHT1)
+	###########
+
+	glEnable(GL_NORMALIZE)
+
+
 def loadObj(filename):
 	f = open(filename, "r")
 	lines = f.readlines()
@@ -307,16 +346,18 @@ class Graphics:
 	spectator = False
 	numberOfVertices = 0
 
-	def __init__(self, octree, main, config, args):
+	def __init__(self, main):
 		global g_fVBOObjects
 		g_fVBOObjects = []
 
-		self.octree = octree
-		self.main = main # TODO: Away with it BLURP!
-		self.config = config
-		self.args = args
+		#self.octree = octree
+		self.main = main
+		#self.config = config
+		#self.args = args
 
-		self.g_nFrames = 0
+		#self.g_nFrames = 0
+
+		init_opengl(main)
 
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
