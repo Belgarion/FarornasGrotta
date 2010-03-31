@@ -116,8 +116,6 @@ class Menu:
 
 		glFlush()
 
-		pygame.display.flip()
-
 	def setBackground(self, path):
 		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = \
 				graphics.loadTexture(path)

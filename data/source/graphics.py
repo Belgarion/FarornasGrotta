@@ -592,8 +592,6 @@ class Graphics:
 
 		glFlush()
 
-		pygame.display.flip()
-
 		err = glGetError()
 		if err:
 			print "OpenGL Error:",err,"(",gluErrorString(err),")"
