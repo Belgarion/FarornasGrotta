@@ -114,7 +114,6 @@ class CaveOfDanger:
 
 	def run(self):
 		while self.running:
-			pygame.display.flip()
 			self.state_manager.process(None)
 			self.process_manager.process(None)
 			pygame.time.wait(60)
