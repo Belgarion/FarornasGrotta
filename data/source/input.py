@@ -10,16 +10,16 @@ class Input():
 	def __init__(self, main):
 		self.main = main
 		self.graphics = main.graphics
-	
+
 		self.keymap = self.load_keymap()
-		
+
 		self.keys = {}
 		self.init_keys()
 
 		self.down_pressed = 0
 		self.up_pressed = 0
 		self.left_pressed = 0
-		self.right_pressed = 0	
+		self.right_pressed = 0
 
 		self.xpos = 0
 		self.zpos = 0
@@ -32,7 +32,7 @@ class Input():
 		self.running = True
 
 	def translate(self, key):
-		return self.dict[key]	
+		return self.dict[key]
 
 	def load_keymap(self):
 		layout = "dvorak_swe1"
@@ -68,7 +68,6 @@ class Input():
 							)
 
 	def handle_input(self):
-		
 		clock = pygame.time.Clock()
 		time_passed = clock.tick()
 		time_passed_seconds = time_passed / 1000.0
@@ -152,16 +151,16 @@ class Input():
 					for key in self.keys:
 						try: # translate key if key is a-z (possibly affected by layout)
 							translated = self.translate(key)
-						except KeyError: 
+						except KeyError:
 							translated = key
 							translated = translated.replace("KEY_", "") #ex: KEY_A->A
 							translated = translated.lower() # A->a
 						if pygame.key.name(event.key) == translated:
-							if event.type == pygame.KEYDOWN: 
+							if event.type == pygame.KEYDOWN:
 								self.keys[key] = 1
 							else:
 								self.keys[key] = -1
-							
+
 					"""
 					elif event.key == pygame.K_F2:
 						self.octree.debugLines = 1
@@ -195,7 +194,7 @@ class Input():
 			ristance_moved = time_passed_seconds * self.speed
 
 			time.sleep(0.001)
-	
+
 	def init_keys(self):
 		self.keys = {
 			"KEY_A":0,
@@ -247,10 +246,12 @@ class Input():
 			"KEY_F11":0,
 			"KEY_F12":0,
 			"KEY_SPACE":0,
-			"KEY_ENTER":0,
+			"KEY_RETURN":0,
 			"KEY_ESCAPE":0,
+			"KEY_UP":0,
+			"KEY_DOWN":0,
 			}
-	
+
 class InputThread(threading.Thread):
 	def __init__(self, input):
                 self.input = input

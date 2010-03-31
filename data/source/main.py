@@ -37,17 +37,12 @@ def init_config():
 	config.read('config')
 	return config
 
-
-
 def init_pygame(main):
 	pygame.init()
 	pygame.display.set_mode(
 			(main.config.getint('Resolution','Width'),
 				main.config.getint('Resolution', 'Height')),
 				pygame.DOUBLEBUF | pygame.OPENGL)
-	
-	
-
 
 class Object:
 	def __init__(self, type, name, position, orientation, mass, velocity):
@@ -82,12 +77,12 @@ class CaveOfDanger:
 		self.state_manager.push(menu.menu_is_open, None)
 		self.state_manager.process(None)
 	def run(self):
-		while self.running:	
+		while self.running:
 			pygame.display.flip()
 			self.state_manager.process(None)
 			self.process_manager.process(None)
 			pygame.time.wait(60)
-		
+
 		self.input.running = False
 		#self.state_manager.push()
 		#self.networkThread.start()
@@ -97,6 +92,7 @@ class CaveOfDanger:
 	def quit(self, caller, purpose):
 		if purpose is "STOP_PURPOSE":
 			print "quit stopping"
+			self.running = 0
 		elif purpose is "INIT_PURPOSE":
 			pass
 		elif purpose is "FRAME_PURPOSE":

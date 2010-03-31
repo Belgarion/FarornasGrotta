@@ -5,10 +5,9 @@ class Process:
 		self.function = None
 		self.id = 0
 
-
 class ProcessManager:
 	def __init__(self):
-		self.first_process = None 
+		self.first_process = None
 		self.last_process = None
 	def __del__(self):
 		self.pop_all(None)
@@ -16,7 +15,7 @@ class ProcessManager:
 	def push(self, function,  caller):
 		if function is not None:
 			new_process = Process()
-			new_process.next = None	
+			new_process.next = None
 			new_process.prev = self.last_process
 			new_process.function = function
 
@@ -29,10 +28,10 @@ class ProcessManager:
 
 			self.last_process = new_process
 			new_process.function(caller, "INIT_PURPOSE")
-			
+
 			return new_process.id
 		return None
-	
+
 	def pop(self, id, caller):
 		cur_proc = Process
 		cur_proc = self.first_process
@@ -49,7 +48,7 @@ class ProcessManager:
 					cur_proc.next.prev = cur_proc.prev
 
 				cur_proc.function(caller, "STOP_PURPOSE")
-				
+
 				cur_proc.next = None
 				cur_proc.prev = None
 
@@ -62,12 +61,12 @@ class ProcessManager:
 		pop_proc = Process
 
 		if cur_proc is None:
-			return False		
-		
+			return False
+
 		while cur_proc is not None:
 			pop_proc = cur_proc
 			cur_proc = cur_proc.next
-		
+
 			self.pop(pop_proc.id, None)
 
 		self.first_process = None
@@ -86,7 +85,7 @@ class ProcessManager:
 			return True
 
 		return False
-	
+
 		pass
 
 

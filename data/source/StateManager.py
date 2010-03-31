@@ -6,13 +6,13 @@ class State:
 class StateManager:
 	def __init__(self):
 		self.current_state = None
-	
+
 	def __del__(self):
 		self.pop_all(None)
-	
+
 	def push(self, function, caller):
 		if function is not None:
-			
+
 			new_state = State()
 			new_state.prev = self.current_state
 			new_state.function = function
@@ -38,12 +38,12 @@ class StateManager:
 			return True
 
 		return False
-	
+
 	def pop_all(self, caller):
 		if self.current_state is not None:
 			while self.current_state is not None:
 				self.pop(caller)
-			
+
 			return True
 
 		return False
@@ -53,4 +53,4 @@ class StateManager:
 			self.current_state.function(caller, "FRAME_PURPOSE")
 			return True
 
-		return False	
+		return False

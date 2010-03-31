@@ -8,7 +8,7 @@ from main import *
 
 def main():
 	game = CaveOfDanger()
-	
+
 	game.run()
 	game.input_thread.join()
 

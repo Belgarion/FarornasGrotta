@@ -153,7 +153,7 @@ class NetworkThread(threading.Thread):
 
                                                 for od in objdata:
                                                         if od.id == self.player.data.id:
-								continue
+															continue
 
                                                         for obj in objects:
                                                                 if od.id == obj.data.id:
