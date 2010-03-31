@@ -338,7 +338,6 @@ class CMesh:
 		self.m_nVBOTexCoords = None			# Texture Coordinate VBO Name
 
 class Graphics:
-
 	wireframe = False
 	vertices = []
 	reDraw = False
@@ -350,18 +349,18 @@ class Graphics:
 		global g_fVBOObjects
 		g_fVBOObjects = []
 
-		#self.octree = octree
+		#self.main.octree = octree
 		self.main = main
-		#self.config = config
-		#self.args = args
+		#self.main.config = config
 
-		#self.g_nFrames = 0
+		self.g_nFrames = 0
 
 		init_opengl(main)
 
 	def addSurface(self, Mesh, Map, Texture):
 		g_pMesh = CMesh (Mesh)
-		vertices, vnormals, f, self.vertexCount = loadObj("data/model/terrain.obj")
+		vertices, vnormals, f, self.vertexCount = \
+				loadObj("data/model/terrain.obj")
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
 				loadTexture(Texture)
@@ -411,15 +410,15 @@ class Graphics:
 		glEnable(GL_DEPTH_TEST)
 		glShadeModel(GL_SMOOTH)
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-		glViewport(0, 0, self.config.getint('Resolution', 'Width'),
-				self.config.getint('Resolution', 'Height'))
+		glViewport(0, 0, self.main.config.getint('Resolution', 'Width'),
+				self.main.config.getint('Resolution', 'Height'))
 		glMatrixMode(GL_PROJECTION)
 
 		#glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0)
 
 		glLoadIdentity()
-		gluPerspective(60.0, self.config.getfloat('Resolution','Width')
-				/ self.config.getfloat('Resolution', 'Height'), 0.1, 5000.0)
+		gluPerspective(60.0, self.main.config.getfloat('Resolution','Width')
+				/ self.main.config.getfloat('Resolution', 'Height'), 0.1, 5000.0)
 		glMatrixMode(GL_MODELVIEW)
 
 		#Lighting
@@ -440,7 +439,7 @@ class Graphics:
 
 		self.skydome = Skydome()
 
-		if not self.args['disableWater']:
+		if not self.main.args['disableWater']:
 			self.water = Water()
 	def printFPS(self):
 		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
@@ -475,12 +474,12 @@ class Graphics:
 		global g_fVBOObjects
 
 		if self.reDraw:
-			self.octree.g_EndNodeCount = 0
-			self.octree.debug.Clear()
-			self.octree.DestroyOctree()
-			self.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
-			self.octree.CreateNode(self.vertices, self.numberOfVertices,
-					self.octree.GetCenter(), self.octree.GetWidth())
+			self.main.octree.g_EndNodeCount = 0
+			self.main.octree.debug.Clear()
+			self.main.octree.DestroyOctree()
+			self.main.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
+			self.main.octree.CreateNode(self.vertices, self.numberOfVertices,
+					self.main.octree.GetCenter(), self.main.octree.GetWidth())
 			self.reDraw = False
 
 
@@ -500,16 +499,16 @@ class Graphics:
 
 		glLoadIdentity()
 
-		glRotatef(self.main.Input.xrot, 1.0, 0.0, 0.0)
-		glRotatef(self.main.Input.yrot, 0.0, 1.0, 0.0)
+		glRotatef(self.main.input.xrot, 1.0, 0.0, 0.0)
+		glRotatef(self.main.input.yrot, 0.0, 1.0, 0.0)
 
 		# SkyDome
 		self.skydome.draw()
 
 		if self.spectator:
-			glTranslated(-self.main.Input.xpos,
-					-self.main.Input.ypos,
-					-self.main.Input.zpos)
+			glTranslated(-self.main.input.xpos,
+					-self.main.input.ypos,
+					-self.main.input.zpos)
 		else:
 			glTranslated(
 					-self.main.player.data.position[0]-0.2*math.sin(
@@ -527,7 +526,7 @@ class Graphics:
 			self.drawAxes()
 
 		# Water
-		if not self.args['disableWater']:
+		if not self.main.args['disableWater']:
 			self.water.draw()
 
 		glColor3f(1.0, 1.0, 1.0)
@@ -572,20 +571,20 @@ class Graphics:
 
 		glDisable(GL_FOG)
 
-		if self.octree.debugLines:
-			self.octree.debug.RenderDebugLines()
+		if self.main.octree.debugLines:
+			self.main.octree.debug.RenderDebugLines()
 
-		if self.octree.g_MaxSubdivisions:
+		if self.main.octree.g_MaxSubdivisions:
 			# Here we draw the octree, starting with
 			# the root node and recursing down each node.
 			# When we get to each of the end nodes we
 			# will draw the vertices assigned to them.
-			self.octree.DrawOctree(self.octree)
+			self.main.octree.DrawOctree(self.main.octree)
 
-			if self.octree.debugLines:
+			if self.main.octree.debugLines:
 				# Render the cube'd nodes to visualize the octree
 				# (in wireframe mode)
-				self.octree.debug.RenderDebugLines()
+				self.main.octree.debug.RenderDebugLines()
 
 		for obj in objects:
 			if obj != self.main.player or self.spectator:

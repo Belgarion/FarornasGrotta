@@ -2,8 +2,8 @@ import time
 
 #TODO: Use acceleration to change velocity
 class Physics:
-	def __init__(self, objects):
-		self.objects = objects
+	def __init__(self, main):
+		self.objects = []
 		self.lastTime = time.time()
 	def updateObjects(self, objects):
 		self.objects = objects

@@ -9,6 +9,8 @@ from input import *
 from physics import *
 from graphics import *
 from menu import *
+from player import Player
+from octree import *
 
 
 from ProcessManager import *
@@ -55,16 +57,22 @@ class Object:
 
 class CaveOfDanger:
 	def __init__(self):
+		self.objects = []
 		self.running = 1
 		self.config = init_config()
+
+		self.checkArgs()
 
 		init_pygame(self)
 		init_opengl(self)
 
 		#self.network = Network()
 		self.physics = Physics(self)
+		self.octree = COctree()
 		self.graphics = Graphics(self)
 		self.input = Input(self)
+		self.player = Player()
+		self.objects.append(self.player)
 
 		self.input_thread = InputThread(self.input)
 		self.input_thread.start()
@@ -72,10 +80,38 @@ class CaveOfDanger:
 		self.process_manager = ProcessManager()
 		self.state_manager = StateManager()
 
-		menu = Menu(self)
+		self.menu = Menu(self)
 		self.state_manager.push(self.quit, None)
-		self.state_manager.push(menu.menu_is_open, None)
+		self.state_manager.push(self.menu.menu_is_open, None)
 		self.state_manager.process(None)
+
+		self.physics.updateObjects(self.objects)
+
+	def checkArgs(self):
+		self.args = {'disableWater': False,
+				'host': None,
+				'port': 30000}
+		if len(sys.argv) > 1:
+			for index, arg in enumerate(sys.argv):
+				if arg == "--help" or arg == "-h":
+					print "Arguments: \n"\
+							"	--nowater		Disable water\n"\
+							"	--host			Connect to host\n"\
+							"	--port			Port (Default: 30000)\n"
+					sys.exit(0)
+				elif arg == "--nowater":
+					self.args['disableWater'] = True
+				elif arg == "--host":
+					if not len(sys.argv) > index + 1:
+						print "No host specified for --host"
+						continue
+					self.args['host'] = sys.argv[index + 1]
+				elif arg == "--port":
+					if not len(sys.argv) > index + 1:
+						print "No port specified for --port"
+						continue
+					self.args['port'] = int(sys.argv[index + 1])
+
 	def run(self):
 		while self.running:
 			pygame.display.flip()
@@ -99,3 +135,20 @@ class CaveOfDanger:
 			self.running = 0
 		else:
 			print "quit: no purpose"
+
+	def runGame(self, caller, purpose):
+		if purpose is "STOP_PURPOSE":
+			print "game stopping"
+		elif purpose is "INIT_PURPOSE":
+			print "game starting"
+			self.graphics.initGL()
+			self.physics.lastTime = time.time()
+		elif purpose is "FRAME_PURPOSE":
+			print "game processing"
+
+			objects = self.physics.update()
+			self.graphics.draw(objects)
+
+			if self.input.keys["KEY_ESCAPE"] == 1:
+				self.state_manager.push(self.menu.menu_is_open, None)
+				self.input.keys["KEY_ESCAPE"] = 0

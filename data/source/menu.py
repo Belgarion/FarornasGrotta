@@ -116,6 +116,8 @@ class Menu:
 
 		glFlush()
 
+		pygame.display.flip()
+
 	def setBackground(self, path):
 		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = \
 				graphics.loadTexture(path)
@@ -151,10 +153,11 @@ class Menu:
 
 		self.menu = self
 
-		def startGame(): pass
-
 		self.menu.setBackground("data/image/img2.png")
-		self.menu.addMenuEntry("Start", startGame)
+
+		def MStart():
+			self.main.state_manager.push(self.main.runGame, None)
+		self.menu.addMenuEntry("Start", MStart)
 
 		def MOptions():
 			self.main.state_manager.push(self.optionsMenu.menu_is_open, None)
