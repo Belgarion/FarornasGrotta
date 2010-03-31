@@ -34,7 +34,6 @@ class Menu:
 			print "menu stopping"
 		elif purpose is "INIT_PURPOSE":
 			if not self.isSubMenu:
-				self.init_menu()
 				self.initMenus()
 			print "menu starting"
 		elif purpose is "FRAME_PURPOSE":
@@ -117,10 +116,6 @@ class Menu:
 
 		glFlush()
 
-	def init_menu(self):
-		self.setBackground("data/image/img2.png")
-		print "init menu"
-
 	def setBackground(self, path):
 		self.backgroundTextureId, textureWidthRatio, textureHeightRatio = \
 				graphics.loadTexture(path)
@@ -173,6 +168,7 @@ class Menu:
 		self.optionsMenu = Menu(self.main)
 		self.optionsMenu.font = self.font
 		self.optionsMenu.isSubMenu = True
+		self.optionsMenu.setBackground("data/image/img2.png")
 
 		resolutions = [(640, 480),
 				(800, 600),
