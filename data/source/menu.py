@@ -33,15 +33,15 @@ class Menu:
 		if purpose is "STOP_PURPOSE":
 			print "menu stopping"
 		elif purpose is "INIT_PURPOSE":
-			if not self.isSubMenu:
-				self.initMenus()
+			if not self.menuEntries: # if the first one
+				if not self.isSubMenu:
+					self.initMenus()
 			print "menu starting"
 		elif purpose is "FRAME_PURPOSE":
 			print "menu processing"
 
 			#print self.main.input.keys["KEY_A"]
 			self.draw()
-
 			if self.main.input.keys["KEY_ESCAPE"] == 1:
 				self.main.state_manager.pop(None)
 				self.main.input.keys["KEY_ESCAPE"] = 0
@@ -106,7 +106,7 @@ class Menu:
 			else:
 				glColor3f(1.0, 0.0, 0.0)
 
-			self.font.glPrint(320.0, 480.0 - 50.0*row, entry[0])
+			self.font.glPrint(320.0, 640.0 - 50.0*row, entry[0])
 
 			i += 1
 			row += 1
@@ -156,6 +156,9 @@ class Menu:
 		self.menu.setBackground("data/image/img2.png")
 
 		def MStart():
+			def MResume():
+				self.main.state_manager.pop(None)
+			self.addMenuEntry("Resume", MResume)
 			self.main.state_manager.push(self.main.runGame, None)
 		self.menu.addMenuEntry("Start", MStart)
 

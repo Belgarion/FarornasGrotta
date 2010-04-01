@@ -147,7 +147,6 @@ class Input():
 					#print "Button pressed: ", event.key
 					#if event.key == pygame.K_ESCAPE:
 					#	self.keys["KEY_ESCAPE"] = 1
-
 					for key in self.keys:
 						try: # translate key if key is a-z (possibly affected by layout)
 							translated = self.translate(key)

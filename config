@@ -2,6 +2,6 @@
 keyboardlayout = dvorak
 
 [Resolution]
-height = 960
-width = 1280
+height = 768
+width = 1024
 

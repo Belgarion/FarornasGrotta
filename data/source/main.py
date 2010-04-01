@@ -46,14 +46,52 @@ def init_pygame(main):
 				main.config.getint('Resolution', 'Height')),
 				pygame.DOUBLEBUF | pygame.OPENGL)
 
+class Data:
+	def __init__(self):
+		self.list = {}
+		self.load_level("level1")
+	def add_data(self):
+		pass
+	def load_level(self, name):
+		f = open("data/level/" + name + ".lvl")
+		
+		objects_on_level=[]
+		spawns_on_level=[]
+
+		for line in f:
+			if not line: continue
+			if line[0] is "#": continue
+			split = line.split(" ")
+			if split[0] == "object":
+				objects_on_level.append(split[1].replace("\n",""))
+
 class Object:
-	def __init__(self, type, name, position, orientation, mass, velocity):
+	def __init__(self, type, name, position, orientation, mass=1, velocity=(0,0,0)):
 		self.type = type
 		self.name = name
 		self.position = position
 		self.orientation = orientation
 		self.mass = mass
 		self.velocity = velocity
+
+class ObjectManager:
+	def __init__(self):
+		self.objects = []
+		self.load_level("level1")
+	def add_object(self, object, name, x, y, z, angle):
+		object = Object(object, name, (x,y,z), angle)
+		self.objects.append(object)
+	def load_level(self,name):
+		f = open("data/level/" + name + ".lvl")
+		for line in f:
+			if not line: continue
+			if line[0] is "#": continue
+			split = line.split(" ")
+			if split[0] == "spawn":
+				pos = split[3].split(",")
+				self.add_object(split[1], split[2], pos[0], pos[1], pos[2], split[4])
+
+
 
 class CaveOfDanger:
 	def __init__(self):
@@ -66,6 +104,8 @@ class CaveOfDanger:
 		init_pygame(self)
 		init_opengl(self)
 
+		self.data = Data()
+		self.object_manager = ObjectManager()
 		#self.network = Network()
 		self.physics = Physics(self)
 		self.octree = COctree()
@@ -116,8 +156,8 @@ class CaveOfDanger:
 		while self.running:
 			self.state_manager.process(None)
 			self.process_manager.process(None)
-			pygame.time.wait(60)
-
+			#pygame.time.wait(60)
+	
 		self.input.running = False
 		#self.state_manager.push()
 		#self.networkThread.start()
