@@ -357,10 +357,10 @@ class Graphics:
 
 		init_opengl(main)
 
-	def addSurface(self, Mesh, Map, Texture):
+	def addSurface(self, Mesh, Obj, Texture):
 		g_pMesh = CMesh (Mesh)
 		vertices, vnormals, f, self.vertexCount = \
-				loadObj("data/model/terrain.obj")
+				loadObj(Obj)
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
 				loadTexture(Texture)

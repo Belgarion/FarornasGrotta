@@ -49,7 +49,6 @@ class Input():
 		f.close
 
 	def handle_mouse(self):
-		return
 		for event in pygame.event.get(\
 				[pygame.MOUSEMOTION,pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP]
 				):
@@ -59,6 +58,7 @@ class Input():
 				self.yrot = (self.yrot + event.rel[0] / 10.0) % 360
 				if self.xrot <= -90: self.xrot = -90
 				if self.xrot >= 90: self.xrot = 90
+				continue
 				if not self.graphics.spectator:
 					self.player.data.orientation = (
 							self.player.data.orientation[0],
@@ -249,7 +249,14 @@ class Input():
 			"KEY_ESCAPE":0,
 			"KEY_UP":0,
 			"KEY_DOWN":0,
+			"KEY_LEFT":0,
+			"KEY_RIGHT":0,
 			}
+
+	def resetKey(self, key):
+		oldval = self.keys[key]
+		self.keys[key] = 0
+		return oldval
 
 class InputThread(threading.Thread):
 	def __init__(self, input):

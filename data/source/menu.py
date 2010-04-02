@@ -38,7 +38,7 @@ class Menu:
 					self.initMenus()
 			print "menu starting"
 		elif purpose is "FRAME_PURPOSE":
-			print "menu processing"
+			#print "menu processing"
 
 			#print self.main.input.keys["KEY_A"]
 			self.draw()
@@ -106,7 +106,7 @@ class Menu:
 			else:
 				glColor3f(1.0, 0.0, 0.0)
 
-			self.font.glPrint(320.0, 640.0 - 50.0*row, entry[0])
+			self.font.glPrint(320.0, 480.0 - 50.0*row, entry[0])
 
 			i += 1
 			row += 1
@@ -158,7 +158,7 @@ class Menu:
 		def MStart():
 			def MResume():
 				self.main.state_manager.pop(None)
-			self.addMenuEntry("Resume", MResume)
+			self.menu.menuEntries[self.menu.row] = ("Resume", MResume)
 			self.main.state_manager.push(self.main.runGame, None)
 		self.menu.addMenuEntry("Start", MStart)
 

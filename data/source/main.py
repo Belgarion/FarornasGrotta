@@ -181,13 +181,111 @@ class CaveOfDanger:
 		elif purpose is "INIT_PURPOSE":
 			print "game starting"
 			self.graphics.initGL()
+			self.graphics.addSurface(0, "data/model/terrain.obj", \
+				"data/image/grass.jpg")
 			self.physics.lastTime = time.time()
+
+			pygame.mouse.set_visible(0)
+			pygame.event.set_grab(1)
+
+			self.clock = pygame.time.Clock()
 		elif purpose is "FRAME_PURPOSE":
-			print "game processing"
+			#print "game processing"
 
 			objects = self.physics.update()
 			self.graphics.draw(objects)
 
-			if self.input.keys["KEY_ESCAPE"] == 1:
+			time_passed = self.clock.tick()
+			time_passed_seconds = time_passed / 1000.0
+
+			distance_moved = time_passed_seconds * self.input.speed
+
+			if self.input.keys["KEY_UP"] == 1 or self.input.keys["KEY_W"] == 1:
+				xrotrad = self.input.xrot / 180 * math.pi
+				yrotrad = self.input.yrot / 180 * math.pi
+				if self.graphics.spectator:
+					self.input.xpos += math.sin(yrotrad) * distance_moved
+					self.input.zpos -= math.cos(yrotrad) * distance_moved
+					self.input.ypos -= math.sin(xrotrad) * distance_moved
+				else:
+					self.player.data.position = (
+							self.player.data.position[0] \
+									+ math.sin(yrotrad) * distance_moved,
+							self.player.data.position[1],
+							self.player.data.position[2] \
+									- math.cos(yrotrad) * distance_moved
+							)
+			elif self.input.keys["KEY_DOWN"] == 1 or \
+					self.input.keys["KEY_S"] == 1:
+				xrotrad = self.input.xrot / 180 * math.pi
+				yrotrad = self.input.yrot / 180 * math.pi
+				if self.graphics.spectator:
+					self.input.xpos -= math.sin(yrotrad) * distance_moved
+					self.input.zpos += math.cos(yrotrad) * distance_moved
+					self.input.ypos += math.sin(xrotrad) * distance_moved
+				else:
+					self.player.data.position = (
+							self.player.data.position[0] \
+									- math.sin(yrotrad) * distance_moved,
+							self.player.data.position[1],
+							self.player.data.position[2] \
+									+ math.cos(yrotrad) * distance_moved
+							)
+
+			if self.input.keys["KEY_LEFT"] == 1 or \
+					self.input.keys["KEY_A"] == 1:
+				yrotrad = self.input.yrot / 180 * math.pi
+				if self.graphics.spectator:
+					self.input.xpos -= math.cos(yrotrad) * distance_moved
+					self.input.zpos -= math.sin(yrotrad) * distance_moved
+				else:
+					self.player.data.position = (
+							self.player.data.position[0] \
+									- math.cos(yrotrad) * distance_moved,
+							self.player.data.position[1],
+							self.player.data.position[2] \
+									- math.sin(yrotrad) * distance_moved
+							)
+			elif self.input.keys["KEY_RIGHT"] == 1 or \
+					self.input.keys["KEY_D"] == 1:
+				yrotrad = self.input.yrot / 180 * math.pi
+				if self.graphics.spectator:
+					self.input.xpos += math.cos(yrotrad) * distance_moved
+					self.input.zpos += math.sin(yrotrad) * distance_moved
+				else:
+					self.player.data.position = (
+							self.player.data.position[0] \
+									+ math.cos(yrotrad) * distance_moved,
+							self.player.data.position[1],
+							self.player.data.position[2] \
+									+ math.sin(yrotrad) * distance_moved
+							)
+
+			if self.input.resetKey("KEY_SPACE") == 1:
+				self.player.jump()
+
+			if self.input.resetKey("KEY_ESCAPE") == 1:
 				self.state_manager.push(self.menu.menu_is_open, None)
-				self.input.keys["KEY_ESCAPE"] = 0
+
+			if self.input.resetKey("KEY_U") == 1:
+				pygame.event.set_grab(0)
+				pygame.mouse.set_visible(1)
+			elif self.input.resetKey("KEY_G") == 1:
+				pygame.event.set_grab(1)
+				pygame.mouse.set_visible(0)
+
+			if self.input.resetKey("KEY_F3") == 1:
+				self.graphics.spectator ^= 1
+
+			if self.input.resetKey("KEY_F6") == 1:
+				self.graphics.toggleDrawAxes ^= 1
+
+			if self.input.resetKey("KEY_F7") == 1:
+				self.graphics.wireframe ^= 1
+
+			if self.input.resetKey("KEY_J") == 1:
+				self.input.speed += 100
+
+			if self.input.resetKey("KEY_K") == 1:
+				self.input.speed -= 100
+
