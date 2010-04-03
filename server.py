@@ -114,11 +114,13 @@ if __name__ == '__main__':
 									print "Name:",i.name
 									print "Position:",i.position
 							elif type == 6: # start sound
-								for addr in players:
-									Network.USend(addr, 6, recvd)
+								for ad in players:
+									if ad != addr:
+										Network.USend(ad, 6, recvd)
 							elif type == 7: # stop sound
-								for addr in players:
-									Network.USend(addr, 6, recvd)
+								for ad in players:
+									if ad != addr:
+										Network.USend(ad, 6, recvd)
 					except Exception, e:
 						traceback.print_exc()
 

@@ -34,7 +34,7 @@ class CSound:
 
 	def Init_Sound(self, frequency):
 		pyopenal.init(None)
-		
+
 		self.listener = pyopenal.Listener(frequency)
 
 	def Quit_Sound(self):
@@ -80,7 +80,7 @@ class CSound:
 		if self.Test_Source(source):
 			if source.get_state() == pyopenal.AL_PLAYING:
 				return True
-			return False			
+			return False
 
 
 	def Test_Source(self, source):
@@ -121,7 +121,7 @@ class CSound:
 
 		else:
 			print "Sound \"" + soundalias + "\" is NOT loaded. Skipping."
-	
+
 		return None
 
 	def Add_Sound(self, soundalias, uuid, loop = False, position = (0.0, 0.0, 0.0)):
@@ -139,7 +139,7 @@ class CSound:
 			# Some settings
 			source.looping 		= loop
 			source.position 	= position
-			source.max_distance = 1
+			source.max_distance = 1.0
 
 			# Start playing the sound from the buffer
 			source.play()
@@ -158,7 +158,7 @@ class CSound:
 		for source in self.sourcelist:
 			real_x = source.position[0]
 			real_z = source.position[2]
-		
+
 			if source.get_state() == pyopenal.AL_PLAYING:
 
 				xrotate = main.player.orientation[0]
