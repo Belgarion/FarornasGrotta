@@ -31,7 +31,7 @@ def init_config():
 				"Height: 480\n"\
 				"\n"\
 				"[Input]\n"\
-				"KeyboardLayout: qwerty\n"\
+				"KeyboardLayout: qwerty_swe\n"\
 				)
 
 	config = ConfigParser.SafeConfigParser()

@@ -13,6 +13,7 @@ from font import Font
 from Global import Global
 import sys
 import traceback
+import dircache
 
 class Menu:
 	def __init__(self, main):
@@ -33,9 +34,8 @@ class Menu:
 		if purpose is "STOP_PURPOSE":
 			print "menu stopping"
 		elif purpose is "INIT_PURPOSE":
-			if not self.menuEntries: # if the first one
-				if not self.isSubMenu:
-					self.initMenus()
+			if not self.menuEntries and not self.isSubMenu:
+				self.initMenus()
 			print "menu starting"
 		elif purpose is "FRAME_PURPOSE":
 			#print "menu processing"
@@ -209,7 +209,7 @@ class Menu:
 						self.config.get("Resolution","Height"),
 				OMResolution)
 
-		keyboardLayouts = ["qwerty", "dvorak"]
+		keyboardLayouts = dircache.listdir("data/keyboard")
 		def OMKeyboardLayout():
 			om = self.optionsMenu
 			layout = om.menuEntries[om.row][0].split(":")[1].lstrip()

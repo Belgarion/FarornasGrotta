@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 import pygame
 import math
 import sys
 import time
 import threading
+import traceback
 from octree import *
 from Global import *
 
@@ -35,18 +37,22 @@ class Input():
 		return self.dict[key]
 
 	def load_keymap(self):
-		layout = "dvorak_swe1"
+		layout = self.main.config.get("Input", "KeyboardLayout")
 
-		f = open("data/keyboard/" + layout)
 		self.dict = {}
-		while 1:
-			line = f.readline()
-			if not line: break
-			list = line.split(" ")
-			foo = list[0]
-			bar = list[1].replace("\n", "")
-			self.dict[foo] = bar # reversing for faster lookup
-		f.close
+
+		try:
+			f = open("data/keyboard/" + layout)
+			while 1:
+				line = f.readline()
+				if not line: break
+				list = line.split(" ")
+				foo = list[0]
+				bar = list[1].replace("\n", "")
+				self.dict[foo] = bar # reversing for faster lookup
+			f.close
+		except:
+			traceback.print_exc()
 
 	def handle_mouse(self):
 		for event in pygame.event.get(\
@@ -147,6 +153,14 @@ class Input():
 					#print "Button pressed: ", event.key
 					#if event.key == pygame.K_ESCAPE:
 					#	self.keys["KEY_ESCAPE"] = 1
+					name_of_key = pygame.key.name(event.key)
+					if name_of_key == "world 69":
+						name_of_key = "å"
+					elif name_of_key == "world 68":
+						name_of_key = "ä"
+					elif name_of_key == "world 86":
+						name_of_key = "ö"
+
 					for key in self.keys:
 						try: # translate key if key is a-z (possibly affected by layout)
 							translated = self.translate(key)
@@ -154,11 +168,12 @@ class Input():
 							translated = key
 							translated = translated.replace("KEY_", "") #ex: KEY_A->A
 							translated = translated.lower() # A->a
-						if pygame.key.name(event.key) == translated:
+						if name_of_key == translated:
 							if event.type == pygame.KEYDOWN:
 								self.keys[key] = 1
 							else:
 								self.keys[key] = -1
+							break
 
 					"""
 					elif event.key == pygame.K_F2:
