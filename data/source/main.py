@@ -312,10 +312,13 @@ class CaveOfDanger:
 
 			if walking:
 				if self.sound.data.running_uuid == None:
-					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
-	
-				elif not self.sound.Sound_Is_Playing(self.sound.data.running_uuid):
-					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
+					self.sound.data.running_uuid = \
+							self.sound.Play_Sound("run_ground")
+
+				elif not self.sound.Sound_Is_Playing( \
+						self.sound.data.running_uuid):
+					self.sound.data.running_uuid = \
+							self.sound.Play_Sound("run_ground")
 
 			else:
 				self.sound.Del_Sound_Net(self.sound.data.running_uuid)

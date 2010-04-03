@@ -120,7 +120,7 @@ if __name__ == '__main__':
 							elif type == 7: # stop sound
 								for ad in players:
 									if ad != addr:
-										Network.USend(ad, 6, recvd)
+										Network.USend(ad, 7, recvd)
 					except Exception, e:
 						traceback.print_exc()
 
