@@ -17,6 +17,8 @@ typeDict = {
 		3:"Object list",
 		4:"Ping",
 		5:"Pong",
+		6:"Start sound",
+		7:"Stop sound"
 		}
 
 import sys
@@ -200,7 +202,10 @@ class NetworkThread(threading.Thread):
 						self.physics.updateObjects(objects)
 						for i in objects:
 							print i.data.position
-
+					elif type == 6: # start sound
+						pass
+					elif type == 7: # stop sound
+						pass
 				else:
 					#tcp
 					pass

@@ -325,8 +325,7 @@ class CMesh:
 	""" Mesh Data """
 	MESH_HEIGHTSCALE = 1.0
 
-	def __init__ (self,position_y):
-		self.position_y = position_y
+	def __init__ (self):
 		self.m_nVertexCount = 0				# Vertex Count
 
 		self.m_pVertices = None				# Vertex Data array
@@ -358,7 +357,7 @@ class Graphics:
 		init_opengl(main)
 
 	def addSurface(self, Mesh, Obj, Texture):
-		g_pMesh = CMesh (Mesh)
+		g_pMesh = CMesh()
 		vertices, vnormals, f, self.vertexCount = \
 				loadObj(Obj)
 
@@ -394,6 +393,50 @@ class Graphics:
 		g_pMesh.vnormalsId = self.vnormalsId
 		g_pMesh.texCoordsId = self.texCoordsId
 		g_pMesh.vertexCount = self.vertexCount
+
+		g_fVBOObjects.append(g_pMesh)
+	def loadStaticObject(self, x, y, z, model, texture):
+		g_pMesh = CMesh()
+		vertices, vnormals, f, vertexCount = \
+				loadObj(model)
+
+		for i in xrange(len(vertices)): # transform
+			vertices[i][0] += x
+			vertices[i][1] += y
+			vertices[i][2] += z
+
+		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
+				loadTexture(texture)
+
+		xMax = xMin = vertices[0][0]
+		zMax = zMin = vertices[0][2]
+		for i in vertices:
+			if i[0] < xMin: xMin = i[0]
+			elif i[0] > xMax: xMax = i[0]
+
+			if i[2] < zMin: zMin = i[2]
+			elif i[2] > zMax: zMax = i[2]
+
+		sizeX = xMax - xMin
+		sizeY = zMax - zMin
+
+		texCoords = Numeric.zeros ((vertexCount, 2), 'f')
+
+		nIndex = 0
+		for i in vertices:
+			self.vertices.append( CVector3(i[0], i[1], i[2]) )
+			self.numberOfVertices += 1
+			texCoords[nIndex, 0] = (i[0]-xMin) / sizeX * textureWidthRatio
+			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
+			nIndex += 1
+
+		verticesId, vnormalsId, texCoordsId = createVBO(
+				vertices, vnormals, texCoords)
+
+		g_pMesh.verticesId = verticesId
+		g_pMesh.vnormalsId = vnormalsId
+		g_pMesh.texCoordsId = texCoordsId
+		g_pMesh.vertexCount = vertexCount
 
 		g_fVBOObjects.append(g_pMesh)
 	def initGL(self):

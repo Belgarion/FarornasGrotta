@@ -186,8 +186,11 @@ class CaveOfDanger:
 		elif purpose is "INIT_PURPOSE":
 			print "game starting"
 			self.graphics.initGL()
-			self.graphics.addSurface(0, "data/model/terrain.obj", \
-				"data/image/grass.jpg")
+			self.graphics.addSurface(0, \
+					"data/model/terrain.obj", \
+					"data/image/grass.jpg")
+			self.graphics.loadStaticObject(50, 0, 50, "data/model/cave.obj", \
+				"data/image/img2.png")
 
 			if self.args['host'] != None:
 				try:
