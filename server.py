@@ -48,6 +48,8 @@ if __name__ == '__main__':
 
 	spawnMonsters()
 
+	physics.updateObjects(objects)
+
 	try:
 		while True:
 			objects = physics.update()

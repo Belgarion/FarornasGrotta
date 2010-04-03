@@ -4,7 +4,7 @@ import math
 
 class GingerbreadMonster(Monster):
 	def objPath(self):
-		return "models/gingerbreadMonster.obj"
+		return "data/model/gingerbreadMonster.obj"
 	def intelligence(self):
 		try:
 			a = self.startRunning

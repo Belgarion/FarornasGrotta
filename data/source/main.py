@@ -21,6 +21,8 @@ from OpenGL.GLU import *
 
 from tests import *
 
+from gingerbreadMonster import GingerbreadMonster
+
 # Move window from so fps displayed on xmonad
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200)
 
@@ -188,9 +190,13 @@ class CaveOfDanger:
 				"data/image/grass.jpg")
 
 			if self.args['host'] != None:
-				self.networkThread.addr = (self.args['host'], self.args['port'])
-				network.Connect(self.args['host'], self.args['port'])
-				self.networkThread.start()
+				try:
+					self.networkThread.addr = \
+							(self.args['host'], self.args['port'])
+					network.Connect(self.args['host'], self.args['port'])
+					self.networkThread.start()
+				except:
+					traceback.print_exc()
 
 			self.physics.lastTime = time.time()
 
@@ -202,6 +208,24 @@ class CaveOfDanger:
 			#print "game processing"
 
 			objects = self.physics.update()
+			for i in self.networkThread.objdataToAdd:
+				if i.type == "Player":
+					print "Append a player!"
+					p = Player("Player 2",
+							i.position,
+							i.orientation,
+							i.mass, i.id)
+				elif i.type == "GingerbreadMonster":
+					print "Append a monster!"
+					g = GingerbreadMonster(
+							"GingerbreadMonster",
+							"Gingerbread 1",
+							i.position,
+							i.orientation,
+							i.mass, objects, False, i.id)
+					objects.append(g)
+				self.networkThread.objdataToAdd.remove(i)
+			self.physics.updateObjects(objects)
 			self.graphics.draw(objects)
 
 			time_passed = self.clock.tick()

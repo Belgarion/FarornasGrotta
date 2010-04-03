@@ -5,13 +5,13 @@ from gameObject import GameObject
 import graphics
 
 class Player(GameObject):
-	def __init__(self):
-		GameObject.__init__(self, "Player", "Player 1", (0.0, 20.0, -40.0),
-				(0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
+	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
+			orientation = (0.0, 180.0, 0.0), mass = 100, guid = None):
+		GameObject.__init__(self, "Player", name, position,
+				orientation, mass, (0.0, 0.0, 0.0), guid)
 
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")
-		print vertices
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
 		self.x = 100
