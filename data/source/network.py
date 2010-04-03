@@ -20,6 +20,7 @@ typeDict = {
 		}
 
 import sys
+import time
 
 def Connect(host, port):
 	global uSock, tSock
@@ -134,12 +135,13 @@ class NetworkThread(threading.Thread):
 	def run(self):
 		self.handleNetwork()
 	def handleNetwork(self):
+		lastSend = 0
 		myAddr = ('', 0)
 
 		USend(self.addr, 0, "Nick")
 		while self.running:
 			read_sockets, write_sockets, error_sockets = \
-					select.select([uSock, tSock], [], [], 1)
+					select.select([uSock, tSock], [], [], 0.05)
 			for sock in read_sockets:
 				print sock,"is ready for reading"
 				if sock == uSock:
@@ -202,6 +204,8 @@ class NetworkThread(threading.Thread):
 					#tcp
 					pass
 
-			USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
+			if time.time() - lastSend > 0.05:
+				lastSend = time.time()
+				USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
 
 		USend(self.addr, 1, self.player.data.id)

@@ -200,8 +200,8 @@ class CaveOfDanger:
 
 			self.physics.lastTime = time.time()
 
-			#pygame.mouse.set_visible(0)
-			#pygame.event.set_grab(1)
+			pygame.mouse.set_visible(0)
+			pygame.event.set_grab(1)
 
 			self.clock = pygame.time.Clock()
 		elif purpose is "FRAME_PURPOSE":

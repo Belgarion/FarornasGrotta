@@ -52,9 +52,8 @@ if __name__ == '__main__':
 	physics.updateObjects(objects)
 
 	try:
+		lastSend = 0
 		while True:
-			time.sleep(0.05)
-
 			objects = physics.update()
 
 			sendObjdata = False
@@ -139,7 +138,8 @@ if __name__ == '__main__':
 
 			for addr in players:
 				print "Sending data"
-				if sendObjdata: #fix this
+				if sendObjdata and time.time() - lastSend > 0.05 : #fix this
+					lastSend = time.time()
 					print "Sending objdata"
 					Network.USend(addr, 3, cPickle.dumps(objdata, 2))
 

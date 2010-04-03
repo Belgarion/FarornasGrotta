@@ -19,7 +19,8 @@ class Physics:
 					self.objects[i] = self.updatePos(self.objects[i], relTime)
 					break
 			else:
-				self.objects[i] = self.updatePos(self.objects[i], relTime)
+				if self.objects[i].data.type != "Player":
+					self.objects[i] = self.updatePos(self.objects[i], relTime)
 
 		self.lastTime = time.time()
 
