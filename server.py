@@ -8,7 +8,7 @@ import time
 
 sys.path.append("data/source/")
 
-import Network
+import network as Network
 from gingerbreadMonster import GingerbreadMonster
 from physics import Physics
 from Global import Global

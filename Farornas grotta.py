@@ -12,6 +12,9 @@ def main():
 	game.run()
 	game.input_thread.join()
 
+	if game.networkThread.isAlive():
+		main.networkThread.join()
+
 
 if __name__ == "__main__":
 	main()

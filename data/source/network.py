@@ -3,6 +3,8 @@ import threading
 import socket
 import traceback
 import struct
+import select
+import cPickle
 
 uSock = 0
 tSock = 0
@@ -119,96 +121,85 @@ def Accept():
 	return addr
 
 class NetworkThread(threading.Thread):
-	def __init__(self, physics, player):
-                self.physics = physics
-                self.player = player
-                threading.Thread.__init__(self)
-                self.addr = ('', 0)
-        def run(self):
-                self.handleNetwork()
-        def handleNetwork(self):
-                myAddr = ('', 0)
+	def __init__(self, main):
+		self.main = main
+		self.physics = main.physics
+		self.player = main.player
+		threading.Thread.__init__(self)
+		self.addr = ('', 0)
+		self.running = True
+		self.objdataToAdd = []
+	def run(self):
+		self.handleNetwork()
+	def handleNetwork(self):
+		myAddr = ('', 0)
 
-                Network.USend(self.addr, 0, "Nick")
-                while not Global.quit:
-                        read_sockets, write_sockets, error_sockets = \
-                                        select.select([Network.uSock, Network.tSock], [], [], 1)
-                        for sock in read_sockets:
-                                print sock,"is ready for reading"
-                                if sock == Network.uSock:
-                                        type, recvd, addr = Network.URecv()
-                                        print "len(recvd) =", len(recvd)
-                                        if len(recvd) == 0: continue
+		USend(self.addr, 0, "Nick")
+		while self.running:
+			read_sockets, write_sockets, error_sockets = \
+					select.select([uSock, tSock], [], [], 1)
+			for sock in read_sockets:
+				print sock,"is ready for reading"
+				if sock == uSock:
+					type, recvd, addr = URecv()
+					print "len(recvd) =", len(recvd)
+					if len(recvd) == 0: continue
 
-                                        if type == 0:
-                                                print "Connected"
-                                                myAddr = cPickle.loads(recvd)
+					if type == 0:
+						print "Connected"
+						myAddr = cPickle.loads(recvd)
 
-                                        elif type == 3:
-                                                print "Object data received"
+					elif type == 3:
+						print "Object data received"
 
-                                                objects = self.physics.objects
-                                                objdata = cPickle.loads(recvd)
-                                                added = []
+						objects = self.physics.objects
+						objdata = cPickle.loads(recvd)
+						added = []
 
-                                                for od in objdata:
-                                                        if od.id == self.player.data.id:
-															continue
+						for od in objdata:
+							if od.id == self.player.data.id:
+								continue
 
-                                                        for obj in objects:
-                                                                if od.id == obj.data.id:
-                                                                        obj.data = od
-                                                                        added.append(od)
+							for obj in objects:
+								if od.id == obj.data.id:
+									obj.data = od
+									added.append(od)
 
-                                                for obj in objects:
-                                                        exists = False
-                                                        if obj in objdataToAdd:
-                                                                exists = True
-                                                                continue
+						for obj in objects:
+							exists = False
+							if obj in self.objdataToAdd:
+								exists = True
+								continue
 
-                                                        for od in objdata:
-                                                                if obj.data.id == od.id:
-                                                                        exists = True
-                                                                        break
+							for od in objdata:
+								if obj.data.id == od.id:
+									exists = True
+									break
 
-                                                        if not exists:
-                                                                objects.remove(obj)
+							if not exists:
+								objects.remove(obj)
 
-                                                for i in objdata:
-                                                        if i.id == self.player.data.id:
-                                                                continue
+						for i in objdata:
+							if i.id == self.player.data.id:
+								continue
 
-                                                        alreadyAdded = False
-                                                        for j in objdataToAdd:
-                                                                if i.id == j.id:
-                                                                        alreadyAdded = True
-                                                                        break
+							alreadyAdded = False
+							for j in self.objdataToAdd:
+								if i.id == j.id:
+									alreadyAdded = True
+									break
 
-                                                        if i not in added and not alreadyAdded:
-                                                                objdataToAdd.append(i)
+							if i not in added and not alreadyAdded:
+								self.objdataToAdd.append(i)
 
 						self.physics.updateObjects(objects)
-                                                for i in objects:
-                                                        print i.data.position
+						for i in objects:
+							print i.data.position
 
-                                else:
-                                        #tcp
-                                        pass
+				else:
+					#tcp
+					pass
 
-                        Network.USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
-                        #print cPickle.dumps(objects, 2)
+			USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
 
-                        #try:
-                        #       recvd, addr = Network.URecv()
-                        #       if len(revcd) == 0: pass
-                        #       else: print recvd
-                        #except:
-                        #       pass
-
-                        #Använd select för att kolla om det finns något att ta emot #TODO: swedish comment lol
-                        #recvd = Network.TRecv(None, 256)
-                        #while recvd:
-                        #       print recvd
-                        #       recvd = Nework.TRecv(None, 256)
-
-                Network.USend(self.addr, 1, self.player.data.id)
+		USend(self.addr, 1, self.player.data.id)

@@ -4,7 +4,7 @@ import threading
 import StringIO
 import ConfigParser
 
-from network import *
+import network
 from input import *
 from physics import *
 from graphics import *
@@ -21,7 +21,8 @@ from OpenGL.GLU import *
 
 from tests import *
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200) # Move window from so fps displayed on xmonad
+# Move window from so fps displayed on xmonad
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200)
 
 
 def init_config():
@@ -54,9 +55,8 @@ class Data:
 		pass
 	def load_level(self, name):
 		f = open("data/level/" + name + ".lvl")
-		
+
 		objects_on_level=[]
-		spawns_on_level=[]
 
 		for line in f:
 			if not line: continue
@@ -66,7 +66,8 @@ class Data:
 				objects_on_level.append(split[1].replace("\n",""))
 
 class Object:
-	def __init__(self, type, name, position, orientation, mass=1, velocity=(0,0,0)):
+	def __init__(self, type, name, position, orientation, mass=1, \
+			velocity=(0,0,0)):
 		self.type = type
 		self.name = name
 		self.position = position
@@ -89,7 +90,8 @@ class ObjectManager:
 			split = line.split(" ")
 			if split[0] == "spawn":
 				pos = split[3].split(",")
-				self.add_object(split[1], split[2], pos[0], pos[1], pos[2], split[4])
+				self.add_object(split[1], split[2], pos[0], pos[1], pos[2], \
+						split[4])
 
 
 
@@ -97,16 +99,16 @@ class CaveOfDanger:
 	def __init__(self):
 		self.objects = []
 		self.running = 1
-		self.config = init_config()
 
 		self.checkArgs()
+
+		self.config = init_config()
 
 		init_pygame(self)
 		init_opengl(self)
 
 		self.data = Data()
 		self.object_manager = ObjectManager()
-		#self.network = Network()
 		self.physics = Physics(self)
 		self.octree = COctree()
 		self.graphics = Graphics(self)
@@ -116,6 +118,8 @@ class CaveOfDanger:
 
 		self.input_thread = InputThread(self.input)
 		self.input_thread.start()
+
+		self.networkThread = network.NetworkThread(self)
 
 		self.process_manager = ProcessManager()
 		self.state_manager = StateManager()
@@ -157,10 +161,9 @@ class CaveOfDanger:
 			self.state_manager.process(None)
 			self.process_manager.process(None)
 			#pygame.time.wait(60)
-	
+
 		self.input.running = False
-		#self.state_manager.push()
-		#self.networkThread.start()
+		self.networkThread.running = False
 		#test_process()
 		#test_states()
 
@@ -183,10 +186,16 @@ class CaveOfDanger:
 			self.graphics.initGL()
 			self.graphics.addSurface(0, "data/model/terrain.obj", \
 				"data/image/grass.jpg")
+
+			if self.args['host'] != None:
+				self.networkThread.addr = (self.args['host'], self.args['port'])
+				network.Connect(self.args['host'], self.args['port'])
+				self.networkThread.start()
+
 			self.physics.lastTime = time.time()
 
-			pygame.mouse.set_visible(0)
-			pygame.event.set_grab(1)
+			#pygame.mouse.set_visible(0)
+			#pygame.event.set_grab(1)
 
 			self.clock = pygame.time.Clock()
 		elif purpose is "FRAME_PURPOSE":
