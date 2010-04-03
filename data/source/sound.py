@@ -1,6 +1,12 @@
-import math, os, os.path, pygame, pyopenal, uuid
+import cPickle, math, os, os.path, pygame, pyopenal, uuid
 
 from network import USend
+
+class PlayerSoundData:
+	def __init__(self):
+		self.running_uuid = None
+		self.attack_uuid = None
+		self.fireball_uuid = None
 
 class CSound:
 	def __init__(self, main, frequency = 0, autoload = False):
@@ -13,6 +19,8 @@ class CSound:
 
 		self.main = main
 
+		self.data = PlayerSoundData()
+
 		# TODO: Just for testing, normaly we wanna call this on our own?
 		if frequency:
 			self.Init_Sound(frequency)
@@ -24,8 +32,24 @@ class CSound:
 	def __del__(self):
 		self.Quit_Sound()
 
+	def Init_Sound(self, frequency):
+		pyopenal.init(None)
+		
+		self.listener = pyopenal.Listener(frequency)
+
+	def Quit_Sound(self):
+		self.Unload_All_Sound()
+
+		self.listener = None
+		self.buffer = None
+
+		pyopenal.quit()
+
 	def Send_Sound():
 		pass
+
+
+
 
 	def Source_Exist(self, uuid):
 		for source in self.sourcelist:
@@ -50,22 +74,23 @@ class CSound:
 				return source
 		return None
 
-	def Init_Sound(self, frequency):
-		pyopenal.init(None)
-		
-		self.listener = pyopenal.Listener(frequency)
+	def Sound_Is_Playing(self, uuid):
+		source = self.Find_Source(uuid)
 
-	def Quit_Sound(self):
-		self.Unload_All_Sound()
+		if self.Test_Source(source):
+			if source.get_state() == pyopenal.AL_PLAYING:
+				return True
+			return False			
 
-		self.listener = None
-		self.buffer = None
 
-		pyopenal.quit()
+	def Test_Source(self, source):
+		return not source == None
 
 	def Stop_Sound(self, uuid):
-		source.stop()
-		pass
+		source = self.Find_Source(uuid)
+
+		if self.Test_Source(source):
+			source.stop()
 
 	def Play_Sound(self, soundalias, loop = False, position = (0.0, 0.0, 0.0)):
 		if self.Sound_Exist(soundalias):
@@ -82,19 +107,22 @@ class CSound:
 			# Some settings
 			source.looping 		= loop
 			source.position 	= position
-			source.max_distance = 1
+			source.max_distance = 1.0
 
 			# Start playing the sound from the buffer
 			source.play()
 
 			# TODO: Send the new source over to the other clients here
 			#EVENT, triggers the other clients to run Add_Sound
-			network.USend(self.main.networkThread.addr, 6, cPickle.dumps((soundalias, uuid, loop, position)))
+			if self.main.networkThread.isAlive():
+				USend(self.main.networkThread.addr, 6, cPickle.dumps((soundalias, source.uuid, loop, position)))
+
+			return source.uuid
 
 		else:
 			print "Sound \"" + soundalias + "\" is NOT loaded. Skipping."
 	
-		return
+		return None
 
 	def Add_Sound(self, soundalias, uuid, loop = False, position = (0.0, 0.0, 0.0)):
 		if not self.Source_Exist(uuid):
@@ -119,7 +147,7 @@ class CSound:
 	# TODO: Needs to be triggered from other game objects
 	def Del_Sound(self, uuid):
 		if self.Source_Exist(uuid):
-			source = Find_Source(uuid)
+			source = self.Find_Source(uuid)
 
 			self.Stop_Sound(source)
 			self.sourcelist.remove(source)

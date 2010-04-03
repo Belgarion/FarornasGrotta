@@ -243,7 +243,10 @@ class CaveOfDanger:
 
 			distance_moved = time_passed_seconds * self.input.speed
 
+			walking = False
+
 			if self.input.keys["KEY_UP"] == 1 or self.input.keys["KEY_W"] == 1:
+				walking = True
 				xrotrad = self.input.xrot / 180 * math.pi
 				yrotrad = self.input.yrot / 180 * math.pi
 				if self.graphics.spectator:
@@ -260,6 +263,7 @@ class CaveOfDanger:
 							)
 			elif self.input.keys["KEY_DOWN"] == 1 or \
 					self.input.keys["KEY_S"] == 1:
+				walking = True
 				xrotrad = self.input.xrot / 180 * math.pi
 				yrotrad = self.input.yrot / 180 * math.pi
 				if self.graphics.spectator:
@@ -277,6 +281,7 @@ class CaveOfDanger:
 
 			if self.input.keys["KEY_LEFT"] == 1 or \
 					self.input.keys["KEY_A"] == 1:
+				walking = True
 				yrotrad = self.input.yrot / 180 * math.pi
 				if self.graphics.spectator:
 					self.input.xpos -= math.cos(yrotrad) * distance_moved
@@ -291,6 +296,7 @@ class CaveOfDanger:
 							)
 			elif self.input.keys["KEY_RIGHT"] == 1 or \
 					self.input.keys["KEY_D"] == 1:
+				walking = True
 				yrotrad = self.input.yrot / 180 * math.pi
 				if self.graphics.spectator:
 					self.input.xpos += math.cos(yrotrad) * distance_moved
@@ -303,6 +309,16 @@ class CaveOfDanger:
 							self.player.data.position[2] \
 									+ math.sin(yrotrad) * distance_moved
 							)
+
+			if walking:
+				if self.sound.data.running_uuid == None:
+					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
+	
+				elif not self.sound.Sound_Is_Playing(self.sound.data.running_uuid):
+					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
+
+			else:
+				self.sound.Del_Sound(self.sound.data.running_uuid)
 
 			if self.input.resetKey("KEY_SPACE") == 1:
 				self.player.jump()
