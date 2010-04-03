@@ -17,8 +17,10 @@ class GameObject:
 			guid = uuid.uuid4().hex
 		self.data = GameObjectData(guid, type, name, position,
 				orientation, mass, velocity)
+
 	def draw(self):
 		pass
+
 	def checkCollision(self):
 		if self.data.position[1] <= 0:
 			self.data.position = \

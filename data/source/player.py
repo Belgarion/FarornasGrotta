@@ -6,17 +6,20 @@ import graphics
 
 class Player(GameObject):
 	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
-			orientation = (0.0, 180.0, 0.0), mass = 100, guid = None, TEST = 1):
+			orientation = (0.0, 180.0, 0.0), mass = 100, guid = None, sound = None):
 		GameObject.__init__(self, "Player", name, position,
 				orientation, mass, (0.0, 0.0, 0.0), guid)
 
-		print TEST
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
-		self.x = 100
-		self.y = 100
+		self.sound = sound
+
+	def makeNoise(self):
+		if self.sound:
+			self.sound.Update_Sound()
+
 	def jump(self):
 		if self.data.velocity[1] == 0:
 			self.data.position = (self.data.position[0],
@@ -26,6 +29,7 @@ class Player(GameObject):
 			self.data.velocity = (self.data.velocity[0],
 					self.data.velocity[1] - 9.82,
 					self.data.velocity[2])
+
 	def draw(self):
 		glPushMatrix()
 
@@ -38,7 +42,6 @@ class Player(GameObject):
 
 		glColor3f(1.0, 1.0, 0.0)
 
-		#glTranslatef(self.x, self.y, 0.0)
 		glTranslatef(self.data.position[0],
 				self.data.position[1],
 				self.data.position[2])
