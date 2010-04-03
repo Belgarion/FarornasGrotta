@@ -19,6 +19,8 @@ typeDict = {
 		5:"Pong",
 		}
 
+import sys
+
 def Connect(host, port):
 	global uSock, tSock
 	uSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

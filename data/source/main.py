@@ -215,6 +215,7 @@ class CaveOfDanger:
 							i.position,
 							i.orientation,
 							i.mass, i.id)
+					objects.append(p)
 				elif i.type == "GingerbreadMonster":
 					print "Append a monster!"
 					g = GingerbreadMonster(

@@ -45,6 +45,7 @@ if __name__ == '__main__':
 	players = []
 
 	physics = Physics(objects)
+	physics.isClient = False
 
 	spawnMonsters()
 
@@ -52,6 +53,8 @@ if __name__ == '__main__':
 
 	try:
 		while True:
+			time.sleep(0.05)
+
 			objects = physics.update()
 
 			sendObjdata = False

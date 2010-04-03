@@ -3,16 +3,23 @@ import time
 #TODO: Use acceleration to change velocity
 class Physics:
 	def __init__(self, main):
+		self.main = main
 		self.objects = []
 		self.lastTime = time.time()
+		self.isClient = True
 	def updateObjects(self, objects):
 		self.objects = objects
 	def update(self):
 		self.time = time.time()
 		relTime = self.lastTime-self.time
 
-		for i in xrange(len(self.objects)):
-			self.objects[i] = self.updatePos(self.objects[i], relTime)
+	 	for i in xrange(len(self.objects)):
+			if self.isClient:
+				if self.objects[i].data.id == self.main.player.data.id:
+					self.objects[i] = self.updatePos(self.objects[i], relTime)
+					break
+			else:
+				self.objects[i] = self.updatePos(self.objects[i], relTime)
 
 		self.lastTime = time.time()
 
