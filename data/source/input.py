@@ -35,7 +35,7 @@ class Input():
 		return self.dict[key]
 
 	def load_keymap(self):
-		layout = "dvorak_swe1"
+		layout = "qwerty_swe"
 
 		f = open("data/keyboard/" + layout)
 		self.dict = {}

@@ -11,7 +11,7 @@ from graphics import *
 from menu import *
 from player import Player
 from octree import *
-
+from sound import *
 
 from ProcessManager import *
 from StateManager import *
@@ -19,10 +19,8 @@ from StateManager import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from tests import *
-
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200) # Move window from so fps displayed on xmonad
-
+# Move the window a bit so xmonad-users can see the FPS-meter
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200)
 
 def init_config():
 	defaultConfig = StringIO.StringIO(\
@@ -32,6 +30,9 @@ def init_config():
 				"\n"\
 				"[Input]\n"\
 				"KeyboardLayout: qwerty\n"\
+				"\n"\
+				"[Sound]\n"\
+				"Frequency: 22050\n"
 				)
 
 	config = ConfigParser.SafeConfigParser()
@@ -50,8 +51,10 @@ class Data:
 	def __init__(self):
 		self.list = {}
 		self.load_level("level1")
+
 	def add_data(self):
 		pass
+
 	def load_level(self, name):
 		f = open("data/level/" + name + ".lvl")
 		
@@ -66,7 +69,7 @@ class Data:
 				objects_on_level.append(split[1].replace("\n",""))
 
 class Object:
-	def __init__(self, type, name, position, orientation, mass=1, velocity=(0,0,0)):
+	def __init__(self, type, name, position, orientation, mass = 1, velocity = (0.0, 0.0, 0.0)):
 		self.type = type
 		self.name = name
 		self.position = position
@@ -78,10 +81,12 @@ class ObjectManager:
 	def __init__(self):
 		self.objects = []
 		self.load_level("level1")
+
 	def add_object(self, object, name, x, y, z, angle):
 		object = Object(object, name, (x,y,z), angle)
 		self.objects.append(object)
-	def load_level(self,name):
+
+	def load_level(self, name):
 		f = open("data/level/" + name + ".lvl")
 		for line in f:
 			if not line: continue
@@ -90,8 +95,6 @@ class ObjectManager:
 			if split[0] == "spawn":
 				pos = split[3].split(",")
 				self.add_object(split[1], split[2], pos[0], pos[1], pos[2], split[4])
-
-
 
 class CaveOfDanger:
 	def __init__(self):
@@ -111,7 +114,9 @@ class CaveOfDanger:
 		self.octree = COctree()
 		self.graphics = Graphics(self)
 		self.input = Input(self)
-		self.player = Player()
+		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
+
+		self.player = Player(sound = self.sound)
 		self.objects.append(self.player)
 
 		self.input_thread = InputThread(self.input)
@@ -158,6 +163,8 @@ class CaveOfDanger:
 			self.process_manager.process(None)
 			#pygame.time.wait(60)
 	
+
+		del self.sound
 		self.input.running = False
 		#self.state_manager.push()
 		#self.networkThread.start()
@@ -181,7 +188,7 @@ class CaveOfDanger:
 		elif purpose is "INIT_PURPOSE":
 			print "game starting"
 			self.graphics.initGL()
-			self.graphics.addSurface(0, "data/model/terrain.obj", \
+			self.graphics.addSurface(0, "data/model/terrain.obj", 
 				"data/image/grass.jpg")
 			self.physics.lastTime = time.time()
 
