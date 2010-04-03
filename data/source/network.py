@@ -180,7 +180,8 @@ class NetworkThread(threading.Thread):
 									exists = True
 									break
 
-							if not exists:
+							if not exists and \
+									obj.data.id != self.main.player.data.id:
 								objects.remove(obj)
 
 						for i in objdata:

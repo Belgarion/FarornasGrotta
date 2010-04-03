@@ -1,4 +1,5 @@
 import time
+import sys
 
 #TODO: Use acceleration to change velocity
 class Physics:
@@ -15,9 +16,10 @@ class Physics:
 
 	 	for i in xrange(len(self.objects)):
 			if self.isClient:
+				#sys.stderr.write(self.objects[i].data.id + " == " + self.main.player.data.id + "?\n")
 				if self.objects[i].data.id == self.main.player.data.id:
+					sys.stderr.write("physics updating")
 					self.objects[i] = self.updatePos(self.objects[i], relTime)
-					break
 			else:
 				if self.objects[i].data.type != "Player":
 					self.objects[i] = self.updatePos(self.objects[i], relTime)

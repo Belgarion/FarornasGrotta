@@ -136,11 +136,11 @@ if __name__ == '__main__':
 				#tcp
 				#we need association tcp-socket<->player<->udp-addr
 
-			for addr in players:
-				print "Sending data"
-				if sendObjdata and time.time() - lastSend > 0.05 : #fix this
+			if time.time() - lastSend > 0.05:
+				for addr in players:
+					print "Sending data"
 					lastSend = time.time()
-					print "Sending objdata"
+					print "Sending objdata to", addr
 					Network.USend(addr, 3, cPickle.dumps(objdata, 2))
 
 

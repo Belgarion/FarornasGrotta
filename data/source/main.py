@@ -216,6 +216,8 @@ class CaveOfDanger:
 							i.orientation,
 							i.mass, i.id)
 					objects.append(p)
+					sys.stderr.write("Append player with id " + i.id)
+					sys.stderr.write("My id " + self.player.data.id)
 				elif i.type == "GingerbreadMonster":
 					print "Append a monster!"
 					g = GingerbreadMonster(
