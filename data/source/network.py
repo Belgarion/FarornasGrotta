@@ -203,9 +203,13 @@ class NetworkThread(threading.Thread):
 						for i in objects:
 							print i.data.position
 					elif type == 6: # start sound
-						pass
+						data = cPickle.loads(recvd)
+
+						self.main.sound.Add_Sound(data[0], data[1], data[2], data[3])
+
 					elif type == 7: # stop sound
-						pass
+						self.main.sound.Del_Sound(cPickle.loads(recvd))
+
 				else:
 					#tcp
 					pass

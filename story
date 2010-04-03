@@ -6,7 +6,8 @@ This is how it could be when having our show off for NV3.
 
 Laurch game
 	Player starts the game. Player joins predefined server lobby. 
-	Chooses gender. Game leader starts the game when everyone joined. 
+	Chooses gender. Game leader starts the game when everyone joined.
+
 Intro
 	Player's camera travels through space passing stars and planets. 
 	Heading for earth and zooms in and into landscape into an small 
