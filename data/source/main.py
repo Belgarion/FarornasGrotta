@@ -318,7 +318,7 @@ class CaveOfDanger:
 					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
 
 			else:
-				self.sound.Del_Sound(self.sound.data.running_uuid)
+				self.sound.Del_Sound_Net(self.sound.data.running_uuid)
 
 			if self.input.resetKey("KEY_SPACE") == 1:
 				self.player.jump()

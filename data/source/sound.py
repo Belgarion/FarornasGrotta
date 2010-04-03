@@ -48,9 +48,6 @@ class CSound:
 	def Send_Sound():
 		pass
 
-
-
-
 	def Source_Exist(self, uuid):
 		for source in self.sourcelist:
 			if uuid == source.uuid:
@@ -82,7 +79,6 @@ class CSound:
 				return True
 			return False
 
-
 	def Test_Source(self, source):
 		return not source == None
 
@@ -112,8 +108,6 @@ class CSound:
 			# Start playing the sound from the buffer
 			source.play()
 
-			# TODO: Send the new source over to the other clients here
-			#EVENT, triggers the other clients to run Add_Sound
 			if self.main.networkThread.isAlive():
 				USend(self.main.networkThread.addr, 6, cPickle.dumps((soundalias, source.uuid, loop, position)))
 
@@ -144,6 +138,13 @@ class CSound:
 			# Start playing the sound from the buffer
 			source.play()
 
+	def Del_Sound_Net(self, uuid):
+		if self.Source_Exist(uuid):
+			if self.main.networkThread.isAlive():
+				USend(self.main.networkThread.addr, 7, cPickle.dumps(uuid))
+
+			self.Del_Sound(uuid)
+
 	# TODO: Needs to be triggered from other game objects
 	def Del_Sound(self, uuid):
 		if self.Source_Exist(uuid):
@@ -151,6 +152,7 @@ class CSound:
 
 			self.Stop_Sound(source)
 			self.sourcelist.remove(source)
+	
 
 	# TODO: Load this as a loop into the processmanger or something, we dont wanna waste time here
 	#		But we wanna have so we can turn our head and still have the sound correctly
