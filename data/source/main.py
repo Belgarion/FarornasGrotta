@@ -15,6 +15,7 @@ from sound import *
 
 from ProcessManager import *
 from StateManager import *
+from CallbackManager import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -129,6 +130,7 @@ class CaveOfDanger:
 
 		self.process_manager = ProcessManager()
 		self.state_manager = StateManager()
+		self.callback_manager = CallbackManager()
 
 		self.menu = Menu(self)
 		self.state_manager.push(self.quit, None)
@@ -136,6 +138,12 @@ class CaveOfDanger:
 		self.state_manager.process(None)
 
 		self.physics.updateObjects(self.objects)
+
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.jump], permanent = True, triggers = {"Keys" : {"KEY_SPACE" : True}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 0.0], permanent = True, triggers = {"Keys" : {"KEY_W" : False, "KEY_UP" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, -90.0], permanent = True, triggers = {"Keys" : {"KEY_A" : False, "KEY_LEFT" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 180.0], permanent = True, triggers = {"Keys" : {"KEY_S" : False, "KEY_DOWN" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 90.0], permanent = True, triggers = {"Keys" : {"KEY_D" : False, "KEY_RIGHT" : False}})
 
 	def checkArgs(self):
 		self.args = {'disableWater': False,
@@ -242,9 +250,14 @@ class CaveOfDanger:
 			time_passed_seconds = time_passed / 1000.0
 
 			distance_moved = time_passed_seconds * self.input.speed
+			self.distance_moved = distance_moved
 
+			# I pass the keys, it can figure out the time-triggers and position-triggers itself
+			self.callback_manager.Check_Triggers(self.input.keys)
+
+			"""
 			walking = False
-
+			
 			if self.input.keys["KEY_UP"] == 1 or self.input.keys["KEY_W"] == 1:
 				walking = True
 				xrotrad = self.input.xrot / 180 * math.pi
@@ -309,19 +322,21 @@ class CaveOfDanger:
 							self.player.data.position[2] \
 									+ math.sin(yrotrad) * distance_moved
 							)
-
+			
 			if walking:
-				if self.sound.data.running_uuid == None:
-					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
+				if self.sound.data['Run']['UUID'] == None:
+					self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
 	
-				elif not self.sound.Sound_Is_Playing(self.sound.data.running_uuid):
-					self.sound.data.running_uuid = self.sound.Play_Sound("run_ground")
+				elif not self.sound.Sound_Is_Playing(self.sound.data['Run']['UUID']):
+					self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
 
 			else:
-				self.sound.Del_Sound_Net(self.sound.data.running_uuid)
+				self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
 
-			if self.input.resetKey("KEY_SPACE") == 1:
-				self.player.jump()
+			"""
+
+#			if self.input.resetKey("KEY_SPACE") == 1:
+#				self.player.jump()
 
 			if self.input.resetKey("KEY_ESCAPE") == 1:
 				self.state_manager.push(self.menu.menu_is_open, None)

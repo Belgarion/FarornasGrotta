@@ -1,5 +1,4 @@
 import pygame
-from Global import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
@@ -21,7 +20,7 @@ from water import Water
 def init_opengl(main):
 	if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
-			Global.quit = 1
+			#Global.quit = 1
 			return
 
 	glClearColor( 0.0, 0.0, 0.0, 0.0)
@@ -238,7 +237,7 @@ def loadTexture(filename):
 	if width > glGetIntegerv(GL_MAX_TEXTURE_SIZE):
 		sys.stderr.write("ERROR: Texture is bigger than the maximum"\
 				"texture size of your graphics card\n")
-		Global.quit = 1
+		#Global.quit = 1
 		return
 
 	textureId = glGenTextures(1)
@@ -444,7 +443,7 @@ class Graphics:
 
 		if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
-			Global.quit = 1
+			#Global.quit = 1
 			return
 
 		glClearColor( 0.0, 0.0, 0.0, 0.0)

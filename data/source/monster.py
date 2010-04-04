@@ -3,8 +3,6 @@ from gameObject import GameObject
 import threading
 import time
 
-from Global import Global
-
 import sys, os
 
 if os.path.basename(sys.argv[0]) != "server.py":
@@ -63,11 +61,13 @@ class Monster(GameObject):
 	def intelligence(self):
 		# implement this in subclasses
 		pass
+
 	class IntelligenceThread(threading.Thread):
 		def __init__(self, monster):
 			self.monster = monster
 			threading.Thread.__init__(self)
+
 		def run(self):
-			while not Global.quit:
+			while True:
 				self.monster.intelligence()
 				time.sleep(0.01)

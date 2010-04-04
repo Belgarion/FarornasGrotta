@@ -10,7 +10,6 @@ try:
 except:
 	import Numeric
 from font import Font
-from Global import Global
 import sys
 import traceback
 import dircache
@@ -232,32 +231,6 @@ class Menu:
 			self.main.state_manager.pop(None)
 
 		self.optionsMenu.addMenuEntry("Back", OMBack)
-
-
-	def KeyHandler(self):
-		for event in pygame.event.get():
-			if self.keyHandler(event):
-				# Key already handled
-				continue
-
-			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_ESCAPE:
-					Global.quit = 1
-				elif event.key == pygame.K_UP:
-					if self.row > 0:
-						self.row -= 1
-				elif event.key == pygame.K_DOWN:
-					if self.row < len(self.menuEntries) - 1:
-						self.row += 1
-				elif event.key == pygame.K_RETURN:
-					try:
-						self.menuEntries[self.row][1]()
-					except:
-						print "Error running function for menu entry"
-						#print sys.exc_info
-						traceback.print_exc()
-			def draw(self):
-				pygame.display.flip()
 
 	def addMenuEntry(self, title, function):
 		print "Adding menu entry:", title

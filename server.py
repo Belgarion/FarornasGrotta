@@ -11,7 +11,6 @@ sys.path.append("data/source/")
 import network as Network
 from gingerbreadMonster import GingerbreadMonster
 from physics import Physics
-from Global import Global
 from gameObject import GameObject
 
 #TODO: ? Keepalive packets ?
@@ -157,6 +156,6 @@ if __name__ == '__main__':
 
 	Network.CloseConnections()
 
-	Global.quit = True
+	#Global.quit = True
 	for i in threads:
 		if i.isAlive(): i.join()
