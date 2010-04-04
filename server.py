@@ -149,7 +149,10 @@ if __name__ == '__main__':
 					print "Sending data"
 					lastSend = time.time()
 					print "Sending objdata to", addr
-					Network.USend(addr, 3, cPickle.dumps(objdata, 2))
+					od = []
+					for obj in objects:
+						od.append(obj.data)
+					Network.USend(addr, 3, cPickle.dumps(od, 2))
 
 
 	except:

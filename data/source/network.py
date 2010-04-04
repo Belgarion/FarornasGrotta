@@ -18,7 +18,7 @@ typeDict = {
 		4:"Ping",
 		5:"Pong",
 		6:"Start sound",
-		7:"Stop sound"
+		7:"Stop sound",
 		}
 
 import sys
