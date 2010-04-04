@@ -107,7 +107,9 @@ class CSound:
 			source.play()
 
 			if self.main.networkThread.isAlive():
-				USend(self.main.networkThread.addr, 6, cPickle.dumps((soundalias, source.uuid, loop, position)))
+				USend(self.main.networkThread.addr, 6,
+						cPickle.dumps((soundalias, source.uuid,
+							loop, position)))
 
 			return source.uuid
 
@@ -116,7 +118,8 @@ class CSound:
 
 		return None
 
-	def Add_Sound(self, soundalias, uuid, loop = False, position = (0.0, 0.0, 0.0)):
+	def Add_Sound(self, soundalias, uuid, loop = False, \
+			position = (0.0, 0.0, 0.0)):
 		if not self.Source_Exist(uuid):
 			# Create the source object and append it to our soundlist
 			source = pyopenal.Source()
@@ -149,10 +152,12 @@ class CSound:
 
 			self.Stop_Sound(source)
 			self.sourcelist.remove(source)
-	
 
-	# TODO: Load this as a loop into the processmanger or something, we dont wanna waste time here
-	#		But we wanna have so we can turn our head and still have the sound correctly
+
+	# TODO: Load this as a loop into the processmanger or something,
+	# 		we dont wanna waste time here.
+	#		But we wanna have so we can turn our head and
+	#		still have the sound correctly
 	def Update_Sound(self):
 		for source in self.sourcelist:
 			real_x = source.position[0]
@@ -183,7 +188,8 @@ class CSound:
 			self.soundlist.append(sound)
 			self.soundalias.append(soundalias[0])
 
-			print "Successfully loaded \033[0;94m" + os.path.basename(filename) + "\033[0m"
+			print "Successfully loaded \033[0;94m" + \
+					os.path.basename(filename) + "\033[0m"
 		else:
 			print "Sound \"" + soundalias + "\" is already loaded. Skipping."
 

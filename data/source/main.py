@@ -10,6 +10,7 @@ from physics import *
 from graphics import *
 from menu import *
 from player import Player
+from fireball import Fireball
 from octree import *
 from sound import *
 
@@ -242,6 +243,11 @@ class CaveOfDanger:
 							i.orientation,
 							i.mass, objects, False, i.id)
 					objects.append(g)
+				elif i.type == "Fireball":
+					f = Fireball(i.name, i.position,
+							i.orientation, i.mass,
+							i.velocity, i.id)
+					objects.append(f)
 				self.networkThread.objdataToAdd.remove(i)
 			self.physics.updateObjects(objects)
 			self.graphics.draw(objects)
@@ -338,6 +344,16 @@ class CaveOfDanger:
 #			if self.input.resetKey("KEY_SPACE") == 1:
 #				self.player.jump()
 
+			if self.input.resetKey("KEY_F") == 1:
+				f = Fireball("Fireball 1",
+						(self.player.data.position[0],
+							self.player.data.position[1],
+							self.player.data.position[2] + 1.0),
+						(0.0, 0.0, 0.0), 20, (10.0, 10.0, 0.0))
+				objects.append(f)
+				network.USend(self.networkThread.addr, 2,
+						cPickle.dumps(f.data))
+
 			if self.input.resetKey("KEY_ESCAPE") == 1:
 				self.state_manager.push(self.menu.menu_is_open, None)
 
@@ -363,3 +379,4 @@ class CaveOfDanger:
 			if self.input.resetKey("KEY_K") == 1:
 				self.input.speed -= 100
 
+			self.physics.updateObjects(objects)

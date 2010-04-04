@@ -119,7 +119,7 @@ if __name__ == '__main__':
 							elif type == 7: # stop sound
 								for ad in players:
 									if ad != addr:
-										Network.USend(ad, 6, recvd)
+										Network.USend(ad, 7, recvd)
 					except Exception, e:
 						traceback.print_exc()
 
@@ -148,7 +148,10 @@ if __name__ == '__main__':
 					print "Sending data"
 					lastSend = time.time()
 					print "Sending objdata to", addr
-					Network.USend(addr, 3, cPickle.dumps(objdata, 2))
+					od = []
+					for obj in objects:
+						od.append(obj.data)
+					Network.USend(addr, 3, cPickle.dumps(od, 2))
 
 
 	except:
