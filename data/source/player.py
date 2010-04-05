@@ -3,6 +3,7 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 
 from gameObject import GameObject
 import graphics
+import math
 
 class Player(GameObject):
 	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
@@ -20,6 +21,22 @@ class Player(GameObject):
 	def makeNoise(self):
 		if self.sound:
 			self.sound.Update_Sound()
+
+	def walk(self, main, direction):
+		xrotrad = (main.input.xrot + direction) / 180 * math.pi
+		yrotrad = (main.input.yrot + direction) / 180 * math.pi
+		if main.graphics.spectator:
+			main.input.xpos += math.sin(yrotrad) * main.distance_moved
+			main.input.zpos -= math.cos(yrotrad) * main.distance_moved
+			main.input.ypos -= math.sin(xrotrad) * main.distance_moved
+		else:
+			main.player.data.position = (
+					self.data.position[0] \
+							+ math.sin(yrotrad) * main.distance_moved,
+					self.data.position[1],
+					self.data.position[2] \
+							- math.cos(yrotrad) * main.distance_moved
+					)
 
 	def jump(self):
 		if self.data.velocity[1] == 0:

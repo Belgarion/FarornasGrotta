@@ -2,12 +2,6 @@ import cPickle, math, os, os.path, pygame, pyopenal, uuid
 
 from network import USend
 
-class PlayerSoundData:
-	def __init__(self):
-		self.running_uuid = None
-		self.attack_uuid = None
-		self.fireball_uuid = None
-
 class CSound:
 	def __init__(self, main, frequency = 0, autoload = False):
 		self.soundlist = []
@@ -19,7 +13,11 @@ class CSound:
 
 		self.main = main
 
-		self.data = PlayerSoundData()
+		self.data = {
+						'Run' : {'UUID': None, 'Position': (0.0, 0.0, 0.0)},
+						'Fireball' : {'UUID': None, 'Position': (0.0, 0.0, 0.0)},
+						'Attack' : {'UUID': None, 'Position': (0.0, 0.0, 0.0)}
+					}
 
 		# TODO: Just for testing, normaly we wanna call this on our own?
 		if frequency:
@@ -148,7 +146,6 @@ class CSound:
 
 			self.Del_Sound(uuid)
 
-	# TODO: Needs to be triggered from other game objects
 	def Del_Sound(self, uuid):
 		if self.Source_Exist(uuid):
 			source = self.Find_Source(uuid)
@@ -168,7 +165,7 @@ class CSound:
 
 			if source.get_state() == pyopenal.AL_PLAYING:
 
-				xrotate = main.player.orientation[0]
+				xrotate = self.main.player.orientation[0]
 
 				my_x = (real_x*math.cos(xrotate)) + (real_z*math.sin(xrotate))
 				my_z = (real_z*math.cos(xrotate)) - (real_x*math.sin(xrotate))

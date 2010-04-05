@@ -6,7 +6,6 @@ import time
 import threading
 import traceback
 from octree import *
-from Global import *
 
 class Input():
 	def __init__(self, main):

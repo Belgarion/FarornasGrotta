@@ -11,7 +11,6 @@ import OpenGL
 import logging
 
 import thread
-from Global import Global
 from main import *
 from graphics import *
 
