@@ -18,6 +18,16 @@ import random
 
 from water import Water
 
+class Object:
+	def __init__(self, vertices, vnormals, faces, vertexCount):
+		self.vertices = vertices
+		self.vnormals = vnormals
+		self.faces = faces
+		self.vertexCount = vertexCount
+
+class Objects:
+	loadedObjects = {}
+
 def init_opengl(main):
 	if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
@@ -56,6 +66,10 @@ def init_opengl(main):
 
 	glEnable(GL_NORMALIZE)
 def loadObj(filename):
+	if filename in Objects.loadedObjects:
+		obj = Objects.loadedObjects[filename]
+		return (obj.vertices, obj.vnormals, obj.faces, obj.vertexCount)
+
 	f = open(filename, "r")
 	lines = f.readlines()
 	f.close()
@@ -138,6 +152,8 @@ def loadObj(filename):
 		vnormals[nIndex + 2, 2] = vn[i[2]][2]
 		nIndex += 3
 
+	obj = Object(vertices, vnormals, (facesv, facest, facesn), vertexCount)
+	Objects.loadedObjects[filename] = obj
 	return (vertices, vnormals, (facesv, facest, facesn), vertexCount)
 class CVector3:
 	def __init__(self, x, y, z):
