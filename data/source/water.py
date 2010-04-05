@@ -7,12 +7,13 @@ from OpenGL.GL.ARB.vertex_buffer_object import *
 from OpenGL.GL.ARB.shader_objects import *
 from OpenGL.GL.ARB.vertex_shader import *
 import time
+import graphics
 
 class Water:
 	def __init__(self):
 		meshVertices, self.vertexCount, meshNormals = self.generateMesh()
 		self.verticesId, self.normalsId = \
-				self.bindVBO(meshVertices, meshNormals)
+				graphics.createVBO(meshVertices, meshNormals)
 		self.initShader()
 		#
 	def initShader(self):
@@ -195,20 +196,6 @@ class Water:
 
 		return (mesh, nIndex, normals)
 		#
-	def bindVBO(self, vertices, normals):
-		verticesId = glGenBuffersARB(1)
-		normalsId = glGenBuffersARB(1)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertices, GL_STATIC_DRAW_ARB)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, normals, GL_STATIC_DRAW_ARB)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
-
-		return (verticesId, normalsId)
-		#
 	def draw(self):
 		glPushMatrix()
 
@@ -224,26 +211,9 @@ class Water:
 		loc = glGetUniformLocation(self.program,'time')
 		glUniform1f(loc, time.time() % 360)
 
-		self.drawVBO(self.verticesId, self.vertexCount, self.normalsId)
+		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
 		glUseProgramObjectARB(0)
 
 		glPopMatrix()
-		#
-	def drawVBO(self, verticesId, vertexCount, normalsId = None):
-		glEnableClientState(GL_VERTEX_ARRAY)
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, verticesId)
-		glVertexPointer(3, GL_FLOAT, 0, None)
-
-		if (self.normalsId != None):
-			glEnableClientState(GL_NORMAL_ARRAY)
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalsId)
-			glNormalPointer(GL_FLOAT, 0, None)
-
-		glDrawArrays(GL_TRIANGLES, 0, vertexCount)
-
-		glDisableClientState(GL_VERTEX_ARRAY)
-		if (self.normalsId != None):
-			glDisableClientState(GL_NORMAL_ARRAY)
 		#

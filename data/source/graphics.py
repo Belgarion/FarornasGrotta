@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
+
 try:
 	import numpy as Numeric
 except:
@@ -55,8 +56,6 @@ def init_opengl(main):
 	###########
 
 	glEnable(GL_NORMALIZE)
-
-
 def loadObj(filename):
 	f = open(filename, "r")
 	lines = f.readlines()
