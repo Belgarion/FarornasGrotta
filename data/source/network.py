@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import threading
-import socket
-import traceback
-import struct
-import select
-import cPickle
+import threading, socket, traceback, struct, select, cPickle
+
+# TODO: This fits in here as much as it fits in main ^^, but going to fix this
+from gingerbreadMonster import GingerbreadMonster
+from player import Player
 
 uSock = 0
 tSock = 0
@@ -78,39 +77,41 @@ def URecv():
 	type = None
 	msg = ""
 
+	debug = 0
+
 	data, addr = uSock.recvfrom(65500)
 
 	if len(data) > 5:
-		print "UDP packet received"
+		if debug: print "UDP packet received"
 		udpSeq = ord(data[0])
-		print "UDP Sequence:",udpSeq
+		if debug: print "UDP Sequence:",udpSeq
 
 		type = ord(data[1])
 		if type in typeDict:
-			print ("Type: (%i) %s" % (type, typeDict[type]))
+			if debug: print ("Type: (%i) %s" % (type, typeDict[type]))
 		else:
-			print "Unknown type:",type
+			if debug: print "Unknown type:",type
 
 		length = struct.unpack("I", data[2:6])[0]
-		print "Length:", length
-		print "len(data):", len(data)
+		if debug: print "Length:", length
+		if debug: print "len(data):", len(data)
 		if length > 0:
 			if length < (len(data) - 6):
-				print "length < (len(data) - 6)"
+				if debug: print "length < (len(data) - 6)"
 				#if player.buf != "": msg = buf
 				msg += data[6:6+length]
 			else:
 				# Save in players buffer
 				# Should be appended to list?
 				msg += data[6:6+length]
-				#print "Message:", data[6:6+length]
+				if debug: print "Message:", data[6:6+length]
 				while length > len(data) - 6:
-					print "aoeu"
+					if debug: print "aoeu"
 					data, addr = uSock.recvfrom(10)
-					print "aa"
-					print len(data)
+					if debug: print "aa"
+					if debug: print len(data)
 					length -= len(data) - 6
-					print "Message:", data[6:6+length]
+					if debug: print "Message:", data[6:6+length]
 
 	return (type, msg, addr)
 def TRecv(sock, size):
@@ -134,8 +135,41 @@ class NetworkThread(threading.Thread):
 		self.addr = ('', 0)
 		self.running = True
 		self.objdataToAdd = []
+
+		self.debug = 0
+
 	def run(self):
 		self.handleNetwork()
+
+	def addNewObjects(self):
+		# TODO: from gingerbreadMonster import GingerbreadMonster
+		for i in self.objdataToAdd:
+			if i.type == "Player":
+				if self.debug: print "Append a player!"
+				p = Player("Player 2",
+						i.position,
+						i.orientation,
+						i.mass, i.id)
+				self.main.objects.append(p)
+
+			elif i.type == "GingerbreadMonster":
+				if self.debug: print "Append a monster!"
+				g = GingerbreadMonster(
+						"GingerbreadMonster",
+						"Gingerbread 1",
+						i.position,
+						i.orientation,
+						i.mass, self.main.objects, False, i.id)
+				self.main.objects.append(g)
+
+			elif i.type == "Fireball":
+				f = Fireball(i.name, i.position,
+						i.orientation, i.mass,
+						i.velocity, i.id)
+				self.main.objects.append(f)
+			self.objdataToAdd.remove(i)
+
+
 	def handleNetwork(self):
 		lastSend = 0
 		myAddr = ('', 0)
@@ -145,18 +179,18 @@ class NetworkThread(threading.Thread):
 			read_sockets, write_sockets, error_sockets = \
 					select.select([uSock, tSock], [], [], 0.05)
 			for sock in read_sockets:
-				print sock,"is ready for reading"
+				if self.debug: print sock,"is ready for reading"
 				if sock == uSock:
 					type, recvd, addr = URecv()
-					print "len(recvd) =", len(recvd)
+					if self.debug: print "len(recvd) =", len(recvd)
 					if len(recvd) == 0: continue
 
 					if type == 0:
-						print "Connected"
+						if self.debug: print "Connected"
 						myAddr = cPickle.loads(recvd)
 
 					elif type == 3:
-						print "Object data received"
+						if self.debug: print "Object data received"
 
 						objects = self.physics.objects
 						objdata = cPickle.loads(recvd)
@@ -201,7 +235,7 @@ class NetworkThread(threading.Thread):
 
 						self.physics.updateObjects(objects)
 						for i in objects:
-							print i.data.position
+							if self.debug: print i.data.position
 					elif type == 6: # start sound
 						data = cPickle.loads(recvd)
 

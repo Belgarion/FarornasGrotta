@@ -24,6 +24,7 @@ class CSound:
 			self.Init_Sound(frequency)
 
 		# TODO: Just for testing, normaly it will load sounds depending on the map
+		#       Means that this is server based
 		if autoload:
 			self.Load_All_Sounds()
 
@@ -76,9 +77,25 @@ class CSound:
 			if source.get_state() == pyopenal.AL_PLAYING:
 				return True
 			return False
+		return None
 
 	def Test_Source(self, source):
 		return not source == None
+
+	def FadeOut_Sound(self, uuid, seconds = 1.0):
+		source = Find_Source(uuid)
+
+		volume = source.get_volume()
+
+		#source.
+		
+
+	def FadeIn_Sound(self, uuid, seconds = 1.0):
+		source = Find_Source(uuid)
+
+		volume = source.get_volume()
+
+		#source.fadeconstant = volume / seconds
 
 	def Stop_Sound(self, uuid):
 		source = self.Find_Source(uuid)
@@ -94,6 +111,9 @@ class CSound:
 
 			# Give it a UUID
 			source.uuid = uuid.uuid4().hex
+
+			# For fadeing the sound
+			source.fadeconstant = 0.0
 
 			# Fetch the bufferdata and load it into our object
 			source.buffer = self.soundlist[self.soundalias.index(soundalias)]
@@ -118,8 +138,7 @@ class CSound:
 
 		return None
 
-	def Add_Sound(self, soundalias, uuid, loop = False, \
-			position = (0.0, 0.0, 0.0)):
+	def Add_Sound(self, soundalias, uuid, loop = False, position = (0.0, 0.0, 0.0)):
 		if not self.Source_Exist(uuid):
 			# Create the source object and append it to our soundlist
 			source = pyopenal.Source()
@@ -127,6 +146,9 @@ class CSound:
 
 			# Give it the right UUID
 			source.uuid = uuid
+
+			# For fadeing the sound
+			source.fadeconstant = 0.0
 
 			# Fetch the bufferdata and load it into our object
 			source.buffer = self.soundlist[self.soundalias.index(soundalias)]
@@ -155,9 +177,8 @@ class CSound:
 
 
 	# TODO: Load this as a loop into the processmanger or something,
-	# 		we dont wanna waste time here.
-	#		But we wanna have so we can turn our head and
-	#		still have the sound correctly
+	# 		we dont wanna waste time here. But we wanna have so we 
+	#		can turn our head and still have the sound correctly
 	def Update_Sound(self):
 		for source in self.sourcelist:
 			real_x = source.position[0]

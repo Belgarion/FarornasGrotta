@@ -16,12 +16,10 @@ from sound import *
 
 from ProcessManager import *
 from StateManager import *
-from CallbackManager import *
+from TriggerManager import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
-from gingerbreadMonster import GingerbreadMonster
 
 # Move window from so fps displayed on xmonad
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200)
@@ -131,7 +129,7 @@ class CaveOfDanger:
 
 		self.process_manager = ProcessManager()
 		self.state_manager = StateManager()
-		self.callback_manager = CallbackManager()
+		self.trigger_manager = TriggerManager(self)
 
 		self.menu = Menu(self)
 		self.state_manager.push(self.quit, None)
@@ -140,11 +138,8 @@ class CaveOfDanger:
 
 		self.physics.updateObjects(self.objects)
 
-		self.callback_manager.Add_Trigger("FUNCTION", [self.player.jump], permanent = True, triggers = {"Keys" : {"KEY_SPACE" : True}})
-		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 0.0], permanent = True, triggers = {"Keys" : {"KEY_W" : False, "KEY_UP" : False}})
-		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, -90.0], permanent = True, triggers = {"Keys" : {"KEY_A" : False, "KEY_LEFT" : False}})
-		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 180.0], permanent = True, triggers = {"Keys" : {"KEY_S" : False, "KEY_DOWN" : False}})
-		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 90.0], permanent = True, triggers = {"Keys" : {"KEY_D" : False, "KEY_RIGHT" : False}})
+		# TODO: Don't ask me, iam an alien
+		self.trigger_manager.Ugly_Function_For_Loading_Main_Keytriggers()
 
 	def checkArgs(self):
 		self.args = {'disableWater': False,
@@ -197,6 +192,7 @@ class CaveOfDanger:
 	def runGame(self, caller, purpose):
 		if purpose is "STOP_PURPOSE":
 			print "game stopping"
+
 		elif purpose is "INIT_PURPOSE":
 			print "game starting"
 			self.graphics.initGL()
@@ -222,34 +218,15 @@ class CaveOfDanger:
 			pygame.event.set_grab(1)
 
 			self.clock = pygame.time.Clock()
-		elif purpose is "FRAME_PURPOSE":
-			#print "game processing"
 
+		elif purpose is "FRAME_PURPOSE":
+			# MUCH CLEANER MAIN LOOP!!
 			objects = self.physics.update()
-			for i in self.networkThread.objdataToAdd:
-				if i.type == "Player":
-					print "Append a player!"
-					p = Player("Player 2",
-							i.position,
-							i.orientation,
-							i.mass, i.id)
-					objects.append(p)
-				elif i.type == "GingerbreadMonster":
-					print "Append a monster!"
-					g = GingerbreadMonster(
-							"GingerbreadMonster",
-							"Gingerbread 1",
-							i.position,
-							i.orientation,
-							i.mass, objects, False, i.id)
-					objects.append(g)
-				elif i.type == "Fireball":
-					f = Fireball(i.name, i.position,
-							i.orientation, i.mass,
-							i.velocity, i.id)
-					objects.append(f)
-				self.networkThread.objdataToAdd.remove(i)
+
+			self.networkThread.addNewObjects()
+
 			self.physics.updateObjects(objects)
+			#self.sound.Update_Sound(objects)
 			self.graphics.draw(objects)
 
 			time_passed = self.clock.tick()
@@ -259,91 +236,11 @@ class CaveOfDanger:
 			self.distance_moved = distance_moved
 
 			# I pass the keys, it can figure out the time-triggers and position-triggers itself
-			self.callback_manager.Check_Triggers(self.input.keys)
+			self.trigger_manager.Check_Triggers(self.input.keys)
 
-			"""
-			walking = False
-			
-			if self.input.keys["KEY_UP"] == 1 or self.input.keys["KEY_W"] == 1:
-				walking = True
-				xrotrad = self.input.xrot / 180 * math.pi
-				yrotrad = self.input.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.input.xpos += math.sin(yrotrad) * distance_moved
-					self.input.zpos -= math.cos(yrotrad) * distance_moved
-					self.input.ypos -= math.sin(xrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									+ math.sin(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									- math.cos(yrotrad) * distance_moved
-							)
-			elif self.input.keys["KEY_DOWN"] == 1 or \
-					self.input.keys["KEY_S"] == 1:
-				walking = True
-				xrotrad = self.input.xrot / 180 * math.pi
-				yrotrad = self.input.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.input.xpos -= math.sin(yrotrad) * distance_moved
-					self.input.zpos += math.cos(yrotrad) * distance_moved
-					self.input.ypos += math.sin(xrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									- math.sin(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									+ math.cos(yrotrad) * distance_moved
-							)
 
-			if self.input.keys["KEY_LEFT"] == 1 or \
-					self.input.keys["KEY_A"] == 1:
-				walking = True
-				yrotrad = self.input.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.input.xpos -= math.cos(yrotrad) * distance_moved
-					self.input.zpos -= math.sin(yrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									- math.cos(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									- math.sin(yrotrad) * distance_moved
-							)
-			elif self.input.keys["KEY_RIGHT"] == 1 or \
-					self.input.keys["KEY_D"] == 1:
-				walking = True
-				yrotrad = self.input.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.input.xpos += math.cos(yrotrad) * distance_moved
-					self.input.zpos += math.sin(yrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									+ math.cos(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									+ math.sin(yrotrad) * distance_moved
-							)
-			
-			if walking:
-				if self.sound.data['Run']['UUID'] == None:
-					self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
-	
-				elif not self.sound.Sound_Is_Playing(self.sound.data['Run']['UUID']):
-					self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
-
-			else:
-				self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
-
-			"""
-
-#			if self.input.resetKey("KEY_SPACE") == 1:
-#				self.player.jump()
-
+			# TODO: I gonna make a trigger for spawning things later also
+			#       just didn't feel like doing it now..
 			if self.input.resetKey("KEY_F") == 1:
 				f = Fireball("Fireball 1",
 						(self.player.data.position[0],
@@ -354,29 +251,5 @@ class CaveOfDanger:
 				network.USend(self.networkThread.addr, 2,
 						cPickle.dumps(f.data))
 
-			if self.input.resetKey("KEY_ESCAPE") == 1:
-				self.state_manager.push(self.menu.menu_is_open, None)
-
-			if self.input.resetKey("KEY_U") == 1:
-				pygame.event.set_grab(0)
-				pygame.mouse.set_visible(1)
-			elif self.input.resetKey("KEY_G") == 1:
-				pygame.event.set_grab(1)
-				pygame.mouse.set_visible(0)
-
-			if self.input.resetKey("KEY_F3") == 1:
-				self.graphics.spectator ^= 1
-
-			if self.input.resetKey("KEY_F6") == 1:
-				self.graphics.toggleDrawAxes ^= 1
-
-			if self.input.resetKey("KEY_F7") == 1:
-				self.graphics.wireframe ^= 1
-
-			if self.input.resetKey("KEY_J") == 1:
-				self.input.speed += 100
-
-			if self.input.resetKey("KEY_K") == 1:
-				self.input.speed -= 100
 
 			self.physics.updateObjects(objects)

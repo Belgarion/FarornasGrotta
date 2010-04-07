@@ -21,21 +21,42 @@ class Player(GameObject):
 		if self.sound:
 			self.sound.Update_Sound()
 
+	def start_walk(self, main, direction):
+		xrotrad = (main.input.xrot + direction) / 180 * math.pi
+		yrotrad = (main.input.yrot + direction) / 180 * math.pi
+
+		main.player.data.position = (
+			self.data.position[0] + math.sin(yrotrad) * main.distance_moved,
+			self.data.position[1],
+			self.data.position[2] - math.cos(yrotrad) * main.distance_moved
+		)
+		#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
+
+		if self.sound.data['Run']['UUID'] == None:
+			self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
+
+		elif not self.sound.Sound_Is_Playing(self.sound.data['Run']['UUID']):
+			self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
+
+	def stop_walk(self):
+		#self.sound.FadeOut_Sound(self.sound.data["Run"]["UUID"])
+		self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
+
 	def walk(self, main, direction):
 		xrotrad = (main.input.xrot + direction) / 180 * math.pi
 		yrotrad = (main.input.yrot + direction) / 180 * math.pi
+
+		# TODO: Spectator is on the wrong place.. make a own object
 		if main.graphics.spectator:
 			main.input.xpos += math.sin(yrotrad) * main.distance_moved
 			main.input.zpos -= math.cos(yrotrad) * main.distance_moved
 			main.input.ypos -= math.sin(xrotrad) * main.distance_moved
 		else:
 			main.player.data.position = (
-					self.data.position[0] \
-							+ math.sin(yrotrad) * main.distance_moved,
-					self.data.position[1],
-					self.data.position[2] \
-							- math.cos(yrotrad) * main.distance_moved
-					)
+				self.data.position[0] + math.sin(yrotrad) * main.distance_moved,
+				self.data.position[1],
+				self.data.position[2] - math.cos(yrotrad) * main.distance_moved
+			)
 
 	def jump(self):
 		if self.data.velocity[1] == 0:

@@ -7,13 +7,6 @@ sys.path.append("data/source/")
 from main import *
 
 def main():
-	print """\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\naoo\n\naaaaaaaaa
-	aaaaaaaaaaa        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  """
 	game = CaveOfDanger()
 
 	game.run()

@@ -17,11 +17,6 @@ class Input():
 		self.keys = {}
 		self.init_keys()
 
-		self.down_pressed = 0
-		self.up_pressed = 0
-		self.left_pressed = 0
-		self.right_pressed = 0
-
 		self.xpos = 0
 		self.zpos = 0
 		self.ypos = 0
@@ -82,69 +77,10 @@ class Input():
 			#if self.main.mainMenuOpen:
 			#	self.menu.current.KeyHandler()
 			#	continue
-			if self.up_pressed:
-				xrotrad = self.xrot / 180 * math.pi
-				yrotrad = self.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.xpos += math.sin(yrotrad) * distance_moved
-					self.zpos -= math.cos(yrotrad) * distance_moved
-					self.ypos -= math.sin(xrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									+ math.sin(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									- math.cos(yrotrad) * distance_moved
-							)
-
-			if self.down_pressed:
-				xrotrad = self.xrot / 180 * math.pi
-				yrotrad = self.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.xpos -= math.sin(yrotrad) * distance_moved
-					self.zpos += math.cos(yrotrad) * distance_moved
-					self.ypos += math.sin(xrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									- math.sin(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									+ math.cos(yrotrad) * distance_moved
-							)
-
-			if self.left_pressed:
-				yrotrad = self.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.xpos -= math.cos(yrotrad) * distance_moved
-					self.zpos -= math.sin(yrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									- math.cos(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									- math.sin(yrotrad) * distance_moved
-							)
-
-			if self.right_pressed:
-				yrotrad = self.yrot / 180 * math.pi
-				if self.graphics.spectator:
-					self.xpos += math.cos(yrotrad) * distance_moved
-					self.zpos += math.sin(yrotrad) * distance_moved
-				else:
-					self.player.data.position = (
-							self.player.data.position[0] \
-									+ math.cos(yrotrad) * distance_moved,
-							self.player.data.position[1],
-							self.player.data.position[2] \
-									+ math.sin(yrotrad) * distance_moved
-							)
 
 			if sys.platform != "win32":
 				self.handle_mouse()
-			# 1 = pressed down, 0 = not pressed down, -1 = pressed down and up but not handled
+			# 1 = pressed down, 0 = unpressed and handled, -1 = pressed down and up but not handled
 			for event in pygame.event.get([pygame.KEYDOWN, pygame.KEYUP]):
 				if event.type == pygame.QUIT:
 					self.main.running = 0
@@ -174,33 +110,6 @@ class Input():
 								self.keys[key] = -1
 							break
 
-					"""
-					elif event.key == pygame.K_F2:
-						self.octree.debugLines = 1
-					elif event.key == pygame.K_F3:
-						self.graphics.spectator ^= 1
-					elif event.key == pygame.K_F6:
-						self.graphics.toggleDrawAxes ^= 1
-					elif event.key == pygame.K_F7:
-						self.graphics.wireframe ^= 1
-					elif event.key == pygame.K_PLUS \
-								or event.key == pygame.K_KP_PLUS:
-						#self.octree.g_MaxSubdivisions += 1
-						COctree.g_MaxSubdivisions += 1
-						self.graphics.reDraw = True
-					elif event.key == pygame.K_MINUS \
-								or event.key == pygame.K_KP_MINUS:
-						if self.octree.g_MaxSubdivisions > 0:
-						COctree.g_MaxSubdivisions -= 1
-						self.main.graphics.reDraw = True
-					elif pygame.key.name(event.key) == self.translate("KEY_J"):
-						self.speed += 100
-					elif pygame.key.name(event.key) == self.translate("KEY_K"):
-						self.speed -= 100
-					elif event.key == pygame.K_SPACE:
-						self.player.jump()
-
-					"""
 			time_passed = clock.tick()
 			time_passed_seconds = time_passed / 1000.0
 
