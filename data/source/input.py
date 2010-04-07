@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-import pygame
-import math
-import sys
-import time
-import threading
-import traceback
-from octree import *
+import pygame, math, sys, time, threading, traceback
 
 class Input():
 	def __init__(self, main):
