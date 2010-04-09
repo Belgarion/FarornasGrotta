@@ -10,7 +10,7 @@ class Player(GameObject):
 			orientation = (0.0, 180.0, 0.0), mass = 100, guid = None, \
 			sound = None):
 		GameObject.__init__(self, "Player", name, position,
-				orientation, mass, (0.0, 0.0, 0.0), guid)
+				orientation, mass, (0.0, 0.0, 0.0), guid, "data/model/player1.obj")
 
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")

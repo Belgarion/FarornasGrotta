@@ -150,7 +150,15 @@ class NetworkThread(threading.Thread):
 						i.position,
 						i.orientation,
 						i.mass, i.id)
+
+				# TODO: Do a function/class that add it to every list we need...
 				self.main.objects.append(p)
+				self.main.octree.insertNode(
+					self.main.octree.root,
+					self.main.octree.worldSize,
+					self.main.octree.root,
+					p
+				)
 
 			elif i.type == "GingerbreadMonster":
 				if self.debug: print "Append a monster!"
@@ -161,12 +169,23 @@ class NetworkThread(threading.Thread):
 						i.orientation,
 						i.mass, self.main.objects, False, i.id)
 				self.main.objects.append(g)
-
+				self.main.octree.insertNode(
+					self.main.octree.root,
+					self.main.octree.worldSize,
+					self.main.octree.root,
+					g
+				)
 			elif i.type == "Fireball":
 				f = Fireball(i.name, i.position,
 						i.orientation, i.mass,
 						i.velocity, i.id)
 				self.main.objects.append(f)
+				self.main.octree.insertNode(
+					self.main.octree.root,
+					self.main.octree.worldSize,
+					self.main.octree.root,
+					f
+				)
 			self.objdataToAdd.remove(i)
 
 

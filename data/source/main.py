@@ -114,7 +114,7 @@ class CaveOfDanger:
 		self.data = Data()
 		self.object_manager = ObjectManager()
 		self.physics = Physics(self)
-		self.octree = COctree()
+		self.octree = Octree(100.0, self)
 		self.graphics = Graphics(self)
 		self.input = Input(self)
 		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
@@ -197,9 +197,20 @@ class CaveOfDanger:
 			print "game starting"
 			self.graphics.initGL()
 
-			self.graphics.addSurface(0, \
-					"data/model/terrain.obj", \
-					"data/image/grass.jpg")
+			terrain = "data/model/terrain.obj"
+
+			self.graphics.addSurface(0, terrain, "data/image/grass.jpg")
+
+
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player().data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-10.0, 20.0, -20.0)).data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-15.0, 20.0, -20.0)).data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-20.0, 20.0, -20.0)).data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-30.0, 20.0, -20.0)).data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-35.0, 20.0, -20.0)).data)
+			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-40.0, 20.0, -20.0)).data)
+
+
 			self.graphics.loadStaticObject(50, 0, 50, "data/model/cave.obj", \
 				"data/image/img2.png")
 
@@ -225,9 +236,14 @@ class CaveOfDanger:
 
 			self.networkThread.addNewObjects()
 
+
+			self.octree.checkCollision(self.octree.root, self.player.data.position)
+			#self.octree.handleCollision()
+
 			self.physics.updateObjects(objects)
 			#self.sound.Update_Sound(objects)
 			self.graphics.draw(objects)
+
 
 			time_passed = self.clock.tick()
 			time_passed_seconds = time_passed / 1000.0
@@ -237,19 +253,3 @@ class CaveOfDanger:
 
 			# I pass the keys, it can figure out the time-triggers and position-triggers itself
 			self.trigger_manager.Check_Triggers(self.input.keys)
-
-
-			# TODO: I gonna make a trigger for spawning things later also
-			#       just didn't feel like doing it now..
-			if self.input.resetKey("KEY_F") == 1:
-				f = Fireball("Fireball 1",
-						(self.player.data.position[0],
-							self.player.data.position[1],
-							self.player.data.position[2] + 1.0),
-						(0.0, 0.0, 0.0), 20, (10.0, 10.0, 0.0))
-				objects.append(f)
-				network.USend(self.networkThread.addr, 2,
-						cPickle.dumps(f.data))
-
-
-			self.physics.updateObjects(objects)

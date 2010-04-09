@@ -1,12 +1,15 @@
 import pygame, time
 
+#TODO: Delete this too
+from fireball import *
+
 class Dummy:
 	pass
 
 # FROM input.py
-#    1   = pressed down
-#    0   = unpressed and handled
-#   -1   = pressed down and up but not handled
+# 1		= pressed down
+# 0		= unpressed and handled
+# -1	= pressed down and up but not handled
 class TriggerManager:
 	def __init__(self, main):
 		self.timer_triggers = []
@@ -181,6 +184,31 @@ class TriggerManager:
 		)
 
 		self.Add_Trigger(
+			triggers = {"Keys" : {"KEY_F" : True}},
+			trigger_settings = [
+				["EXECUTE",	
+"f = Fireball(\"Fireball 1\", \n\
+	(self.main.player.data.position[0], \n\
+	self.main.player.data.position[1], \n\
+	self.main.player.data.position[2] + 1.0), \n\
+	(0.0, 0.0, 0.0), 20, (10.0, 10.0, 0.0)) \n\
+\n\
+self.main.objects.append(f) \n\
+\n\
+import cPickle\n\
+from network import *\n\
+\n\
+USend(self.main.networkThread.addr, 2, \n\
+cPickle.dumps(f.data))"
+				]
+			],
+			callback_settings = [
+				#["FUNCTION", self.main.player.stop_walk]
+			],
+			permanent = True
+		)
+
+		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_ESCAPE" : True}},
 			trigger_settings = [["FUNCTION", self.main.state_manager.push, self.main.menu.menu_is_open, None]],
 
@@ -208,6 +236,20 @@ class TriggerManager:
 		)
 
 		self.Add_Trigger(
+			triggers = {"Keys" : {"KEY_F1" : True}},
+			trigger_settings = [["EXECUTE", "self.main.player.data.position = (0.0, 0.0, -40.0)"]],
+
+			permanent = True
+		)
+
+		self.Add_Trigger(
+			triggers = {"Keys" : {"KEY_F2" : True}},
+			trigger_settings = [["EXECUTE", "self.main.octree.debugLines ^= 1"]],
+
+			permanent = True
+		)
+
+		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F3" : True}},
 			trigger_settings = [["EXECUTE", "self.main.graphics.spectator ^= 1"]],
 
@@ -222,7 +264,7 @@ class TriggerManager:
 		)
 
 		self.Add_Trigger(
-			triggers = {"Keys" : {"KEY_F3" : True}},
+			triggers = {"Keys" : {"KEY_F7" : True}},
 			trigger_settings = [["EXECUTE", "self.main.graphics.wireframe ^= 1"]],
 
 			permanent = True
@@ -242,3 +284,20 @@ class TriggerManager:
 			permanent = True
 		)
 
+		self.Add_Trigger(
+			triggers = {"Keys" : {"KEY_+" : True, "KEY_KP_PLUS" : True}},
+			trigger_settings = [
+				["EXECUTE", "self.main.graphics.reDraw = True"]
+			],
+
+			permanent = True
+		)
+
+		self.Add_Trigger(
+			triggers = {"Keys" : {"KEY_-" : True, "KEY_KP_MINUS" : True}},
+			trigger_settings = [
+				["EXECUTE", "self.main.graphics.reDraw = True"]
+			],
+
+			permanent = True
+		)

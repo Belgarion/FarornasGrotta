@@ -24,7 +24,7 @@ class CSound:
 			self.Init_Sound(frequency)
 
 		# TODO: Just for testing, normaly it will load sounds depending on the map
-		#       Means that this is server based
+		#		Means that this is server based
 		if autoload:
 			self.Load_All_Sounds()
 

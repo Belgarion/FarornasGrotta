@@ -8,8 +8,10 @@ class Physics:
 		self.objects = []
 		self.lastTime = time.time()
 		self.isClient = True
+
 	def updateObjects(self, objects):
 		self.objects = objects
+
 	def update(self):
 		self.time = time.time()
 		relTime = self.lastTime-self.time
@@ -25,6 +27,7 @@ class Physics:
 		self.lastTime = time.time()
 
 		return self.objects
+
 	def updatePos(self, obj, relTime):
 		velocity = obj.data.velocity
 		mass = obj.data.mass
