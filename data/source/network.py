@@ -146,7 +146,7 @@ class NetworkThread(threading.Thread):
 		# TODO: from gingerbreadMonster import GingerbreadMonster
 		objects = self.physics.objects
 		for i in self.objdataToAdd:
-			if i.type == "Player":
+			if i.type == "player1":
 				if self.debug: print "Append a player!"
 				p = Player(i.name,
 						i.position,
@@ -233,6 +233,8 @@ class NetworkThread(threading.Thread):
 								continue
 
 							for od in objdata:
+								if od.id == self.player.data.id:
+									continue
 								if obj.data.id == od.id:
 									obj.data = od
 									exists = True
