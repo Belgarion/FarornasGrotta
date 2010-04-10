@@ -4,6 +4,7 @@ import threading, socket, traceback, struct, select, cPickle
 # TODO: This fits in here as much as it fits in main ^^, but going to fix this
 from gingerbreadMonster import GingerbreadMonster
 from player import Player
+from fireball import Fireball
 
 uSock = 0
 tSock = 0
@@ -150,7 +151,7 @@ class NetworkThread(threading.Thread):
 				p = Player(i.name,
 						i.position,
 						i.orientation,
-						i.mass, i.id)
+						i.scale, i.mass, i.id)
 
 				# TODO: Do a function/class that add it to every list we need...
 				objects.append(p)
@@ -170,18 +171,16 @@ class NetworkThread(threading.Thread):
 						i.orientation,
 						i.scale,
 						i.mass, self.main.objects, False, i.id)
-				print "Added with id",i.id
-				print "Got id",g.data.id
 				objects.append(g)
-				"""self.main.octree.insertNode(
+				self.main.octree.insertNode(
 					self.main.octree.root,
 					self.main.octree.worldSize,
 					self.main.octree.root,
 					g.data
-				)"""
+				)
 			elif i.type == "Fireball":
 				f = Fireball(i.name, i.position,
-						i.orientation, i.mass,
+						i.orientation, i.scale, i.mass,
 						i.velocity, i.id)
 				objects.append(f)
 				self.main.octree.insertNode(
@@ -240,7 +239,6 @@ class NetworkThread(threading.Thread):
 
 							if not exists and \
 									obj.data.id != self.main.player.data.id:
-								print "Remove object",obj,obj.data.id
 								objects.remove(obj)
 
 						for i in objdata:
@@ -254,7 +252,6 @@ class NetworkThread(threading.Thread):
 									break
 
 							if i.id not in added and not alreadyAdded:
-								print "Add object", i.id
 								self.objdataToAdd.append(i)
 
 						self.physics.updateObjects(objects)

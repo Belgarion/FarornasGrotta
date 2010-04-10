@@ -58,8 +58,6 @@ def spawnMonsters():
 				gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
 			gingerbreadIntelligenceThread.start()
 			threads.append(gingerbreadIntelligenceThread)
-
-			print "GB: ",gingerbreadMonster.data.id
 		elif object[0] == "some other monster":
 			pass
 

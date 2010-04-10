@@ -191,7 +191,7 @@ class TriggerManager:
 	(self.main.player.data.position[0], \n\
 	self.main.player.data.position[1], \n\
 	self.main.player.data.position[2] + 1.0), \n\
-	(0.0, 0.0, 0.0), 20, (10.0, 10.0, 0.0)) \n\
+	(0.0, 0.0, 0.0), 0.1, 20, (10.0, 10.0, 0.0)) \n\
 \n\
 self.main.objects.append(f) \n\
 \n\
