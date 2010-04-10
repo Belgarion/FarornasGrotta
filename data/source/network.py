@@ -234,6 +234,7 @@ class NetworkThread(threading.Thread):
 
 							for od in objdata:
 								if obj.data.id == od.id:
+									obj.data = od
 									exists = True
 									break
 

@@ -185,4 +185,5 @@ if __name__ == '__main__':
 
 	#Global.quit = True
 	for i in threads:
+		i.quit = True
 		if i.isAlive(): i.join()

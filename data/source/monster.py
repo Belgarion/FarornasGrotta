@@ -66,9 +66,10 @@ class Monster(GameObject):
 	class IntelligenceThread(threading.Thread):
 		def __init__(self, monster):
 			self.monster = monster
+			self.quit = False
 			threading.Thread.__init__(self)
 
 		def run(self):
-			while True:
+			while not self.quit:
 				self.monster.intelligence()
 				time.sleep(0.01)

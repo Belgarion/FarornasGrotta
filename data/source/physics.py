@@ -89,7 +89,9 @@ class Physics:
 		# actually put att zero to not crap with the check for can jump
 		if new_pos[1] < 0:
 			obj.data.velocity = obj.data.velocity[0], 0, obj.data.velocity[2]
-
+		
+		if os.path.basename(sys.argv[0]) == "server.py":
+			obj.data.position = new_pos
 
 		return obj
 

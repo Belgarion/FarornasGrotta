@@ -25,9 +25,10 @@ class GingerbreadMonster(Monster):
 			self.data.velocity = (0.0, 0.0, 0.0)
 
 		distance = 1000000.0
+
 		for i in self.objects:
 			# Find the closest player
-			if i.data.type == "Player":
+			if i.data.type == "player1":
 				dx = self.data.position[0] - i.data.position[0]
 				dy = self.data.position[1] - i.data.position[1]
 				dz = self.data.position[2] - i.data.position[2]
@@ -42,7 +43,6 @@ class GingerbreadMonster(Monster):
 
 		if self.playerToFollow == None:
 			#print "No one to follow"
-			#print self.objects
 			self.data.velocity = (0.0, self.data.velocity[1], 0.0)
 			return
 
