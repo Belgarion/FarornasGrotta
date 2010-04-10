@@ -22,7 +22,7 @@
 #### Global Variables ####
 
 # This defines the maximum objects an LeafNode can hold, before it gets subdivided again.
-MAX_OBJECTS_PER_CUBE = 2
+MAX_OBJECTS_PER_CUBE = 5
 
 # This dictionary is used by the findBranch function, to return the correct branch index
 DIRLOOKUP = {"3":0, "2":1, "-2":2, "-1":3, "1":4, "0":5, "-4":6, "-3":7}
