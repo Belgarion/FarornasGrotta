@@ -103,8 +103,6 @@ class Physics:
 					(obj.position[0], obj.position[1],obj.position[2]) )
 				if dist < 5:
 					return True
-			
-				
 		return False
 
 	def dist_between_points(self,point1, point2):

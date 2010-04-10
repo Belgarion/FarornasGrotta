@@ -188,7 +188,6 @@ class CaveOfDanger:
 			# MUCH CLEANER MAIN LOOP!!
 			objects = self.physics.update()
 
-		
 			rel = self.input.yrot - self.player.rotated
 			self.player.rotated += rel
 			if not self.graphics.spectator:
