@@ -16,10 +16,15 @@ from sound import *
 
 from ProcessManager import *
 from StateManager import *
-from TriggerManager import *
+from CallbackManager import *
+
+from gameObject import *
+from object import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import time
+from gingerbreadMonster import GingerbreadMonster
 
 # Move window from so fps displayed on xmonad
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (200,200)
@@ -52,7 +57,6 @@ def init_pygame(main):
 
 class CaveOfDanger:
 	def __init__(self):
-		self.objects = []
 		self.running = 1
 
 		self.checkArgs()
@@ -62,17 +66,16 @@ class CaveOfDanger:
 		init_pygame(self)
 		init_opengl(self)
 
-		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
-
-		self.player = Player(sound = self.sound)
-	
-		
+		self.data = Data()
+		self.object_manager = ObjectManager()
 		self.physics = Physics(self)
-		self.octree = self.physics.octree
+		self.octree = COctree()
 		self.graphics = Graphics(self)
 		self.input = Input(self)
-		
-		self.objects.append(self.player)
+		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
+
+		self.player = Player(self,sound = self.sound)
+		self.object_manager.objects.append(self.player.object)
 
 		self.input_thread = InputThread(self.input)
 		self.input_thread.start()
@@ -81,19 +84,20 @@ class CaveOfDanger:
 
 		self.process_manager = ProcessManager()
 		self.state_manager = StateManager()
-		self.trigger_manager = TriggerManager(self)
+		self.callback_manager = CallbackManager()
 
 		self.menu = Menu(self)
 		self.state_manager.push(self.quit, None)
 		self.state_manager.push(self.menu.menu_is_open, None)
 		self.state_manager.process(None)
 
-		self.physics.updateObjects(self.objects)
-		
-		self.fpsTime = time.time()
+		self.physics.updateObjects(self.object_manager.objects)
 
-		# TODO: Don't ask me, iam an alien
-		self.trigger_manager.Ugly_Function_For_Loading_Main_Keytriggers()
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.jump], permanent = True, triggers = {"Keys" : {"KEY_SPACE" : True}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 0.0], permanent = True, triggers = {"Keys" : {"KEY_W" : False, "KEY_UP" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, -90.0], permanent = True, triggers = {"Keys" : {"KEY_A" : False, "KEY_LEFT" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 180.0], permanent = True, triggers = {"Keys" : {"KEY_S" : False, "KEY_DOWN" : False}})
+		self.callback_manager.Add_Trigger("FUNCTION", [self.player.walk, self, 90.0], permanent = True, triggers = {"Keys" : {"KEY_D" : False, "KEY_RIGHT" : False}})
 
 	def checkArgs(self):
 		self.args = {'disableWater': False,
@@ -146,28 +150,12 @@ class CaveOfDanger:
 	def runGame(self, caller, purpose):
 		if purpose is "STOP_PURPOSE":
 			print "game stopping"
-
 		elif purpose is "INIT_PURPOSE":
 			print "game starting"
-			self.graphics.initGL()
+			self.graphics.init_game()
 
-			terrain = "data/model/terrain.obj"
-
-			self.graphics.addSurface(0, terrain, "data/image/grass.jpg")
-
-			"""
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player().data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-10.0, 20.0, -20.0)).data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-15.0, 20.0, -20.0)).data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-20.0, 20.0, -20.0)).data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-30.0, 20.0, -20.0)).data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-35.0, 20.0, -20.0)).data)
-			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-40.0, 20.0, -20.0)).data)
-			"""
-
-			self.graphics.loadStaticObject(50, 0, 50, "data/model/cave.obj", \
-				"data/image/img2.png")
-
+			self.physics.lastTime = time.time()
+			self.fpsTime = 0
 			if self.args['host'] != None:
 				try:
 					self.networkThread.addr = \
@@ -177,43 +165,58 @@ class CaveOfDanger:
 				except:
 					traceback.print_exc()
 
-			self.physics.lastTime = time.time()
 
 			pygame.mouse.set_visible(0)
 			pygame.event.set_grab(0)
-
 			self.clock = pygame.time.Clock()
-
 		elif purpose is "FRAME_PURPOSE":
-			# MUCH CLEANER MAIN LOOP!!
-			objects = self.physics.update()
-
-		
 			rel = self.input.yrot - self.player.rotated
 			self.player.rotated += rel
 			if not self.graphics.spectator:
-					self.player.data.orientation = (
-							self.player.data.orientation[0],
-							(self.player.data.orientation[1] \
+					self.player.object.orientation = (
+							self.player.object.orientation[0],
+							(self.player.object.orientation[1] \
 									- rel) % 360,
-							self.player.data.orientation[2]
+							self.player.object.orientation[2]
 							)
-
-
-			self.networkThread.addNewObjects()
+			
 			if time.time() - self.fpsTime >= 1.0:
 				self.fpsTime = time.time()
 				self.graphics.printFPS()
-
-
-			#self.physics.octree.checkCollision(self.octree.root, self.player.data.position)
-			#self.physics.handleCollision()
-
-			self.physics.updateObjects(objects)
-			#self.sound.Update_Sound(objects)
-			self.graphics.draw(objects)
-
-
+			#print "game processing"
+			self.physics.updateObjects(self.object_manager.objects)
+			self.object_manager.objects = self.physics.update()
+			objects = self.object_manager.objects
+			
+			
+			for i in self.networkThread.objdataToAdd:
+				if i.type == "Player":
+					p = Player(self,"Player 2",
+							i.position,
+							i.orientation,
+							i.mass, i.id)
+					objects.append(p)
+				elif i.type == "monster1":
+					g = Object(
+							i.type,
+							i.name,
+							i.position,
+							i.orientation,
+							i.scale,
+							i.mass, 
+							i.velocity,
+							i.id)
+					objects.append(g)
+					self.physics.add_object(g)
+				elif i.type == "Fireball":
+					f = Fireball(i.name, i.position,
+							i.orientation, i.mass,
+							i.velocity, i.id, i.scale)
+					objects.append(f)
+				self.networkThread.objdataToAdd.remove(i)
+			self.object_manager.objects = objects
+			self.graphics.draw(self.object_manager.objects)
+			
 			time_passed = self.clock.tick()
 			time_passed_seconds = time_passed / 1000.0
 
@@ -221,4 +224,45 @@ class CaveOfDanger:
 			self.distance_moved = distance_moved
 
 			# I pass the keys, it can figure out the time-triggers and position-triggers itself
-			self.trigger_manager.Check_Triggers(self.input.keys)
+			self.callback_manager.Check_Triggers(self.input.keys)
+
+			
+#			if self.input.resetKey("KEY_SPACE") == 1:
+#				self.player.jump()
+
+			if self.input.resetKey("KEY_F") == 1:
+				f = Fireball("Fireball 1",
+						(self.player.object.position[0],
+							self.player.object.position[1],
+							self.player.object.position[2] + 1.0),
+						(0.0, 0.0, 0.0), 20, (10.0, 10.0, 0.0))
+				objects.append(f)
+				network.USend(self.networkThread.addr, 2,
+						cPickle.dumps(f.data))
+
+			if self.input.resetKey("KEY_ESCAPE") == 1:
+				self.state_manager.push(self.menu.menu_is_open, None)
+
+			if self.input.resetKey("KEY_U") == 1:
+				pygame.event.set_grab(0)
+				pygame.mouse.set_visible(1)
+			elif self.input.resetKey("KEY_G") == 1:
+				pygame.event.set_grab(1)
+				pygame.mouse.set_visible(0)
+
+			if self.input.resetKey("KEY_F3") == 1:
+				self.graphics.spectator ^= 1
+
+			if self.input.resetKey("KEY_F6") == 1:
+				self.graphics.toggleDrawAxes ^= 1
+
+			if self.input.resetKey("KEY_F7") == 1:
+				self.graphics.wireframe ^= 1
+
+			if self.input.resetKey("KEY_J") == 1:
+				self.input.speed += 100
+
+			if self.input.resetKey("KEY_K") == 1:
+				self.input.speed -= 100
+
+			self.physics.updateObjects(objects)

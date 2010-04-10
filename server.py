@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import cPickle
 import sys
 import time
@@ -19,21 +20,47 @@ from gameObject import GameObject
 objects = []
 threads = []
 
+def load_level(name):
+	f = open("data/level/" + name + ".lvl")
+	creatures = []
+	for line in f:
+		if not line: continue
+		if line[0] is "#": continue
+		split = line.split(" ")
+		if split[0] == "spawn":
+			pos = split[3].split(",")
+			pos = (float(pos[0]), float(pos[1]), float(pos[2]))
+			orientation = split[4].split(",")
+			orientation = (float(orientation[0]), float(orientation[1]), float(orientation[2]))
+	
+			object = [split[1], split[2], (pos[0], pos[1], pos[2]), \
+					(orientation[0], orientation[1], orientation[2]), float(split[5])]
+			creatures.append(object)
+	return creatures
+
+
 def spawnMonsters():
 	print "spawnMonsters()"
-	print objdata
-	gingerbreadMonster = GingerbreadMonster(
-			"GingerbreadMonster", "Gingerbread 1",
-			(0.0, 50.0, 40.0), (0.0, 0.0, 0.0),
-			100.0, objects, True)
-	objects.append(gingerbreadMonster)
+	
+	objects_loaded = load_level("level1")
 
-	objdata.append(gingerbreadMonster.data)
+	for object in objects_loaded:
+		if object[0] == "GingerbreadMonster":
+			gingerbreadMonster = GingerbreadMonster(
+				object[0], object[1],
+				object[2], object[3],
+				object[4],100.0, objects, True)
+			objects.append(gingerbreadMonster)
 
-	gingerbreadIntelligenceThread = \
-		gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
-	gingerbreadIntelligenceThread.start()
-	threads.append(gingerbreadIntelligenceThread)
+			objdata.append(gingerbreadMonster.data)
+
+			gingerbreadIntelligenceThread = \
+				gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
+			gingerbreadIntelligenceThread.start()
+			threads.append(gingerbreadIntelligenceThread)
+		elif object[0] == "some other monster":
+			pass
+
 
 if __name__ == '__main__':
 	Network.Listen('0.0.0.0', 30000)
@@ -105,13 +132,10 @@ if __name__ == '__main__':
 									objdata.append(obj)
 									g = GameObject(obj.type, obj.name,
 											obj.position, obj.orientation,
-											obj.mass, obj.velocity,
+											obj.scale, obj.mass, obj.velocity,
 											obj.id)
 									objects.append(g)
 
-								for i in objdata:
-									print "Name:",i.name
-									print "Position:",i.position
 							elif type == 6: # start sound
 								for ad in players:
 									if ad != addr:

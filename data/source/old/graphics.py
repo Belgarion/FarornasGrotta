@@ -3,30 +3,19 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL import GL
 from OpenGL import GLU
-
 try:
 	import numpy as Numeric
 except:
 	import Numeric
 from OpenGL.GL.ARB.vertex_buffer_object import *
 import time
+from octree import *
 import sys
 import math
 
 import random
 
 from water import Water
-
-
-class Object:
-	def __init__(self, vertices, vnormals, faces, vertexCount):
-		self.vertices = vertices
-		self.vnormals = vnormals
-		self.faces = faces
-		self.vertexCount = vertexCount
-
-class Objects:
-	loadedObjects = {}
 
 def init_opengl(main):
 	if not glInitVertexBufferObjectARB():
@@ -66,57 +55,8 @@ def init_opengl(main):
 
 	glEnable(GL_NORMALIZE)
 
-def Calculate_Size(vertices):
-
-	xmax = ymax = zmax = xmin = ymin = zmin = 0
-
-	for i in vertices:
-		if i[0] < xmin: xmin=i[0]
-		if i[0] > xmax: xmax=i[0]
-
-		if i[1] < ymin: ymin=i[1]
-		if i[1] > ymax: ymax=i[1]
-
-		if i[2] < zmin: zmin=i[2]
-		if i[2] > zmax: zmax=i[2]
-
-	return (xmax-xmin, ymax-ymin, zmax-zmin)
-
-def Is_Loaded(filename):
-	if filename in Objects.loadedObjects:
-		return True
-	return False
-
-def Get_Data(filename):
-	obj = Objects.loadedObjects[filename]
-	return (obj.vertices, obj.vnormals, obj.faces, obj.vertexCount)
-
-def Get_Vertices(filename):
-	if Is_Loaded(filename):
-		vertices, vnormals, faces, vertexCount = Get_Data(filename)
-
-	else:
-		vertices = []
-
-		f = open(filename, "r")
-		lines = f.readlines()
-		f.close()
-
-		for line in lines:
-			pos = line.rsplit(" ")
-			if len(pos) < 4:
-				continue
-
-			if pos[0] == "v":
-				vertices.append((float(pos[1]), float(pos[2]), float(pos[3])))
-
-	return vertices	
 
 def loadObj(filename):
-	if filename in Objects.loadedObjects:
-		obj = Objects.loadedObjects[filename]
-		return (obj.vertices, obj.vnormals, obj.faces, obj.vertexCount)
-
 	f = open(filename, "r")
 	lines = f.readlines()
 	f.close()
@@ -199,10 +139,7 @@ def loadObj(filename):
 		vnormals[nIndex + 2, 2] = vn[i[2]][2]
 		nIndex += 3
 
-	obj = Object(vertices, vnormals, (facesv, facest, facesn), vertexCount)
-	Objects.loadedObjects[filename] = obj
 	return (vertices, vnormals, (facesv, facest, facesn), vertexCount)
-
 class CVector3:
 	def __init__(self, x, y, z):
 		self.x = x
@@ -216,7 +153,6 @@ class CVector3:
 		return CVector3(self.x * num, self.y * num, self.z * num)
 	def __div__(self, num):
 		return CVector3(self.x / num, self.y / num, self.z / num)
-
 def nearestPowerOfTwo(v):
 	v -= 1
 	v |= v >> 1
@@ -226,7 +162,6 @@ def nearestPowerOfTwo(v):
 	v |= v >> 16
 	v += 1
 	return v
-
 def createVBO(vertices, vnormals, texCoords = None):
 	verticesId = glGenBuffersARB(1)
 	normalsId = glGenBuffersARB(1)
@@ -248,7 +183,6 @@ def createVBO(vertices, vnormals, texCoords = None):
 	if texCoords != None:
 		return verticesId, normalsId, texCoordsId
 	return verticesId, normalsId
-
 def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
 	glEnableClientState(GL_VERTEX_ARRAY)
 
@@ -279,7 +213,6 @@ def drawVBO(verticesId, normalsId, vertexCount, texCoordsId = None):
 		glDisableClientState(GL_NORMAL_ARRAY)
 
 	glDisableClientState(GL_VERTEX_ARRAY)
-
 def loadTexture(filename):
 	""" Loads a texture from file,
 	returns (textureId, textureWidthRatio, textureHeightRatio)
@@ -329,7 +262,6 @@ def loadTexture(filename):
 				GL_UNSIGNED_BYTE, pygame.image.tostring(image, "RGBA", 1))
 
 	return (textureId, textureWidthRatio, textureHeightRatio)
-
 def extensionSupported(TargetExtension):
 	""" Accesses the rendering context to see if it supports an extension.
 		Note, that this test only tells you if the OpenGL library supports
@@ -378,19 +310,16 @@ def extensionSupported(TargetExtension):
 		return False
 
 	return True
-
 class CVert:
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = 0
 		self.y = 0
 		self.z = 0
-
 class CTexCoord:
 	""" Texture Coordinate Class """
 	def __init__ (self, u = 0.0, v = 0.0):
 		self.u = u
 		self.v = v
-
 class CMesh:
 	""" Mesh Data """
 	MESH_HEIGHTSCALE = 1.0
@@ -418,7 +347,10 @@ class Graphics:
 		global g_fVBOObjects
 		g_fVBOObjects = []
 
+		#self.main.octree = octree
 		self.main = main
+		#self.main.config = config
+
 		self.g_nFrames = 0
 
 		init_opengl(main)
@@ -462,16 +394,15 @@ class Graphics:
 		g_pMesh.vertexCount = self.vertexCount
 
 		g_fVBOObjects.append(g_pMesh)
-
 	def loadStaticObject(self, x, y, z, model, texture):
 		g_pMesh = CMesh()
 		vertices, vnormals, f, vertexCount = \
 				loadObj(model)
 
-		for v in vertices: # transform
-			v[0] += x
-			v[1] += y
-			v[2] += z
+		for i in xrange(len(vertices)): # transform
+			vertices[i][0] += x
+			vertices[i][1] += y
+			vertices[i][2] += z
 
 		g_pMesh.textureId, textureWidthRatio, textureHeightRatio = \
 				loadTexture(texture)
@@ -507,8 +438,7 @@ class Graphics:
 		g_pMesh.vertexCount = vertexCount
 
 		g_fVBOObjects.append(g_pMesh)
-
-	def initGL(self):
+	def init_game(self):
 		from skydome import Skydome
 
 		if not glInitVertexBufferObjectARB():
@@ -553,11 +483,17 @@ class Graphics:
 
 		if not self.main.args['disableWater']:
 			self.water = Water()
+		self.addSurface(0, \
+					"data/model/terrain.obj", \
+					"data/image/grass.jpg")
+		self.loadStaticObject(50, 0, 50, "data/model/cave.obj", \
+				"data/image/img2.png")
+
+		
 
 	def printFPS(self):
 		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
 		self.g_nFrames = 0
-
 	def drawAxes(self):
 		""" Draws x, y and z axes """
 		light = glIsEnabled(GL_LIGHTING)
@@ -584,18 +520,17 @@ class Graphics:
 
 		if light:
 			glEnable(GL_LIGHTING)
-
 	def draw(self, objects):
 		global g_fVBOObjects
 
-		#if self.reDraw:
-			#self.main.octree.g_EndNodeCount = 0
-			#self.main.octree.debug.Clear()
-			#self.main.octree.DestroyOctree()
-			#self.main.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
-			#self.main.octree.CreateNode(self.vertices, self.numberOfVertices,
-			#		self.main.octree.GetCenter(), self.main.octree.GetWidth())
-			#self.reDraw = False
+		if self.reDraw:
+			self.main.octree.g_EndNodeCount = 0
+			self.main.octree.debug.Clear()
+			self.main.octree.DestroyOctree()
+			self.main.octree.GetSceneDimensions(self.vertices, self.numberOfVertices)
+			self.main.octree.CreateNode(self.vertices, self.numberOfVertices,
+					self.main.octree.GetCenter(), self.main.octree.GetWidth())
+			self.reDraw = False
 
 
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT )
@@ -626,12 +561,12 @@ class Graphics:
 					-self.main.input.zpos)
 		else:
 			glTranslated(
-					-self.main.player.data.position[0]-0.2*math.sin(
-						math.radians(self.main.player.data.orientation[1])
+					-self.main.player.object.position[0]-0.2*math.sin(
+						math.radians(self.main.player.object.orientation[1])
 						),
-					-self.main.player.data.position[1]-2.2,
-					-self.main.player.data.position[2]+0.2*math.cos(
-						math.radians(self.main.player.data.orientation[1]-180)
+					-self.main.player.object.position[1]-2.2,
+					-self.main.player.object.position[2]+0.2*math.cos(
+						math.radians(self.main.player.object.orientation[1]-180)
 						)
 					)
 
@@ -664,15 +599,15 @@ class Graphics:
 		glColor3f(1.0, 1.0, 1.0)
 		#glScalef(10.0, 10.0, 10.0)
 
-		for VBOobject in g_fVBOObjects:
+		for i in xrange(len(g_fVBOObjects)):
 			#glEnable(GL_BLEND)
 			#glBlendFunc(GL_ONE, GL_ONE)
-			glBindTexture(GL_TEXTURE_2D, VBOobject.textureId)
+			glBindTexture(GL_TEXTURE_2D, g_fVBOObjects[i].textureId)
 			glEnable(GL_TEXTURE_2D)
 
 
-			drawVBO(VBOobject.verticesId, VBOobject.vnormalsId,
-					VBOobject.vertexCount, VBOobject.texCoordsId)
+			drawVBO(g_fVBOObjects[i].verticesId, g_fVBOObjects[i].vnormalsId,
+					g_fVBOObjects[i].vertexCount, g_fVBOObjects[i].texCoordsId)
 
 			glDisable(GL_TEXTURE_2D)
 			#glDisable(GL_BLEND)
@@ -686,32 +621,27 @@ class Graphics:
 
 		glDisable(GL_FOG)
 
-		if self.main.physics.octree.debugLines:
-			# Turn OFF lighting so the debug lines are bright yellow
-			glDisable(GL_LIGHTING)
+		if self.main.octree.debugLines:
+			self.main.octree.debug.RenderDebugLines()
 
-			# Start rendering lines
-			glBegin(GL_LINES)
+		if self.main.octree.g_MaxSubdivisions:
+			# Here we draw the octree, starting with
+			# the root node and recursing down each node.
+			# When we get to each of the end nodes we
+			# will draw the vertices assigned to them.
+			self.main.octree.DrawOctree(self.main.octree)
 
-			# Turn the lines yellow
-			glColor3ub(255, 255, 0)
+			if self.main.octree.debugLines:
+				# Render the cube'd nodes to visualize the octree
+				# (in wireframe mode)
+				self.main.octree.debug.RenderDebugLines()
 
-			# Go through the whole list of lines stored in the vector debugLines.
-			for line in self.main.physics.octree.debug.debugLines:
-				# Pass in the current point to be rendered as part of a line
-				glVertex3f(line[0], line[1], line[2])
-
-			# Stop rendering lines
-			glEnd()
-
-			# If we have lighting turned on, turn the lights back on
-			glEnable(GL_LIGHTING)
-
-
-		for obj in objects:
-			if obj != self.spectator:
-				obj.draw(self)
-
+		#for obj in objects:
+		#	if obj != self.spectator:
+		#		obj.draw()
+		self.draw_objects()
+					
+				
 		glFlush()
 
 		pygame.display.flip()
@@ -719,4 +649,35 @@ class Graphics:
 		err = glGetError()
 		if err:
 			print "OpenGL Error:",err,"(",gluErrorString(err),")"
+	def draw_objects(self):
+		for obj in self.main.object_manager.objects:
+			glPushMatrix()
+
+			#glDisable(GL_COLOR_MATERIAL)
+
+			#glDisable(GL_LIGHTING)
+			light = glIsEnabled(GL_LIGHTING)
+			if not light:
+				glEnable(GL_LIGHTING)
+
+			glColor3f(1.0, 0.0, 0.0)
+
+			glTranslatef(obj.position[0],
+					obj.position[1],
+					obj.position[2])
+			glRotatef(obj.orientation[0], 1.0, 0.0, 0.0)
+			glRotatef(obj.orientation[1], 0.0, 1.0, 0.0)
+			glRotatef(obj.orientation[2], 0.0, 0.0, 1.0)
+			data = self.main.data.list[obj.type]
+			if obj.scale != 1.0:
+				glScalef(obj.scale, obj.scale, obj.scale)
+
+			drawVBO(data["verticesId"], data["normalsId"], data["vertexCount"])
+
+			if not light:
+				glDisable(GL_LIGHTING)
+
+			glPopMatrix()
+
+
 

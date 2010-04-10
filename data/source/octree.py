@@ -112,7 +112,7 @@ class Octree:
 		# if we insert more objects into it than MAX_OBJECTS_PER_CUBE, then it will subdivide itself.
 		self.worldSize = worldSize
 		self.main = main
-		self.debugLines = 1
+		self.debugLines = 0
 
 		self.debug = Debug()
 
@@ -251,6 +251,19 @@ class Octree:
 			branch = self.findBranch(root, position)
 			return self.findPosition(root.branches[branch], position)
 
+	def deletePosition(self, root, position, obj_to_delete):
+		if root == None:
+                        return None
+                elif root.isLeafNode:
+			added = []
+			for obj in root.data:
+                        	if obj.id != obj_to_delete.id:
+					added.append(obj)
+				
+			root.data = added
+                else:
+                        branch = self.findBranch(root, position)
+                        return self.deletePosition(root.branches[branch], position, obj_to_delete)
 
 	# Helper function  returns an index corresponding to a branch
 	# pointing in the direction we want to go

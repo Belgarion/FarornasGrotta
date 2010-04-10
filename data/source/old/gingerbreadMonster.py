@@ -4,7 +4,7 @@ import math
 
 class GingerbreadMonster(Monster):
 	def objPath(self):
-		return "data/model/GingerbreadMonster.obj"
+		return "data/model/gingerbreadMonster.obj"
 	def intelligence(self):
 		try:
 			a = self.startRunning
@@ -27,10 +27,10 @@ class GingerbreadMonster(Monster):
 		distance = 1000000.0
 		for i in self.objects:
 			# Find the closest player
-			if i.data.type == "Player":
-				dx = self.data.position[0] - i.data.position[0]
-				dy = self.data.position[1] - i.data.position[1]
-				dz = self.data.position[2] - i.data.position[2]
+			if i.type == "Player":
+				dx = self.position[0] - i.position[0]
+				dy = self.position[1] - i.position[1]
+				dz = self.position[2] - i.position[2]
 				d = math.sqrt(dx*dx + dy*dy + dz*dz)
 
 				if d < distance:

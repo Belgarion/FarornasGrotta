@@ -13,7 +13,7 @@ if os.path.basename(sys.argv[0]) != "server.py":
 
 
 class Monster(GameObject):
-	def __init__(self, type, name, position, orientation, scale, mass, objects, \
+	def __init__(self, type, name, position, orientation, mass, objects, \
 			server = False, guid = None):
 		self.objects = objects
 
@@ -35,7 +35,7 @@ class Monster(GameObject):
 			self.data.velocity = (self.data.velocity[0],
 					self.data.velocity[1] - 9.82,
 					self.data.velocity[2])
-	def draw(self,graphics_instance):
+	def draw(self):
 		glPushMatrix()
 
 		#glDisable(GL_COLOR_MATERIAL)
@@ -53,7 +53,6 @@ class Monster(GameObject):
 		glRotatef(self.data.orientation[1], 0.0, 1.0, 0.0)
 
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
-
 
 		if not light:
 			glDisable(GL_LIGHTING)

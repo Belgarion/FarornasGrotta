@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import threading, socket, traceback, struct, select, cPickle
-
-# TODO: This fits in here as much as it fits in main ^^, but going to fix this
-from gingerbreadMonster import GingerbreadMonster
-from player import Player
+import threading
+import socket
+import traceback
+import struct
+import select
+import cPickle
 
 uSock = 0
 tSock = 0
@@ -22,6 +23,8 @@ typeDict = {
 
 import sys
 import time
+
+debug = 0
 
 def Connect(host, port):
 	global uSock, tSock
@@ -51,7 +54,9 @@ def CloseConnections():
 
 	uSock.close()
 def USend(addr, type, msg):
-	if type > 255: print "wrong type"
+	if type > 255:
+		if debug: 
+			print "wrong type"
 	global uSock
 	udpSeq = 255
 
@@ -77,41 +82,49 @@ def URecv():
 	type = None
 	msg = ""
 
-	debug = 0
-
 	data, addr = uSock.recvfrom(65500)
 
 	if len(data) > 5:
-		if debug: print "UDP packet received"
+		if debug:
+			print "UDP packet received"
 		udpSeq = ord(data[0])
-		if debug: print "UDP Sequence:",udpSeq
+		if debug:
+			print "UDP Sequence:",udpSeq
 
 		type = ord(data[1])
 		if type in typeDict:
-			if debug: print ("Type: (%i) %s" % (type, typeDict[type]))
-		else:
-			if debug: print "Unknown type:",type
+			if debug:
+				print ("Type: (%i) %s" % (type, typeDict[type]))
+		else:	
+			if debug:
+				print "Unknown type:",type
 
 		length = struct.unpack("I", data[2:6])[0]
-		if debug: print "Length:", length
-		if debug: print "len(data):", len(data)
+		if debug:
+			print "Length:", length
+			print "len(data):", len(data)
 		if length > 0:
 			if length < (len(data) - 6):
-				if debug: print "length < (len(data) - 6)"
+				if debug:
+					print "length < (len(data) - 6)"
 				#if player.buf != "": msg = buf
 				msg += data[6:6+length]
 			else:
 				# Save in players buffer
 				# Should be appended to list?
 				msg += data[6:6+length]
-				if debug: print "Message:", data[6:6+length]
+				#print "Message:", data[6:6+length]
 				while length > len(data) - 6:
-					if debug: print "aoeu"
+					if debug:
+						print "aoeu"
 					data, addr = uSock.recvfrom(10)
-					if debug: print "aa"
-					if debug: print len(data)
+					if debug:
+						print "aa"
+					if debug:
+						print len(data)
 					length -= len(data) - 6
-					if debug: print "Message:", data[6:6+length]
+					if debug:
+						print "Message:", data[6:6+length]
 
 	return (type, msg, addr)
 def TRecv(sock, size):
@@ -135,61 +148,8 @@ class NetworkThread(threading.Thread):
 		self.addr = ('', 0)
 		self.running = True
 		self.objdataToAdd = []
-
-		self.debug = 0
-
 	def run(self):
 		self.handleNetwork()
-
-	def addNewObjects(self):
-		# TODO: from gingerbreadMonster import GingerbreadMonster
-		for i in self.objdataToAdd:
-			if i.type == "Player":
-				if self.debug: print "Append a player!"
-				p = Player("Player 2",
-						i.position,
-						i.orientation,
-						i.mass, i.id)
-
-				# TODO: Do a function/class that add it to every list we need...
-				self.main.objects.append(p)
-				self.main.octree.insertNode(
-					self.main.octree.root,
-					self.main.octree.worldSize,
-					self.main.octree.root,
-					p
-				)
-
-			elif i.type == "GingerbreadMonster":
-				if self.debug: print "Append a monster!"
-				g = GingerbreadMonster(
-						"GingerbreadMonster",
-						"Gingerbread 1",
-						i.position,
-						i.orientation,
-						i.scale,
-						i.mass, self.main.objects, False, i.id)
-				self.main.objects.append(g)
-				self.main.octree.insertNode(
-					self.main.octree.root,
-					self.main.octree.worldSize,
-					self.main.octree.root,
-					g.data
-				)
-			elif i.type == "Fireball":
-				f = Fireball(i.name, i.position,
-						i.orientation, i.mass,
-						i.velocity, i.id)
-				self.main.objects.append(f)
-				self.main.octree.insertNode(
-					self.main.octree.root,
-					self.main.octree.worldSize,
-					self.main.octree.root,
-					f.data
-				)
-			self.objdataToAdd.remove(i)
-
-
 	def handleNetwork(self):
 		lastSend = 0
 		myAddr = ('', 0)
@@ -199,32 +159,35 @@ class NetworkThread(threading.Thread):
 			read_sockets, write_sockets, error_sockets = \
 					select.select([uSock, tSock], [], [], 0.05)
 			for sock in read_sockets:
-				if self.debug: print sock,"is ready for reading"
+				if debug:
+					print sock,"is ready for reading"
 				if sock == uSock:
 					type, recvd, addr = URecv()
-					if self.debug: print "len(recvd) =", len(recvd)
+					if debug:
+						print "len(recvd) =", len(recvd)
 					if len(recvd) == 0: continue
 
 					if type == 0:
-						if self.debug: print "Connected"
+						if debug:
+							print "Connected"
 						myAddr = cPickle.loads(recvd)
 
 					elif type == 3:
-						if self.debug: print "Object data received"
+						if debug:
+							print "Object data received"
 
 						objects = self.physics.objects
 						objdata = cPickle.loads(recvd)
 						added = []
-
+						
 						for od in objdata:
-							if od.id == self.player.data.id:
+
+							if od.id == self.player.object.id:
 								continue
-
 							for obj in objects:
-								if od == obj.data:
-									obj.data.id = od.id
-									added.append(od.id)
-
+								if od.id == obj.id:
+									added.append(obj.id)
+						
 						for obj in objects:
 							exists = False
 							if obj in self.objdataToAdd:
@@ -232,16 +195,17 @@ class NetworkThread(threading.Thread):
 								continue
 
 							for od in objdata:
-								if obj.data.id == od.id:
+								if obj.id == od.id:
 									exists = True
 									break
-
+							if debug:
+								print self.main.player
 							if not exists and \
-									obj.data.id != self.main.player.data.id:
+									obj.id != self.main.player.object.id:
 								objects.remove(obj)
-
+						
 						for i in objdata:
-							if i.id == self.player.data.id:
+							if i.id == self.player.object.id:
 								continue
 
 							alreadyAdded = False
@@ -249,13 +213,13 @@ class NetworkThread(threading.Thread):
 								if i.id == j.id:
 									alreadyAdded = True
 									break
-
 							if i.id not in added and not alreadyAdded:
 								self.objdataToAdd.append(i)
 
-						self.physics.updateObjects(objects)
-						for i in objects:
-							if self.debug: print i.data.position
+						#self.physics.updateObjects(objects)
+						if debug:
+							for i in objects:
+								print i.position
 					elif type == 6: # start sound
 						data = cPickle.loads(recvd)
 
@@ -270,6 +234,6 @@ class NetworkThread(threading.Thread):
 
 			if time.time() - lastSend > 0.05:
 				lastSend = time.time()
-				USend(self.addr, 2, cPickle.dumps(self.player.data, 2))
+				USend(self.addr, 2, cPickle.dumps(self.player.object, 2))
 
-		USend(self.addr, 1, self.player.data.id)
+		USend(self.addr, 1, self.player.object.id)

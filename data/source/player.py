@@ -5,18 +5,22 @@ from gameObject import GameObject
 import graphics
 import math
 
-class Player(GameObject):
-	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
-			orientation = (0.0, 180.0, 0.0), mass = 100, guid = None, \
-			sound = None):
-		GameObject.__init__(self, "Player", name, position,
-				orientation, mass, (0.0, 0.0, 0.0), guid, "data/model/player1.obj")
 
+class Player(GameObject):
+	
+	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
+			orientation = (0.0, 180.0, 0.0), scale = 1.0, mass = 100, guid = None, \
+			sound = None):
+		GameObject.__init__(self, "player1", name, position,
+				orientation, scale, mass, (0.0, 0.0, 0.0), guid)
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
-
+		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)	
+	
 		self.sound = sound
+	
+		self.can_jump = 0
+		self.rotated = 0.0
 
 	def makeNoise(self):
 		if self.sound:
@@ -26,13 +30,16 @@ class Player(GameObject):
 		xrotrad = (main.input.xrot + direction) / 180 * math.pi
 		yrotrad = (main.input.yrot + direction) / 180 * math.pi
 
-		main.player.data.position = (
+		new_position = (
 			self.data.position[0] + math.sin(yrotrad) * main.distance_moved,
 			self.data.position[1],
 			self.data.position[2] - math.cos(yrotrad) * main.distance_moved
-		)
-		#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
+			)
+			
+		if not main.physics.playerCollision(new_position):
+			main.player.data.position = new_position
 
+		#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
 		if self.sound.data['Run']['UUID'] == None:
 			self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
 
@@ -53,23 +60,30 @@ class Player(GameObject):
 			main.input.zpos -= math.cos(yrotrad) * main.distance_moved
 			main.input.ypos -= math.sin(xrotrad) * main.distance_moved
 		else:
-			main.player.data.position = (
+			new_position = (
 				self.data.position[0] + math.sin(yrotrad) * main.distance_moved,
 				self.data.position[1],
 				self.data.position[2] - math.cos(yrotrad) * main.distance_moved
 			)
+			
+			if not self.main.physics.playerCollision(newPos):
+				main.player.data.position 
 
 	def jump(self):
-		if self.data.velocity[1] == 0:
-			self.data.position = (self.data.position[0],
-					self.data.position[1] + 0.1,
-					self.data.position[2])
+		if not self.can_jump:
+			return
+		if self.data.position[1] < 0:
+			self.data.position[1] = 0		
 
-			self.data.velocity = (self.data.velocity[0],
-					self.data.velocity[1] - 9.82,
-					self.data.velocity[2])
+		self.data.position = (self.data.position[0],
+				self.data.position[1] + 0.2,
+				self.data.position[2])
 
-	def draw(self):
+		self.data.velocity = (self.data.velocity[0],
+				self.data.velocity[1] - 9.82,
+				self.data.velocity[2])
+		self.can_jump = 0
+	def draw(self, graphics_instance):
 		glPushMatrix()
 
 		#glDisable(GL_COLOR_MATERIAL)
@@ -85,7 +99,7 @@ class Player(GameObject):
 				self.data.position[1],
 				self.data.position[2])
 		glRotatef(self.data.orientation[1], 0.0, 1.0, 0.0)
-
+		
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
 		if not light:
