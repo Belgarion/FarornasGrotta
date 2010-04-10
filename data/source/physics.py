@@ -73,9 +73,12 @@ class Physics:
 
 		if new_pos[1] < 0:
 			collide = 1
+
 		if os.path.basename(sys.argv[0]) != "server.py":
 			if self.playerCollision(new_pos):
 				collide = 1
+
+
 		if not collide:# or velY < 0:
 			obj.data.position = new_pos		
 		elif os.path.basename(sys.argv[0]) != "server.py":
@@ -90,9 +93,6 @@ class Physics:
 		if new_pos[1] < 0:
 			obj.data.velocity = obj.data.velocity[0], 0, obj.data.velocity[2]
 		
-		if os.path.basename(sys.argv[0]) == "server.py":
-			obj.data.position = new_pos
-
 		return obj
 
 	def playerCollision(self,newPos):

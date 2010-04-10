@@ -5,5 +5,5 @@ object player1
 
 # spawn object name x,y,z, angle
 spawn GingerbreadMonster GingerbreadMonster_1 10,10,10 0.0,90.0,0.0 1.0
-spawn GingerbreadMonster GingerbreadMonster_1 20,20,10 0.0,180.0,0.0 2.0
-spawn GingerbreadMonster GingerbreadMonster_1 20,20,10 0.0,270.0,0.0 3.0
+spawn GingerbreadMonster GingerbreadMonster_1 30,30,10 0.0,180.0,0.0 2.0
+spawn GingerbreadMonster GingerbreadMonster_1 50,50,10 0.0,270.0,0.0 3.0
