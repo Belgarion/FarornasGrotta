@@ -28,6 +28,7 @@ class Physics:
 			if self.isClient:
 				if self.objects[i].data.id == self.main.player.data.id:
 					self.objects[i] = self.updatePos(self.objects[i], relTime)
+					break
 			else:
 				if self.objects[i].data.type != "Player":
 					self.objects[i] = self.updatePos(self.objects[i], relTime)

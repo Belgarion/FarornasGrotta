@@ -165,7 +165,7 @@ class CaveOfDanger:
 			self.octree.insertNode(self.octree.root, 100.0, self.octree.root, Player(position = (-40.0, 20.0, -20.0)).data)
 			"""
 
-			self.graphics.loadStaticObject(50, 0, 50, "data/model/cave.obj", \
+			self.graphics.loadStaticObject(0.0, 0.0, 0.0, "data/model/cave.obj", \
 				"data/image/img2.png")
 
 			if self.args['host'] != None:
