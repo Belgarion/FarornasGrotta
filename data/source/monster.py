@@ -3,8 +3,6 @@ from gameObject import GameObject
 import threading
 import time
 
-from Global import Global
-
 import sys, os
 
 if os.path.basename(sys.argv[0]) != "server.py":
@@ -15,7 +13,7 @@ if os.path.basename(sys.argv[0]) != "server.py":
 
 
 class Monster(GameObject):
-	def __init__(self, type, name, position, orientation, mass, objects, \
+	def __init__(self, type, name, position, orientation, scale, mass, objects, \
 			server = False, guid = None):
 		self.objects = objects
 
@@ -37,7 +35,7 @@ class Monster(GameObject):
 			self.data.velocity = (self.data.velocity[0],
 					self.data.velocity[1] - 9.82,
 					self.data.velocity[2])
-	def draw(self):
+	def draw(self,graphics_instance):
 		glPushMatrix()
 
 		#glDisable(GL_COLOR_MATERIAL)
@@ -56,6 +54,7 @@ class Monster(GameObject):
 
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
+
 		if not light:
 			glDisable(GL_LIGHTING)
 
@@ -63,11 +62,13 @@ class Monster(GameObject):
 	def intelligence(self):
 		# implement this in subclasses
 		pass
+
 	class IntelligenceThread(threading.Thread):
 		def __init__(self, monster):
 			self.monster = monster
 			threading.Thread.__init__(self)
+
 		def run(self):
-			while not Global.quit:
+			while True:
 				self.monster.intelligence()
 				time.sleep(0.01)

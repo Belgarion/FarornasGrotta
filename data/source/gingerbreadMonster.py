@@ -4,7 +4,7 @@ import math
 
 class GingerbreadMonster(Monster):
 	def objPath(self):
-		return "models/gingerbreadMonster.obj"
+		return "data/model/GingerbreadMonster.obj"
 	def intelligence(self):
 		try:
 			a = self.startRunning
@@ -57,13 +57,13 @@ class GingerbreadMonster(Monster):
 				self.data.orientation[2]
 				)
 
-		if distance > 2.02:
+		if distance > 5.5:
 			self.data.velocity = (
 					3*math.sin(math.radians(self.data.orientation[1] + 90.0)),
 					self.data.velocity[1],
 					3*math.cos(math.radians(self.data.orientation[1] + 90.0))
 					)
-		elif distance < 1.98:
+		elif distance < 4.5:
 			self.data.velocity = (
 					-3*math.sin(math.radians(self.data.orientation[1] + 90.0)),
 					self.data.velocity[1],

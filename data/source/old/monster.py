@@ -1,20 +1,31 @@
-from OpenGL.GL import *
-from OpenGL.GL.ARB.vertex_buffer_object import *
-
 from gameObject import GameObject
-import graphics
 
-class Player(GameObject):
-	def __init__(self):
-		GameObject.__init__(self, "Player", "Player 1", (0.0, 20.0, -40.0),
-				(0.0, 180.0, 0.0), 100, (0.0, 0.0, 0.0))
+import threading
+import time
+
+import sys, os
+
+if os.path.basename(sys.argv[0]) != "server.py":
+	from OpenGL.GL import *
+	from OpenGL.GL.ARB.vertex_buffer_object import *
+
+	import graphics
+
+
+class Monster(GameObject):
+	def __init__(self, type, name, position, orientation, mass, objects, \
+			server = False, guid = None):
+		self.objects = objects
+
+		GameObject.__init__(self, type, name, position,
+				orientation, mass, (0.0, 0.0, 0.0), guid)
+
+		if server:
+			return
 
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("models/player.obj")
+				graphics.loadObj(self.objPath())
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
-
-		self.x = 100
-		self.y = 100
 	def jump(self):
 		if self.data.velocity[1] == 0:
 			self.data.position = (self.data.position[0],
@@ -34,9 +45,8 @@ class Player(GameObject):
 		if not light:
 			glEnable(GL_LIGHTING)
 
-		glColor3f(1.0, 1.0, 0.0)
+		glColor3f(1.0, 0.0, 0.0)
 
-		#glTranslatef(self.x, self.y, 0.0)
 		glTranslatef(self.data.position[0],
 				self.data.position[1],
 				self.data.position[2])
@@ -48,3 +58,16 @@ class Player(GameObject):
 			glDisable(GL_LIGHTING)
 
 		glPopMatrix()
+	def intelligence(self):
+		# implement this in subclasses
+		pass
+
+	class IntelligenceThread(threading.Thread):
+		def __init__(self, monster):
+			self.monster = monster
+			threading.Thread.__init__(self)
+
+		def run(self):
+			while True:
+				self.monster.intelligence()
+				time.sleep(0.01)
