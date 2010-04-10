@@ -18,7 +18,7 @@ class Monster(GameObject):
 		self.objects = objects
 
 		GameObject.__init__(self, type, name, position,
-				orientation, mass, (0.0, 0.0, 0.0), guid)
+				orientation, scale, mass, (0.0, 0.0, 0.0), guid)
 
 		if server:
 			return
@@ -35,7 +35,7 @@ class Monster(GameObject):
 			self.data.velocity = (self.data.velocity[0],
 					self.data.velocity[1] - 9.82,
 					self.data.velocity[2])
-	def draw(self,graphics_instance):
+	def draw(self):
 		glPushMatrix()
 
 		#glDisable(GL_COLOR_MATERIAL)

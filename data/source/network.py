@@ -144,8 +144,6 @@ class NetworkThread(threading.Thread):
 	def addNewObjects(self):
 		# TODO: from gingerbreadMonster import GingerbreadMonster
 		objects = self.physics.objects
-		print "Object to add: ", self.objdataToAdd
-		print "Existing objects: ", objects
 		for i in self.objdataToAdd:
 			if i.type == "Player":
 				if self.debug: print "Append a player!"
@@ -156,12 +154,12 @@ class NetworkThread(threading.Thread):
 
 				# TODO: Do a function/class that add it to every list we need...
 				objects.append(p)
-				"""self.main.octree.insertNode(
+				self.main.octree.insertNode(
 					self.main.octree.root,
 					self.main.octree.worldSize,
 					self.main.octree.root,
 					p.data
-				)"""
+				)
 
 			elif i.type == "GingerbreadMonster":
 				if self.debug: print "Append a monster!"
@@ -172,6 +170,8 @@ class NetworkThread(threading.Thread):
 						i.orientation,
 						i.scale,
 						i.mass, self.main.objects, False, i.id)
+				print "Added with id",i.id
+				print "Got id",g.data.id
 				objects.append(g)
 				"""self.main.octree.insertNode(
 					self.main.octree.root,
@@ -224,7 +224,7 @@ class NetworkThread(threading.Thread):
 								continue
 
 							for obj in objects:
-								if od.id == obj.id:
+								if od.id == obj.data.id:
 									added.append(od.id)
 
 						for obj in objects:
@@ -240,7 +240,7 @@ class NetworkThread(threading.Thread):
 
 							if not exists and \
 									obj.data.id != self.main.player.data.id:
-								print "Remove objecT",obj
+								print "Remove object",obj,obj.data.id
 								objects.remove(obj)
 
 						for i in objdata:
@@ -254,7 +254,7 @@ class NetworkThread(threading.Thread):
 									break
 
 							if i.id not in added and not alreadyAdded:
-								print "Add object"
+								print "Add object", i.id
 								self.objdataToAdd.append(i)
 
 						self.physics.updateObjects(objects)

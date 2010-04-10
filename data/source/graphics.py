@@ -710,7 +710,7 @@ class Graphics:
 
 		for obj in objects:
 			if obj != self.spectator:
-				obj.draw(self)
+				obj.draw()
 
 		glFlush()
 

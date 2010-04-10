@@ -12,7 +12,7 @@ class Fireball(GameObject):
 				orientation, mass, velocity, guid)
 
 		vertices, vnormals, f, self.vertexCount = \
-				graphics.loadObj("data/model/fireball.obj")
+				graphics.loadObj("data/model/Fireball.obj")
 		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
 
 		self.sound = sound

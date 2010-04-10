@@ -83,7 +83,7 @@ class Player(GameObject):
 				self.data.velocity[1] - 9.82,
 				self.data.velocity[2])
 		self.can_jump = 0
-	def draw(self, graphics_instance):
+	def draw(self):
 		glPushMatrix()
 
 		#glDisable(GL_COLOR_MATERIAL)
