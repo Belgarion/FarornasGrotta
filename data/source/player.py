@@ -73,7 +73,8 @@ class Player(GameObject):
 		if not self.can_jump:
 			return
 		if self.data.position[1] < 0:
-			self.data.position[1] = 0		
+			self.data.position = (
+					self.data.position[0], 0.0, self.data.position[2])
 
 		self.data.position = (self.data.position[0],
 				self.data.position[1] + 0.2,
