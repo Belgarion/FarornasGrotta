@@ -13,7 +13,7 @@ class Water:
 	def __init__(self):
 		meshVertices, self.vertexCount, meshNormals = self.generateMesh()
 		self.verticesId, self.normalsId = \
-				graphics.createVBO(meshVertices, meshNormals)
+				graphics.createVBO("water", meshVertices, meshNormals)
 		self.initShader()
 		#
 	def initShader(self):

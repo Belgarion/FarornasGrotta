@@ -17,7 +17,8 @@ class Sun:
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/sun.obj")
 
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+		self.verticesId, self.normalsId = \
+				graphics.createVBO("sun", vertices, vnormals)
 
 		#self.angle = 3.1415/4.0 #in radians
 		self.angle = 90.0 * (3.1415/180.0)
@@ -90,7 +91,8 @@ class Moon:
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/moon.obj")
 
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+		self.verticesId, self.normalsId = \
+				graphics.createVBO("moon", vertices, vnormals)
 
 		self.angle = 270.0 * (3.1415/180.0)
 	def update(self):
@@ -203,8 +205,8 @@ class Skydome:
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, self.nightTexCoordsId)
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, nightTexCoords, GL_STATIC_DRAW_ARB)
 
-		self.verticesId, self.normalsId, self.texCoordsId = graphics.createVBO(
-				vertices, vnormals, texCoords)
+		self.verticesId, self.normalsId, self.texCoordsId = \
+				graphics.createVBO("skydome", vertices, vnormals, texCoords)
 
 		self.vertices = vertices
 		self.normals = vnormals

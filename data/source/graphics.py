@@ -28,6 +28,15 @@ class Object:
 class Objects:
 	loadedObjects = {}
 
+class VBOObject:
+	def __init__(self, verticesId, normalsId, texCoordsId = None):
+		self.verticesId = verticesId
+		self.normalsId = normalsId
+		self.texCoordsId = texCoordsId
+
+class VBOObjects:
+	loadedObjects = {}
+
 def init_opengl(main):
 	if not glInitVertexBufferObjectARB():
 			sys.stderr.write("ERROR: Vertex buffer objects is not supported\n")
@@ -227,7 +236,14 @@ def nearestPowerOfTwo(v):
 	v += 1
 	return v
 
-def createVBO(vertices, vnormals, texCoords = None):
+def createVBO(type, vertices, vnormals, texCoords = None):
+	if type in VBOObjects.loadedObjects:
+		obj = VBOObjects.loadedObjects[type]
+		print "Already exists"
+		if texCoords != None:
+			return (obj.verticesId, obj.normalsId, obj.texCoordsId)
+		return (obj.verticesId, obj.normalsId)
+
 	verticesId = glGenBuffersARB(1)
 	normalsId = glGenBuffersARB(1)
 
@@ -244,6 +260,11 @@ def createVBO(vertices, vnormals, texCoords = None):
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, texCoords, GL_STATIC_DRAW_ARB)
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)
+
+	if texCoords == None:
+		texCoordsId = None
+	obj = VBOObject(verticesId, normalsId, texCoordsId)
+	VBOObjects.loadedObjects[type] = obj
 
 	if texCoords != None:
 		return verticesId, normalsId, texCoordsId
@@ -453,8 +474,8 @@ class Graphics:
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
-		self.verticesId, self.vnormalsId, self.texCoordsId = createVBO(
-				vertices, vnormals, texCoords)
+		self.verticesId, self.vnormalsId, self.texCoordsId = \
+				createVBO(Obj, vertices, vnormals, texCoords)
 
 		g_pMesh.verticesId = self.verticesId
 		g_pMesh.vnormalsId = self.vnormalsId
@@ -498,8 +519,8 @@ class Graphics:
 			texCoords[nIndex, 1] = (i[2]-zMin) / sizeY * textureHeightRatio
 			nIndex += 1
 
-		verticesId, vnormalsId, texCoordsId = createVBO(
-				vertices, vnormals, texCoords)
+		verticesId, vnormalsId, texCoordsId = \
+				createVBO(model, vertices, vnormals, texCoords)
 
 		g_pMesh.verticesId = verticesId
 		g_pMesh.vnormalsId = vnormalsId

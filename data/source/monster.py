@@ -13,8 +13,8 @@ if os.path.basename(sys.argv[0]) != "server.py":
 
 
 class Monster(GameObject):
-	def __init__(self, type, name, position, orientation, scale, mass, objects, \
-			server = False, guid = None):
+	def __init__(self, type, name, position, orientation, scale, mass, \
+			objects, server = False, guid = None):
 		self.objects = objects
 
 		GameObject.__init__(self, type, name, position,
@@ -25,7 +25,8 @@ class Monster(GameObject):
 
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj(self.objPath())
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+		self.verticesId, self.normalsId = \
+				graphics.createVBO(self.data.type, vertices, vnormals)
 	def jump(self):
 		if self.data.velocity[1] == 0:
 			self.data.position = (self.data.position[0],

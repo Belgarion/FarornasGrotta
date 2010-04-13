@@ -14,7 +14,8 @@ class Player(GameObject):
 				orientation, scale, mass, (0.0, 0.0, 0.0), guid)
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+		self.verticesId, self.normalsId = \
+				graphics.createVBO(self.data.type, vertices, vnormals)
 
 		self.sound = sound
 
