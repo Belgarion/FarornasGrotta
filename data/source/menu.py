@@ -155,8 +155,7 @@ class Menu:
 		self.menu.setBackground("data/image/img2.png")
 
 		def MStart():
-			def MResume():
-				self.main.state_manager.pop(None)
+			MResume = lambda: self.main.state_manager.pop(None)
 			self.menu.menuEntries[self.menu.row] = ("Resume", MResume)
 			self.main.state_manager.push(self.main.runGame, None)
 		self.menu.addMenuEntry("Start", MStart)
@@ -165,11 +164,9 @@ class Menu:
 			self.main.state_manager.push(self.optionsMenu.menu_is_open, None)
 		self.menu.addMenuEntry("Options", MOptions)
 
-		def MQuit():
-			self.main.state_manager.pop_all(None)
+		MQuit = lambda: self.main.state_manager.pop_all(None)
 		self.menu.addMenuEntry("Quit", MQuit)
 
-		#self.optionsMenu = Menu(self.graphics, self.config, self.font)
 		self.optionsMenu = Menu(self.main)
 		self.optionsMenu.font = self.font
 		self.optionsMenu.isSubMenu = True

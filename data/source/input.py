@@ -107,7 +107,7 @@ class Input():
 			time_passed = clock.tick()
 			time_passed_seconds = time_passed / 1000.0
 
-			ristance_moved = time_passed_seconds * self.speed
+			distance_moved = time_passed_seconds * self.speed
 
 			time.sleep(0.001)
 

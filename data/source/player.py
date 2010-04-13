@@ -7,18 +7,17 @@ import math
 
 
 class Player(GameObject):
-	
 	def __init__(self, name = "Player 1", position = (0.0, 20.0, -40.0), \
-			orientation = (0.0, 180.0, 0.0), scale = 1.0, mass = 100, guid = None, \
-			sound = None):
+			orientation = (0.0, 180.0, 0.0), scale = 1.0, mass = 100, \
+			guid = None, sound = None):
 		GameObject.__init__(self, "player1", name, position,
 				orientation, scale, mass, (0.0, 0.0, 0.0), guid)
 		vertices, vnormals, f, self.vertexCount = \
 				graphics.loadObj("data/model/player1.obj")
-		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)	
-	
+		self.verticesId, self.normalsId = graphics.createVBO(vertices, vnormals)
+
 		self.sound = sound
-	
+
 		self.can_jump = 0
 		self.rotated = 0.0
 
@@ -27,17 +26,24 @@ class Player(GameObject):
 			self.sound.Update_Sound()
 
 	def start_walk(self, main, direction):
-		xrotrad = (main.input.xrot + direction) / 180 * math.pi
-		yrotrad = (main.input.yrot + direction) / 180 * math.pi
+		xrotrad = math.radians(main.input.xrot + direction)
+		yrotrad = math.radians(main.input.yrot + direction)
+
+		if main.graphics.spectator:
+			main.input.xpos += math.sin(yrotrad) * main.distance_moved
+			main.input.zpos -= math.cos(yrotrad) * main.distance_moved
+			if direction % 180 == 0:
+				main.input.ypos -= math.sin(xrotrad) * main.distance_moved
+			return
 
 		new_position = (
 			self.data.position[0] + math.sin(yrotrad) * main.distance_moved,
 			self.data.position[1],
 			self.data.position[2] - math.cos(yrotrad) * main.distance_moved
 			)
-			
+
 		if not main.physics.playerCollision(new_position):
-			main.player.data.position = new_position
+			self.data.position = new_position
 
 		#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
 		if self.sound.data['Run']['UUID'] == None:
@@ -51,8 +57,8 @@ class Player(GameObject):
 		self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
 
 	def walk(self, main, direction):
-		xrotrad = (main.input.xrot + direction) / 180 * math.pi
-		yrotrad = (main.input.yrot + direction) / 180 * math.pi
+		xrotrad = math.radians(main.input.xrot + direction)
+		yrotrad = math.radians(main.input.yrot + direction)
 
 		# TODO: Spectator is on the wrong place.. make a own object
 		if main.graphics.spectator:
@@ -65,9 +71,9 @@ class Player(GameObject):
 				self.data.position[1],
 				self.data.position[2] - math.cos(yrotrad) * main.distance_moved
 			)
-			
+
 			if not self.main.physics.playerCollision(newPos):
-				main.player.data.position 
+				self.data.position = new_position
 
 	def jump(self):
 		if not self.can_jump:
@@ -100,7 +106,7 @@ class Player(GameObject):
 				self.data.position[1],
 				self.data.position[2])
 		glRotatef(self.data.orientation[1], 0.0, 1.0, 0.0)
-		
+
 		graphics.drawVBO(self.verticesId, self.normalsId, self.vertexCount)
 
 		if not light:
