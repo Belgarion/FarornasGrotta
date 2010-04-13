@@ -236,6 +236,17 @@ class NetworkThread(threading.Thread):
 								if od.id == self.player.data.id:
 									continue
 								if obj.data.id == od.id:
+									self.main.octree.deletePosition(
+											self.main.octree.root,
+											obj.data.position,
+											obj.data
+											)
+									self.main.octree.insertNode(
+											self.main.octree.root,
+											15000,
+											self.main.octree.root,
+											obj.data
+											)
 									obj.data = od
 									exists = True
 									break

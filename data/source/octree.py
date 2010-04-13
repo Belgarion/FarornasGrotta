@@ -22,7 +22,7 @@
 #### Global Variables ####
 
 # This defines the maximum objects an LeafNode can hold, before it gets subdivided again.
-MAX_OBJECTS_PER_CUBE = 5
+MAX_OBJECTS_PER_CUBE = 7
 
 # This dictionary is used by the findBranch function, to return the correct branch index
 DIRLOOKUP = {"3":0, "2":1, "-2":2, "-1":3, "1":4, "0":5, "-4":6, "-3":7}
@@ -152,11 +152,11 @@ class Octree:
 			newCenter = (0,0,0)
 			if branch == 0:
 				# left down back
-				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset)
+				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] + offset)
 
 			elif branch == 1:
 				# left down forwards
-				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset)
+				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset)
 
 			elif branch == 2:
 				# right down forwards
@@ -168,19 +168,19 @@ class Octree:
 
 			elif branch == 4:
 				# left up back
-				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset)
+				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset)
 
 			elif branch == 5:
 				# left up forward
-				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset)
+				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset)
 
 			elif branch == 6:
 				# right up forward
-				newCenter = (pos[0] + offset, pos[1] - offset, pos[2] - offset)
+				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset)
 
 			elif branch == 7:
 				# right up back
-				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset)
+				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset)
 
 			# Now we know the centre point of the new node
 			# we already know the size as supplied by the parent node
@@ -212,12 +212,12 @@ class Octree:
 				# We can draw it too
 				self.debug.addDebugRectangle(objData.position, objData.width, objData.heigth, objData.depth)
 
-				
+
 
 			elif len(root.data) == MAX_OBJECTS_PER_CUBE:
 				# Adding this object to this leaf takes us over the limit
 				# So we have to subdivide the leaf and redistribute the objects
-				# on the new children. 
+				# on the new children.
 				# Add the new object to pre-existing list
 				root.data.append(objData)
 
@@ -253,17 +253,18 @@ class Octree:
 
 	def deletePosition(self, root, position, obj_to_delete):
 		if root == None:
-                        return None
-                elif root.isLeafNode:
+			return None
+		elif root.isLeafNode:
 			added = []
 			for obj in root.data:
-                        	if obj.id != obj_to_delete.id:
+				if obj.id != obj_to_delete.id:
 					added.append(obj)
-				
+
 			root.data = added
-                else:
-                        branch = self.findBranch(root, position)
-                        return self.deletePosition(root.branches[branch], position, obj_to_delete)
+			return root.data
+		else:
+			branch = self.findBranch(root, position)
+			return self.deletePosition(root.branches[branch], position, obj_to_delete)
 
 	# Helper function  returns an index corresponding to a branch
 	# pointing in the direction we want to go
