@@ -1,7 +1,6 @@
 import pygame, time
 
-#TODO: Delete this too
-from fireball import *
+from gameObject import GameObject
 
 class Dummy:
 	pass
@@ -18,7 +17,7 @@ class TriggerManager:
 
 		self.main = main
 
-	def Add_Trigger(self, 
+	def Add_Trigger(self, \
 				triggers = {
 					'Seconds' : None,
 					'Keys' : {},
@@ -26,7 +25,7 @@ class TriggerManager:
 				},
 				conditions = {
 					'Wait' : None,
-					'Something' : None 
+					'Something' : None
 				},
 				trigger_settings = [],
 				callback_settings = [],
@@ -38,7 +37,7 @@ class TriggerManager:
 
 		trigger.triggers = triggers
 		trigger.permanent = permanent
-		
+
 		trigger.settings = trigger_settings
 		trigger.callbacks = callback_settings
 
@@ -52,7 +51,9 @@ class TriggerManager:
 		if "Keys" in triggers:
 			self.key_triggers.append(trigger)
 
-		if "Area" in triggers and triggers['Area']['Position'] and triggers['Area']['Radie']:
+		if "Area" in triggers \
+				and triggers['Area']['Position'] \
+				and triggers['Area']['Radie']:
 			self.position_triggers.append(trigger)
 
 	def Find_Trigger(self):
@@ -97,7 +98,7 @@ class TriggerManager:
 
 		# Loop all timer-triggers
 		for trigger in self.timer_triggers:
-			# If our timer have run out, 
+			# If our timer have run out,
 			if trigger.triggers['Stop_Time'] < now:
 				self.Execute_Trigger(trigger)
 
@@ -110,7 +111,7 @@ class TriggerManager:
 
 				# If the key is pressed right now
 				if keys[key] == 1:
-					self.Execute_Trigger(trigger)	
+					self.Execute_Trigger(trigger)
 
 					# Don't reset the key of we got a callback, the callback takes care of it then
 					if trigger.triggers['Keys'][key] and not len(trigger.callbacks):
@@ -132,10 +133,10 @@ class TriggerManager:
 
 					if not trigger.permanent:
 						self.Del_Trigger(trigger)
-						
+
 
 		# TODO: Implement triggercheck for positions
-		
+
 
 	def Del_Trigger(self):
 		pass
@@ -153,7 +154,8 @@ class TriggerManager:
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_W" : True, "KEY_UP" : True}},
-			trigger_settings = [["FUNCTION", self.main.player.start_walk, self.main, 0.0]],
+			trigger_settings = [["FUNCTION", self.main.player.start_walk, \
+					self.main, 0.0]],
 			callback_settings = [["FUNCTION", self.main.player.stop_walk]],
 
 			permanent = True
@@ -161,7 +163,8 @@ class TriggerManager:
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_A" : True, "KEY_LEFT" : True}},
-			trigger_settings = [["FUNCTION", self.main.player.start_walk, self.main, -90.0]],
+			trigger_settings = [["FUNCTION", self.main.player.start_walk, \
+					self.main, -90.0]],
 			callback_settings = [["FUNCTION", self.main.player.stop_walk]],
 
 			permanent = True
@@ -169,7 +172,8 @@ class TriggerManager:
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_S" : True, "KEY_DOWN" : True}},
-			trigger_settings = [["FUNCTION", self.main.player.start_walk, self.main, 180.0]],
+			trigger_settings = [["FUNCTION", self.main.player.start_walk, \
+					self.main, 180.0]],
 			callback_settings = [["FUNCTION", self.main.player.stop_walk]],
 
 			permanent = True
@@ -177,7 +181,8 @@ class TriggerManager:
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_D" : True, "KEY_RIGHT" : True}},
-			trigger_settings = [["FUNCTION", self.main.player.start_walk, self.main, 90.0]],
+			trigger_settings = [["FUNCTION", self.main.player.start_walk, \
+					self.main, 90.0]],
 			callback_settings = [["FUNCTION", self.main.player.stop_walk]],
 
 			permanent = True
@@ -186,31 +191,30 @@ class TriggerManager:
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F" : True}},
 			trigger_settings = [
-				["EXECUTE",	
-"f = Fireball(\"Fireball 1\", \n\
+				["EXECUTE",
+"import math\n\
+yrotrad = math.radians(self.main.input.yrot + 180.0) \n\
+f = GameObject(\"Fireball\", \"Fireball 1\", \n\
 	(self.main.player.data.position[0], \n\
 	self.main.player.data.position[1], \n\
-	self.main.player.data.position[2] + 1.0), \n\
-	(0.0, 0.0, 0.0), 0.1, 20, (10.0, 10.0, 0.0)) \n\
-\n\
-self.main.objects.append(f) \n\
+	self.main.player.data.position[2]), \n\
+	(0.0, 0.0, 0.0), 0.1, 20, \n\
+	(14.0 * math.sin(yrotrad), -14.0, 14.0 * -math.cos(yrotrad))) \n\
 \n\
 import cPickle\n\
 from network import *\n\
 \n\
 USend(self.main.networkThread.addr, 2, \n\
-cPickle.dumps(f.data))"
+	cPickle.dumps(f.data))"
 				]
-			],
-			callback_settings = [
-				#["FUNCTION", self.main.player.stop_walk]
 			],
 			permanent = True
 		)
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_ESCAPE" : True}},
-			trigger_settings = [["FUNCTION", self.main.state_manager.push, self.main.menu.menu_is_open, None]],
+			trigger_settings = [["FUNCTION", self.main.state_manager.push, \
+					self.main.menu.menu_is_open, None]],
 
 			permanent = True
 		)
@@ -237,35 +241,40 @@ cPickle.dumps(f.data))"
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F1" : True}},
-			trigger_settings = [["EXECUTE", "self.main.player.data.position = (0.0, 0.0, -40.0)"]],
+			trigger_settings = [["EXECUTE", \
+					"self.main.player.data.position = (0.0, 0.0, -40.0)"]],
 
 			permanent = True
 		)
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F2" : True}},
-			trigger_settings = [["EXECUTE", "self.main.octree.debugLines ^= 1"]],
+			trigger_settings = [["EXECUTE", \
+					"self.main.octree.debugLines ^= 1"]],
 
 			permanent = True
 		)
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F3" : True}},
-			trigger_settings = [["EXECUTE", "self.main.graphics.spectator ^= 1"]],
+			trigger_settings = [["EXECUTE", \
+					"self.main.graphics.spectator ^= 1"]],
 
 			permanent = True
 		)
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F6" : True}},
-			trigger_settings = [["EXECUTE", "self.main.graphics.toggleDrawAxes ^= 1"]],
+			trigger_settings = [["EXECUTE", \
+					"self.main.graphics.toggleDrawAxes ^= 1"]],
 
 			permanent = True
 		)
 
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_F7" : True}},
-			trigger_settings = [["EXECUTE", "self.main.graphics.wireframe ^= 1"]],
+			trigger_settings = \
+					[["EXECUTE", "self.main.graphics.wireframe ^= 1"]],
 
 			permanent = True
 		)

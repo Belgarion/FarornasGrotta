@@ -65,13 +65,13 @@ class CaveOfDanger:
 		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
 
 		self.player = Player(sound = self.sound)
-	
-		
+
+
 		self.physics = Physics(self)
 		self.octree = self.physics.octree
 		self.graphics = Graphics(self)
 		self.input = Input(self)
-		
+
 		self.objects.append(self.player)
 
 		self.input_thread = InputThread(self.input)
@@ -89,7 +89,7 @@ class CaveOfDanger:
 		self.state_manager.process(None)
 
 		self.physics.updateObjects(self.objects)
-		
+
 		self.fpsTime = time.time()
 
 		# TODO: Don't ask me, iam an alien

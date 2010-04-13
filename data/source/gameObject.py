@@ -34,3 +34,6 @@ class GameObject:
 					(self.data.position[0], 0, self.data.position[2])
 			return True
 		return False
+
+	def handleCollision(self):
+		pass

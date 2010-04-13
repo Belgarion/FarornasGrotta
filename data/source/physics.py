@@ -10,12 +10,14 @@ class Physics:
 		self.objects_in_players_node = []
 		self.oldPos = {}
 		self.main = main
-		self.octree = self.octree = Octree(100.0, self)	
+		self.octree = self.octree = Octree(100.0, self)
 		self.objects = []
 		self.lastTime = time.time()
 		self.isClient = True
-		if os.path.basename(sys.argv[0]) != "server.py":
-			self.oldPos[self.main.player.data.id] = self.main.player.data.position
+		if os.path.basename(sys.argv[0]) == "server.py":
+			self.isClient = False
+		if self.isClient:
+			self.oldPos[main.player.data.id] = self.main.player.data.position
 
 	def updateObjects(self, objects):
 		self.objects = objects
@@ -34,10 +36,9 @@ class Physics:
 					self.objects[i] = self.updatePos(self.objects[i], relTime)
 
 		self.lastTime = time.time()
-		
 
-		if os.path.basename(sys.argv[0]) != "server.py":
-			
+
+		if self.isClient:
 			#update player position in the octree
 			pos = self.main.player.data.position
 			self.octree.deletePosition(
@@ -45,7 +46,8 @@ class Physics:
 					self.oldPos[self.main.player.data.id],
 					self.main.player.data
 					)
-			self.octree.insertNode(self.octree.root, 15000, self.octree.root, self.main.player.data)
+			self.octree.insertNode(self.octree.root, 15000, self.octree.root, \
+					self.main.player.data)
 			self.oldPos[self.main.player.data.id] = pos
 
 			result = self.octree.findPosition(self.octree.root, pos)
@@ -57,13 +59,16 @@ class Physics:
 		return self.objects
 
 	def updatePos(self, obj, relTime):
+		if self.isClient and obj != self.main.player:
+			return
+
 		velocity = obj.data.velocity
 		mass = obj.data.mass
 
 		y = obj.data.position[1]
 		velY = obj.data.velocity[1]
 		collide = 0
-		
+
 		velY += -9.82*relTime
 		y += velY*relTime
 		obj.data.velocity = (velocity[0], velY , velocity[2])
@@ -74,25 +79,26 @@ class Physics:
 		if new_pos[1] < 0:
 			collide = 1
 
-		if os.path.basename(sys.argv[0]) != "server.py":
+		if self.isClient:
 			if self.playerCollision(new_pos):
 				collide = 1
 
 
 		if not collide:# or velY < 0:
-			obj.data.position = new_pos		
-		elif os.path.basename(sys.argv[0]) != "server.py":
+			obj.data.position = new_pos
+		elif self.isClient:
 			# check if we are standin on something
 			pos_y_down = obj.data.position[0], y, obj.data.position[2]
 			if self.playerCollision(pos_y_down) or (y<=0):
 				self.main.player.can_jump = 1
-				self.main.player.data.velocity = self.main.player.data.velocity[0], 0 , self.main.player.data.velocity[2]
-		
-
-		# actually put att zero to not crap with the check for can jump
-		if new_pos[1] < 0:
+				self.main.player.data.velocity = (
+						self.main.player.data.velocity[0],
+						0,
+						self.main.player.data.velocity[2]
+						)
+		else:
 			obj.data.velocity = obj.data.velocity[0], 0, obj.data.velocity[2]
-		
+
 		return obj
 
 	def playerCollision(self,newPos):

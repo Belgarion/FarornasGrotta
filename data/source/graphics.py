@@ -239,7 +239,6 @@ def nearestPowerOfTwo(v):
 def createVBO(type, vertices, vnormals, texCoords = None):
 	if type in VBOObjects.loadedObjects:
 		obj = VBOObjects.loadedObjects[type]
-		print "Already exists"
 		if texCoords != None:
 			return (obj.verticesId, obj.normalsId, obj.texCoordsId)
 		return (obj.verticesId, obj.normalsId)

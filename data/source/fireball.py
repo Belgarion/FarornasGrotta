@@ -6,8 +6,8 @@ import graphics
 
 class Fireball(GameObject):
 	def __init__(self, name = "Fireball 1", position = (0.0, 20.0, -40.0), \
-			orientation = (0.0, 180.0, 0.0), scale = 0.1, mass = 20, velocity = (0.0, 0.0, 0.0), \
-			guid = None, sound = None):
+			orientation = (0.0, 180.0, 0.0), scale = 0.1, mass = 20, \
+			velocity = (0.0, 0.0, 0.0), guid = None, sound = None):
 		GameObject.__init__(self, "Fireball", name, position,
 				orientation, scale, mass, velocity, guid)
 
