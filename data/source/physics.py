@@ -43,6 +43,8 @@ class Physics:
 		for obj in self.objectsToRemove:
 			if obj in self.objects:
 				self.objects.remove(obj)
+				if obj.data.type == "Fireball":
+					self.objectsToRemove.remove(obj)
 
 		self.lastTime = time.time()
 

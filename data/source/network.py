@@ -184,12 +184,12 @@ class NetworkThread(threading.Thread):
 						i.orientation, i.scale, i.mass,
 						i.velocity, i.id)
 				objects.append(f)
-				self.main.octree.insertNode(
-					self.main.octree.root,
-					self.main.octree.worldSize,
-					self.main.octree.root,
-					f.data
-				)
+				#self.main.octree.insertNode(
+				#	self.main.octree.root,
+				#	self.main.octree.worldSize,
+				#	self.main.octree.root,
+				#	f.data
+				#)
 			self.objdataToAdd.remove(i)
 		self.physics.updateObjects(objects)
 
@@ -237,17 +237,18 @@ class NetworkThread(threading.Thread):
 								if od.id == self.player.data.id:
 									continue
 								if obj.data.id == od.id:
-									self.main.octree.deletePosition(
-											self.main.octree.root,
-											obj.data.position,
-											obj.data
-											)
-									self.main.octree.insertNode(
-											self.main.octree.root,
-											15000,
-											self.main.octree.root,
-											obj.data
-											)
+									if obj.data.type != "Fireball":
+										self.main.octree.deletePosition(
+												self.main.octree.root,
+												obj.data.position,
+												obj.data
+												)
+										self.main.octree.insertNode(
+												self.main.octree.root,
+												15000,
+												self.main.octree.root,
+												obj.data
+												)
 									obj.data = od
 									exists = True
 									break

@@ -14,6 +14,7 @@ class TriggerManager:
 		self.timer_triggers = []
 		self.key_triggers = []
 		self.position_triggers = []
+		self.lastFireball = time.time()
 
 		self.main = main
 
@@ -193,20 +194,22 @@ class TriggerManager:
 			trigger_settings = [
 				["EXECUTE",
 "import math\n\
-xrotrad = math.radians(self.main.input.xrot) \n\
-yrotrad = math.radians(self.main.input.yrot + 180.0) \n\
-f = GameObject(\"Fireball\", \"Fireball 1\", \n\
-	(self.main.player.data.position[0], \n\
-	self.main.player.data.position[1], \n\
-	self.main.player.data.position[2]), \n\
-	(0.0, 0.0, 0.0), 0.1, 20, \n\
-	(14.0 * math.sin(yrotrad), -5 - 14.0 * -math.sin(xrotrad), 14.0 * -math.cos(yrotrad))) \n\
-\n\
-import cPickle\n\
-from network import *\n\
-\n\
-USend(self.main.networkThread.addr, 2, \n\
-	cPickle.dumps(f.data))"
+if time.time() - self.lastFireball > 0.5:\n\
+	self.lastFireball = time.time()\n\
+	xrotrad = math.radians(self.main.input.xrot) \n\
+	yrotrad = math.radians(self.main.input.yrot + 180.0) \n\
+	f = GameObject(\"Fireball\", \"Fireball 1\", \n\
+		(self.main.player.data.position[0], \n\
+		self.main.player.data.position[1], \n\
+		self.main.player.data.position[2]), \n\
+		(0.0, 0.0, 0.0), 0.1, 20, \n\
+		(14.0 * math.sin(yrotrad), -5 - 14.0 * -math.sin(xrotrad), 14.0 * -math.cos(yrotrad))) \n\
+	\n\
+	import cPickle\n\
+	from network import *\n\
+	\n\
+	USend(self.main.networkThread.addr, 2, \n\
+		cPickle.dumps(f.data))"
 				]
 			],
 			permanent = True
