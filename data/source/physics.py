@@ -33,7 +33,7 @@ class Physics:
 					self.objects[i] = self.updatePos(self.objects[i], relTime)
 					break
 			else:
-				if self.objects[i].data.type != "Player":
+				if self.objects[i].data.type != "player1":
 					obj = self.updatePos(self.objects[i], relTime)
 					if obj == None:
 						self.objectsToRemove.append(self.objects[i])
@@ -97,21 +97,46 @@ class Physics:
 			obj.data.position = new_pos
 		elif self.isClient:
 			# check if we are standin on something
-			pos_y_down = obj.data.position[0], y, obj.data.position[2]
-			if self.playerCollision(pos_y_down) or (y<=0):
+			pos_y_down = new_pos[0], y, new_pos[2]
+			if y <= 0 or self.playerCollision(pos_y_down):
 				self.main.player.can_jump = 1
 				self.main.player.data.velocity = (
 						self.main.player.data.velocity[0],
 						0,
 						self.main.player.data.velocity[2]
 						)
-		else:
+
+		if not self.isClient:
 			if obj.data.type == "Fireball":
-				return None
-			obj.data.velocity = obj.data.velocity[0], 0, obj.data.velocity[2]
-			obj.data.position = new_pos[0], 0.0, new_pos[2]
+				monster = self.fireballCollision(obj, new_pos)
+				if new_pos[1] <= 0 or monster != None:
+					return None
+			elif self.collisionBetweenObjectsWithoutOctree(obj, new_pos):
+				obj.data.velocity = (0.0, 0.0, 0.0)
+			else:
+				obj.data.velocity = \
+						obj.data.velocity[0], 0, obj.data.velocity[2]
+				obj.data.position = new_pos[0], 0.0, new_pos[2]
 
 		return obj
+
+	def collisionBetweenObjectsWithoutOctree(self, obj1, pos1):
+		for obj2 in self.objects:
+			if obj2 == obj1:
+				continue
+			dist = self.dist_between_points(pos1, obj2.data.position)
+			if dist < 5:
+				return True
+		return False
+
+	def fireballCollision(self, obj, pos):
+		for obj2 in self.objects:
+			if obj2.data.type != "GingerbreadMonster":
+				continue
+			dist = self.dist_between_points(pos, obj2.data.position)
+			if dist < 5:
+				return obj2
+		return None
 
 	def playerCollision(self,newPos):
 		return self.collisionPlayerMonster(newPos)

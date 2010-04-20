@@ -32,7 +32,7 @@ def load_level(name):
 			pos = (float(pos[0]), float(pos[1]), float(pos[2]))
 			orientation = split[4].split(",")
 			orientation = (float(orientation[0]), float(orientation[1]), float(orientation[2]))
-	
+
 			object = [split[1], split[2], (pos[0], pos[1], pos[2]), \
 					(orientation[0], orientation[1], orientation[2]), float(split[5])]
 			creatures.append(object)
@@ -41,7 +41,7 @@ def load_level(name):
 
 def spawnMonsters():
 	print "spawnMonsters()"
-	
+
 	objects_loaded = load_level("level1")
 
 	for object in objects_loaded:
