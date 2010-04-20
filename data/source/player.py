@@ -46,16 +46,20 @@ class Player(GameObject):
 		if not main.physics.playerCollision(new_position):
 			self.data.position = new_position
 
-		#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
-		if self.sound.data['Run']['UUID'] == None:
-			self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
+		if self.sound:
+			#self.sound.FadeIn_Sound(self.sound.data["Run"]["UUID"]
+			if self.sound.data['Run']['UUID'] == None:
+				self.sound.data['Run']['UUID'] = \
+						self.sound.Play_Sound("run_ground")
 
-		elif not self.sound.Sound_Is_Playing(self.sound.data['Run']['UUID']):
-			self.sound.data['Run']['UUID'] = self.sound.Play_Sound("run_ground")
+			elif not self.sound.Sound_Is_Playing(self.sound.data['Run']['UUID']):
+				self.sound.data['Run']['UUID'] = \
+						self.sound.Play_Sound("run_ground")
 
 	def stop_walk(self):
-		#self.sound.FadeOut_Sound(self.sound.data["Run"]["UUID"])
-		self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
+		if self.sound:
+			#self.sound.FadeOut_Sound(self.sound.data["Run"]["UUID"])
+			self.sound.Del_Sound_Net(self.sound.data['Run']['UUID'])
 
 	def walk(self, main, direction):
 		xrotrad = math.radians(main.input.xrot + direction)

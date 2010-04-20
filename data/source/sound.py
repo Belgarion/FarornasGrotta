@@ -88,7 +88,6 @@ class CSound:
 		volume = source.get_volume()
 
 		#source.
-		
 
 	def FadeIn_Sound(self, uuid, seconds = 1.0):
 		source = Find_Source(uuid)
@@ -177,7 +176,7 @@ class CSound:
 
 
 	# TODO: Load this as a loop into the processmanger or something,
-	# 		we dont wanna waste time here. But we wanna have so we 
+	# 		we dont wanna waste time here. But we wanna have so we
 	#		can turn our head and still have the sound correctly
 	def Update_Sound(self):
 		for source in self.sourcelist:

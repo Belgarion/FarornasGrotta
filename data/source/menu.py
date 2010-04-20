@@ -37,6 +37,8 @@ class Menu:
 				self.initMenus()
 			print "menu starting"
 		elif purpose is "FRAME_PURPOSE":
+			if sys.platform == "win32":
+				self.main.input.handle_mouse()
 			#print "menu processing"
 
 			#print self.main.input.keys["KEY_A"]

@@ -12,7 +12,6 @@ from menu import *
 from player import Player
 from fireball import Fireball
 from octree import *
-from sound import *
 
 from ProcessManager import *
 from StateManager import *
@@ -62,7 +61,11 @@ class CaveOfDanger:
 		init_pygame(self)
 		init_opengl(self)
 
-		self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
+		if self.args['disableSound'] or sys.platform == "win32":
+			self.sound = None
+		else:
+			from sound import *
+			self.sound = CSound(self, self.config.getint('Sound','Frequency'), True)
 
 		self.player = Player(sound = self.sound)
 
@@ -104,11 +107,14 @@ class CaveOfDanger:
 				if arg == "--help" or arg == "-h":
 					print "Arguments: \n"\
 							"	--nowater		Disable water\n"\
+							"	--nosound		Disable sound\n"\
 							"	--host			Connect to host\n"\
 							"	--port			Port (Default: 30000)\n"
 					sys.exit(0)
 				elif arg == "--nowater":
 					self.args['disableWater'] = True
+				elif arg == "--nosound":
+					self.args['disableSound'] = True
 				elif arg == "--host":
 					if not len(sys.argv) > index + 1:
 						print "No host specified for --host"
@@ -185,7 +191,9 @@ class CaveOfDanger:
 			self.clock = pygame.time.Clock()
 
 		elif purpose is "FRAME_PURPOSE":
-			# MUCH CLEANER MAIN LOOP!!
+			if sys.platform == "win32":
+				self.input.handle_mouse()
+
 			objects = self.physics.update()
 
 			rel = self.input.yrot - self.player.rotated
