@@ -19,6 +19,7 @@ typeDict = {
 		5:"Pong",
 		6:"Start sound",
 		7:"Stop sound",
+		8:"Remove object",
 		}
 
 import sys
@@ -271,6 +272,14 @@ class NetworkThread(threading.Thread):
 						self.physics.updateObjects(objects)
 						for i in objects:
 							if self.debug: print i.data.position
+					elif type == 8: # remove object
+						data = cPickle.loads(recvd)
+
+						self.main.octree.deletePosition(
+								self.main.octree.root,
+								data.position,
+								data
+								)
 					elif type == 6: # start sound
 						data = cPickle.loads(recvd)
 

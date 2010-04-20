@@ -12,6 +12,7 @@ class Physics:
 		self.main = main
 		self.octree = self.octree = Octree(100.0, self)
 		self.objects = []
+		self.objectsToRemove = []
 		self.lastTime = time.time()
 		self.isClient = True
 		if os.path.basename(sys.argv[0]) == "server.py":
@@ -33,7 +34,15 @@ class Physics:
 					break
 			else:
 				if self.objects[i].data.type != "Player":
-					self.objects[i] = self.updatePos(self.objects[i], relTime)
+					obj = self.updatePos(self.objects[i], relTime)
+					if obj == None:
+						self.objectsToRemove.append(self.objects[i])
+					else:
+						self.objects[i] = obj
+
+		for obj in self.objectsToRemove:
+			if obj in self.objects:
+				self.objects.remove(obj)
 
 		self.lastTime = time.time()
 
@@ -97,7 +106,10 @@ class Physics:
 						self.main.player.data.velocity[2]
 						)
 		else:
+			if obj.data.type == "Fireball":
+				return None
 			obj.data.velocity = obj.data.velocity[0], 0, obj.data.velocity[2]
+			obj.data.position = new_pos[0], 0.0, new_pos[2]
 
 		return obj
 

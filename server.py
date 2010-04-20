@@ -177,6 +177,10 @@ if __name__ == '__main__':
 						od.append(obj.data)
 					Network.USend(addr, 3, cPickle.dumps(od, 2))
 
+					for obj in physics.objectsToRemove:
+						Network.USend(addr, 8, cPickle.dumps(obj.data))
+						physics.objectsToRemove.remove(obj)
+
 
 	except:
 		traceback.print_exc()
