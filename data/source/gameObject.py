@@ -11,6 +11,7 @@ class GameObjectData:
 		self.scale = scale
 		self.mass = mass
 		self.velocity = velocity
+		self.hp = 100
 
 		# Fulhack
 		filename = "data/model/"+type+".obj"

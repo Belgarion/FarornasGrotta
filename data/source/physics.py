@@ -112,6 +112,8 @@ class Physics:
 			if obj.data.type == "Fireball":
 				monster = self.fireballCollision(obj, new_pos)
 				if new_pos[1] <= 0 or monster != None:
+					if monster != None:
+						monster.data.hp -= 50
 					return None
 			elif self.collisionBetweenObjectsWithoutOctree(obj, new_pos):
 				obj.data.velocity = (0.0, 0.0, 0.0)

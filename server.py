@@ -174,7 +174,11 @@ if __name__ == '__main__':
 					print "Sending objdata to", addr
 					od = []
 					for obj in objects:
-						od.append(obj.data)
+						if obj.data.hp <= 0:
+							physics.objectsToRemove.append(obj)
+							objects.remove(obj)
+						else:
+							od.append(obj.data)
 					Network.USend(addr, 3, cPickle.dumps(od, 2))
 
 					for obj in physics.objectsToRemove:
