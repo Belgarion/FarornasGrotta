@@ -103,6 +103,9 @@ class CaveOfDanger:
 				'disableSound': False,
 				'host': None,
 				'port': 30000}
+		if sys.platform == "win32":
+			self.args['disableSound'] = True
+
 		if len(sys.argv) > 1:
 			for index, arg in enumerate(sys.argv):
 				if arg == "--help" or arg == "-h":
@@ -114,7 +117,7 @@ class CaveOfDanger:
 					sys.exit(0)
 				elif arg == "--nowater":
 					self.args['disableWater'] = True
-				elif arg == "--nosound" or sys.platform == "win32":
+				elif arg == "--nosound":
 					self.args['disableSound'] = True
 				elif arg == "--host":
 					if not len(sys.argv) > index + 1:
