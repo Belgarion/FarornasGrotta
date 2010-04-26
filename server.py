@@ -50,14 +50,18 @@ def spawnMonsters():
 				object[0], object[1],
 				object[2], object[3],
 				object[4],100.0, objects, True)
-			objects.append(gingerbreadMonster)
 
-			objdata.append(gingerbreadMonster.data)
+			#objdata.append(gingerbreadMonster.data)
 
 			gingerbreadIntelligenceThread = \
 				gingerbreadMonster.IntelligenceThread(gingerbreadMonster)
 			gingerbreadIntelligenceThread.start()
 			threads.append(gingerbreadIntelligenceThread)
+
+			gingerbreadMonster.intelligenceThread = \
+					gingerbreadIntelligenceThread
+
+			objects.append(gingerbreadMonster)
 		elif object[0] == "some other monster":
 			pass
 
@@ -175,6 +179,13 @@ if __name__ == '__main__':
 					od = []
 					for obj in objects:
 						if obj.data.hp <= 0:
+							if obj.data.type == "GingerbreadMonster" and \
+									obj.intelligenceThread != None:
+								obj.intelligenceThread.quit = True
+								if obj.intelligenceThread.isAlive():
+									obj.intelligenceThread.join()
+
+								threads.remove(obj.intelligenceThread)
 							physics.objectsToRemove.append(obj)
 							objects.remove(obj)
 						else:

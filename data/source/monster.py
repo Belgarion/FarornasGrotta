@@ -20,6 +20,8 @@ class Monster(GameObject):
 		GameObject.__init__(self, type, name, position,
 				orientation, scale, mass, (0.0, 0.0, 0.0), guid)
 
+		self.intelligenceThread = None
+
 		if server:
 			return
 
