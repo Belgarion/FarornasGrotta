@@ -61,7 +61,7 @@ class CaveOfDanger:
 		init_pygame(self)
 		init_opengl(self)
 
-		if self.args['disableSound'] or sys.platform == "win32":
+		if self.args['disableSound']:
 			self.sound = None
 		else:
 			from sound import *
@@ -100,6 +100,7 @@ class CaveOfDanger:
 
 	def checkArgs(self):
 		self.args = {'disableWater': False,
+				'disableSound': False,
 				'host': None,
 				'port': 30000}
 		if len(sys.argv) > 1:
@@ -113,7 +114,7 @@ class CaveOfDanger:
 					sys.exit(0)
 				elif arg == "--nowater":
 					self.args['disableWater'] = True
-				elif arg == "--nosound":
+				elif arg == "--nosound" or sys.platform == "win32":
 					self.args['disableSound'] = True
 				elif arg == "--host":
 					if not len(sys.argv) > index + 1:
