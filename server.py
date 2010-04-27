@@ -186,6 +186,8 @@ if __name__ == '__main__':
 									obj.intelligenceThread.join()
 
 								threads.remove(obj.intelligenceThread)
+
+								#TODO: Spawn new monster
 							physics.objectsToRemove.append(obj)
 							objects.remove(obj)
 						else:

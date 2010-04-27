@@ -59,30 +59,30 @@ class Debug:
 		self.debugLines.append(TopRightFront)
 		self.debugLines.append(TopLeftBack)
 		self.debugLines.append(TopRightBack)
-		self.debugLines.append(TopLeftFront)
-		self.debugLines.append(TopLeftBack)
-		self.debugLines.append(TopRightFront)
-		self.debugLines.append(TopRightBack)
+		#self.debugLines.append(TopLeftFront)
+		#self.debugLines.append(TopLeftBack)
+		#self.debugLines.append(TopRightFront)
+		#self.debugLines.append(TopRightBack)
 
 		## BOTTOM LINES
 		self.debugLines.append(BottomLeftFront)
 		self.debugLines.append(BottomRightFront)
 		self.debugLines.append(BottomLeftBack)
 		self.debugLines.append(BottomRightBack)
-		self.debugLines.append(BottomLeftFront)
-		self.debugLines.append(BottomLeftBack)
-		self.debugLines.append(BottomRightFront)
-		self.debugLines.append(BottomRightBack)
+		#self.debugLines.append(BottomLeftFront)
+		#self.debugLines.append(BottomLeftBack)
+		#self.debugLines.append(BottomRightFront)
+		#self.debugLines.append(BottomRightBack)
 
 		## SIDE LINES
 		self.debugLines.append(TopLeftFront)
 		self.debugLines.append(BottomLeftFront)
 		self.debugLines.append(TopLeftBack)
 		self.debugLines.append(BottomLeftBack)
-		self.debugLines.append(TopRightBack)
-		self.debugLines.append(BottomRightBack)
-		self.debugLines.append(TopRightFront)
-		self.debugLines.append(BottomRightFront)
+		#self.debugLines.append(TopRightBack)
+		#self.debugLines.append(BottomRightBack)
+		#self.debugLines.append(TopRightFront)
+		#self.debugLines.append(BottomRightFront)
 
 
 class OctNode:
@@ -127,7 +127,7 @@ class Octree:
 		#branch = self.findPosition(root, position)
 
 	def addNode(self, position, size, objects):
-		self.debug.addDebugRectangle(position, size, size, size)
+		#self.debug.addDebugRectangle(position, size, size, size)
 
 		# This creates the actual OctNode itself.
 		return OctNode(position, size, objects)
@@ -210,7 +210,7 @@ class Octree:
 				root.data.append(objData)
 
 				# We can draw it too
-				self.debug.addDebugRectangle(objData.position, objData.width, objData.heigth, objData.depth)
+				#self.debug.addDebugRectangle(objData.position, objData.width, objData.height, objData.depth)
 
 
 

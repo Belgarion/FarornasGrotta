@@ -247,7 +247,7 @@ class NetworkThread(threading.Thread):
 												self.main.octree.root,
 												15000,
 												self.main.octree.root,
-												obj.data
+												od
 												)
 									obj.data = od
 									exists = True
@@ -255,6 +255,11 @@ class NetworkThread(threading.Thread):
 
 							if not exists and \
 									obj.data.id != self.main.player.data.id:
+								self.main.octree.deletePosition(
+										self.main.octree.root,
+										obj.data.position,
+										obj.data
+										)
 								objects.remove(obj)
 
 						for i in objdata:
@@ -276,11 +281,11 @@ class NetworkThread(threading.Thread):
 					elif type == 8: # remove object
 						data = cPickle.loads(recvd)
 
-						self.main.octree.deletePosition(
-								self.main.octree.root,
-								data.position,
-								data
-								)
+						#self.main.octree.deletePosition(
+						#		self.main.octree.root,
+						#		data.position,
+						#		data
+						#		)
 					elif type == 6: # start sound
 						data = cPickle.loads(recvd)
 

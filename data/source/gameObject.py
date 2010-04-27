@@ -15,7 +15,7 @@ class GameObjectData:
 
 		# Fulhack
 		filename = "data/model/"+type+".obj"
-		self.width, self.heigth, self.depth = \
+		self.width, self.height, self.depth = \
 			Calculate_Size(Get_Vertices(filename))
 
 class GameObject:

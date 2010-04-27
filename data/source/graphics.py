@@ -716,7 +716,13 @@ class Graphics:
 			# Turn the lines yellow
 			glColor3ub(255, 255, 0)
 
-			# Go through the whole list of lines stored in the vector debugLines.
+			self.main.physics.octree.debug.debugLines = []
+			for obj in objects:
+				self.main.physics.octree.debug.addDebugRectangle(
+						obj.data.position, obj.data.width,
+						obj.data.height, obj.data.depth)
+
+			# Go through the whole list of lines stored in the vector debugLines
 			for line in self.main.physics.octree.debug.debugLines:
 				# Pass in the current point to be rendered as part of a line
 				glVertex3f(line[0], line[1], line[2])
