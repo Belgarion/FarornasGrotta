@@ -1,8 +1,10 @@
 import uuid
-from graphics import *
+import graphics
 
 class GameObjectData:
-	def __init__(self, id, type, name, position, orientation, scale, mass, velocity):
+	def __init__(self, id, type, name, position, orientation, scale, mass, velocity, owner):
+		if id == None:
+			id = uuid.uuid4().hex
 		self.id = str(id)
 		self.type = type
 		self.name = name
@@ -12,19 +14,20 @@ class GameObjectData:
 		self.mass = mass
 		self.velocity = velocity
 		self.hp = 100
+		self.frags = 0
+		self.deaths = 0
+		self.owner = owner
 
 		# Fulhack
 		filename = "data/model/"+type+".obj"
 		self.width, self.height, self.depth = \
-			Calculate_Size(Get_Vertices(filename))
+			graphics.Calculate_Size(graphics.Get_Vertices(filename))
 
 class GameObject:
 	def __init__(self, type, name, position, orientation, scale, mass, velocity, \
-			guid = None):
-		if guid == None:
-			guid = uuid.uuid4().hex
+			guid = None, owner = None):
 		self.data = GameObjectData(guid, type, name, position,
-				orientation, scale, mass, velocity)
+				orientation, scale, mass, velocity, owner)
 
 	def draw(self):
 		pass

@@ -98,6 +98,8 @@ class CaveOfDanger:
 		# TODO: Don't ask me, iam an alien
 		self.trigger_manager.Ugly_Function_For_Loading_Main_Keytriggers()
 
+		self.showPlayerList = False
+
 	def checkArgs(self):
 		self.args = {'disableWater': False,
 				'disableSound': False,

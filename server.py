@@ -129,6 +129,9 @@ if __name__ == '__main__':
 
 								for i in xrange(len(objects)):
 									if obj.id == objects[i].data.id:
+										obj.frags = objects[i].data.frags
+										obj.deaths = objects[i].data.deaths
+										obj.hp = objects[i].data.hp
 										objects[i].data = obj
 
 								if not objectExists:
@@ -137,7 +140,7 @@ if __name__ == '__main__':
 									g = GameObject(obj.type, obj.name,
 											obj.position, obj.orientation,
 											obj.scale, obj.mass, obj.velocity,
-											obj.id)
+											obj.id, obj.owner)
 									objects.append(g)
 
 							elif type == 6: # start sound
@@ -191,6 +194,7 @@ if __name__ == '__main__':
 							physics.objectsToRemove.append(obj)
 							objects.remove(obj)
 						else:
+							print obj.data.id, obj.data.name, obj.data.frags
 							od.append(obj.data)
 					Network.USend(addr, 3, cPickle.dumps(od, 2))
 

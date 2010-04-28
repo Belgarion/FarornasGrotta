@@ -138,13 +138,14 @@ class TriggerManager:
 
 		# TODO: Implement triggercheck for positions
 
-
 	def Del_Trigger(self):
 		pass
 
 	def Ugly_Function_For_Loading_Main_Keytriggers(self):
-		# TODO: These triggers should be initialize when the game starts, we dont wanna bind these in the menu, tho
-		# 		right now we only check triggers when the game is running, but it could be input for the menu as well
+		# TODO: These triggers should be initialize when the game starts,
+		#		we dont wanna bind these in the menu, tho
+		#		right now we only check triggers when the game is running,
+		#		but it could be input for the menu as well
 		# TODO: Load these triggers from a CONFIG FILE INSTEAD, thank ya
 		self.Add_Trigger(
 			triggers = {"Keys" : {"KEY_SPACE" : True}},
@@ -193,23 +194,26 @@ class TriggerManager:
 			triggers = {"Keys" : {"KEY_F" : True}},
 			trigger_settings = [
 				["EXECUTE",
-"import math\n\
-if time.time() - self.lastFireball > 0.5:\n\
-	self.lastFireball = time.time()\n\
-	xrotrad = math.radians(self.main.input.xrot) \n\
-	yrotrad = math.radians(self.main.input.yrot + 180.0) \n\
-	f = GameObject(\"Fireball\", \"Fireball 1\", \n\
-		(self.main.player.data.position[0], \n\
-		self.main.player.data.position[1], \n\
-		self.main.player.data.position[2]), \n\
-		(0.0, 0.0, 0.0), 0.1, 20, \n\
-		(14.0 * math.sin(yrotrad), -5 - 14.0 * -math.sin(xrotrad), 14.0 * -math.cos(yrotrad))) \n\
-	\n\
-	import cPickle\n\
-	from network import *\n\
-	\n\
-	USend(self.main.networkThread.addr, 2, \n\
-		cPickle.dumps(f.data))"
+"""import math
+if time.time() - self.lastFireball > 0.5:
+	self.lastFireball = time.time()
+	xrotrad = math.radians(self.main.input.xrot)
+	yrotrad = math.radians(self.main.input.yrot + 180.0)
+	f = GameObject(\"Fireball\", \"Fireball 1\",
+		(self.main.player.data.position[0],
+		self.main.player.data.position[1],
+		self.main.player.data.position[2]),
+		(0.0, 0.0, 0.0), 0.1, 20,
+		(14.0 * math.sin(yrotrad), -5 - 14.0 * -math.sin(xrotrad), 14.0 * -math.cos(yrotrad)),
+		None, self.main.player.data.id)
+	print self.main.player.data.id
+	print f.data.owner
+
+	import cPickle
+	from network import *
+
+	USend(self.main.networkThread.addr, 2,
+		cPickle.dumps(f.data))"""
 				]
 			],
 			permanent = True

@@ -172,6 +172,7 @@ class Input():
 			"KEY_-":0,
 			"KEY_KP_PLUS":0,
 			"KEY_KP_MINUS":0,
+			"KEY_TAB":0,
 			}
 
 	def resetKey(self, key):

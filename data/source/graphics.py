@@ -417,13 +417,18 @@ class Graphics:
 	numberOfVertices = 0
 
 	def __init__(self, main):
+		from font import Font
+
 		global g_fVBOObjects
 		g_fVBOObjects = []
 
 		self.main = main
 		self.g_nFrames = 0
+		self.fps = 0
 
 		init_opengl(main)
+
+		self.font = Font()
 
 	def addSurface(self, Mesh, Obj, Texture):
 		g_pMesh = CMesh()
@@ -557,7 +562,8 @@ class Graphics:
 			self.water = Water()
 
 	def printFPS(self):
-		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.g_nFrames))
+		self.fps = self.g_nFrames
+		pygame.display.set_caption("FarornasGrotta - %d FPS" % (self.fps))
 		self.g_nFrames = 0
 
 	def drawAxes(self):
@@ -586,6 +592,61 @@ class Graphics:
 
 		if light:
 			glEnable(GL_LIGHTING)
+
+	def drawPlayerList(self):
+		glPushMatrix()
+
+		glDisable(GL_LIGHTING)
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+		glLoadIdentity()
+		glTranslated(-320.0, -240.0, -410.0)
+
+		glColor3f(1.0, 1.0, 1.0)
+
+		row = 3
+
+		self.font.glPrint(80.0, 480 - 30.0 * row, "Name")
+		self.font.glPrint(420.0, 480 - 30.0 * row, "Frags")
+		self.font.glPrint(500.0, 480 - 30.0 * row, "Deaths")
+		row += 1
+
+		i = 0
+		for obj in self.main.physics.objects:
+			if obj.data.type != "player1":
+				continue
+
+			if obj.data.id == self.main.player.data.id:
+				glColor3f(0.0, 1.0, 0.0)
+			else:
+				glColor3f(1.0, 1.0, 1.0)
+
+			self.font.glPrint(80.0, 480.0 - 30.0*row, "%s" % obj.data.name)
+			self.font.glPrint(420.0, 480.0 - 30.0*row, "%5d" % obj.data.frags)
+			self.font.glPrint(500.0, 480.0 - 30.0*row, "%6d" % obj.data.deaths)
+
+			i += 1
+			row += 1
+
+
+		glEnable(GL_LIGHTING)
+
+		glPopMatrix()
+
+	def drawFPS(self):
+		glPushMatrix()
+		glDisable(GL_LIGHTING)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+		glLoadIdentity()
+		glTranslated(-320.0, -240.0, -410.0)
+
+		glColor3f(1.0, 1.0, 1.0)
+
+		self.font.glPrint(540.0, 440.0, "FPS: %d" % (self.fps))
+
+		glEnable(GL_LIGHTING)
+		glPopMatrix()
 
 	def draw(self, objects):
 		global g_fVBOObjects
@@ -718,6 +779,11 @@ class Graphics:
 
 		for obj in objects:
 			obj.draw()
+
+		if self.main.input.keys["KEY_TAB"] == 1:
+			self.drawPlayerList()
+
+		self.drawFPS()
 
 		glFlush()
 

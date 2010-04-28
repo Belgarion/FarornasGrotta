@@ -80,10 +80,10 @@ class Menu:
 
 		glColor3f(1.0, 1.0, 1.0)
 
-		glEnableClientState(GL_VERTEX_ARRAY)
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-
 		if self.hasBackground:
+			glEnableClientState(GL_VERTEX_ARRAY)
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
 			glBindTexture(GL_TEXTURE_2D, self.backgroundTextureId)
 			glEnable(GL_TEXTURE_2D)
 
@@ -96,8 +96,8 @@ class Menu:
 
 			glDisable(GL_TEXTURE_2D)
 
-		glDisableClientState(GL_VERTEX_ARRAY)
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+			glDisableClientState(GL_VERTEX_ARRAY)
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
 		row = 7
 		i = 0

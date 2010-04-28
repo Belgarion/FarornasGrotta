@@ -114,6 +114,11 @@ class Physics:
 				if new_pos[1] <= 0 or monster != None:
 					if monster != None:
 						monster.data.hp -= 50
+						if monster.data.hp <= 0 and obj.data.owner != None:
+							for i in self.objects:
+								if i.data.id == obj.data.owner:
+									i.data.frags += 1
+									break
 					return None
 			elif self.collisionBetweenObjectsWithoutOctree(obj, new_pos):
 				obj.data.velocity = (0.0, 0.0, 0.0)

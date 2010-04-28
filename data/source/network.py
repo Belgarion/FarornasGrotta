@@ -235,6 +235,7 @@ class NetworkThread(threading.Thread):
 
 							for od in objdata:
 								if od.id == self.player.data.id:
+									self.player.data.frags = od.frags
 									continue
 								if obj.data.id == od.id:
 									if obj.data.type != "Fireball":
