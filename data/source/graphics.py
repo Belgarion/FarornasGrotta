@@ -92,9 +92,7 @@ def Calculate_Size(vertices):
 	return (xmax-xmin, ymax-ymin, zmax-zmin)
 
 def Is_Loaded(filename):
-	if filename in Objects.loadedObjects:
-		return True
-	return False
+	return filename in Objects.loadedObjects
 
 def Get_Data(filename):
 	obj = Objects.loadedObjects[filename]
@@ -102,24 +100,8 @@ def Get_Data(filename):
 
 def Get_Vertices(filename):
 	if Is_Loaded(filename):
-		vertices, vnormals, faces, vertexCount = Get_Data(filename)
-
-	else:
-		vertices = []
-
-		f = open(filename, "r")
-		lines = f.readlines()
-		f.close()
-
-		for line in lines:
-			pos = line.rsplit(" ")
-			if len(pos) < 4:
-				continue
-
-			if pos[0] == "v":
-				vertices.append((float(pos[1]), float(pos[2]), float(pos[3])))
-
-	return vertices	
+		return Get_Data(filename)[0]
+	return loadObj(filename)[0]
 
 def loadObj(filename):
 	if filename in Objects.loadedObjects:
