@@ -184,17 +184,19 @@ if __name__ == '__main__':
 						if obj.data.hp <= 0:
 							if obj.data.type == "GingerbreadMonster" and \
 									obj.intelligenceThread != None:
-								obj.intelligenceThread.quit = True
-								if obj.intelligenceThread.isAlive():
-									obj.intelligenceThread.join()
+								#obj.intelligenceThread.quit = True
+								#if obj.intelligenceThread.isAlive():
+								#	obj.intelligenceThread.join()
 
-								threads.remove(obj.intelligenceThread)
+								#threads.remove(obj.intelligenceThread)
 
-								#TODO: Spawn new monster
-							physics.objectsToRemove.append(obj)
-							objects.remove(obj)
+								obj.data.position = (0.0, 50.0, 0.0)
+								obj.data.velocity = (0.0, 0.0, 0.0)
+								obj.data.hp = 100
+								obj.data.deaths += 1
+							#physics.objectsToRemove.append(obj)
+							#objects.remove(obj)
 						else:
-							print obj.data.id, obj.data.name, obj.data.frags
 							od.append(obj.data)
 					Network.USend(addr, 3, cPickle.dumps(od, 2))
 

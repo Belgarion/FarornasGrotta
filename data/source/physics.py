@@ -122,10 +122,12 @@ class Physics:
 					return None
 			elif self.collisionBetweenObjectsWithoutOctree(obj, new_pos):
 				obj.data.velocity = (0.0, 0.0, 0.0)
-			else:
+			elif y <= 0:
 				obj.data.velocity = \
-						obj.data.velocity[0], 0, obj.data.velocity[2]
+						obj.data.velocity[0], 0.0, obj.data.velocity[2]
 				obj.data.position = new_pos[0], 0.0, new_pos[2]
+			else:
+				obj.data.position = new_pos
 
 		return obj
 

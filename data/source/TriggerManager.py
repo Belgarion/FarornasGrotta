@@ -206,8 +206,6 @@ if time.time() - self.lastFireball > 0.5:
 		(0.0, 0.0, 0.0), 0.1, 20,
 		(14.0 * math.sin(yrotrad), -5 - 14.0 * -math.sin(xrotrad), 14.0 * -math.cos(yrotrad)),
 		None, self.main.player.data.id)
-	print self.main.player.data.id
-	print f.data.owner
 
 	import cPickle
 	from network import *
