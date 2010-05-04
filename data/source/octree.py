@@ -22,7 +22,7 @@
 #### Global Variables ####
 
 # This defines the maximum objects an LeafNode can hold, before it gets subdivided again.
-MAX_OBJECTS_PER_CUBE = 7
+MAX_OBJECTS_PER_CUBE = 10
 
 # This dictionary is used by the findBranch function, to return the correct branch index
 DIRLOOKUP = {"3":0, "2":1, "-2":2, "-1":3, "1":4, "0":5, "-4":6, "-3":7}
@@ -110,25 +110,15 @@ class Octree:
 		# it will first be created as a leaf node (ie, without branches)
 		# this is because it has no objects, which is less than MAX_OBJECTS_PER_CUBE
 		# if we insert more objects into it than MAX_OBJECTS_PER_CUBE, then it will subdivide itself.
+		self.root = self.addNode((0,0,0), worldSize, [])
 		self.worldSize = worldSize
+
 		self.main = main
 		self.debugLines = 0
 
 		self.debug = Debug()
 
-		# Create the root-octree
-		self.root = self.addNode((0.0, 0.0, 0.0), worldSize, [])
-
-		# This will render it
-		#self.debug.addDebugRectangle((0.0, 0.0, 0.0), worldSize, worldSize, worldSize)
-
-	def checkCollision(self, root, position):
-		pass
-		#branch = self.findPosition(root, position)
-
 	def addNode(self, position, size, objects):
-		#self.debug.addDebugRectangle(position, size, size, size)
-
 		# This creates the actual OctNode itself.
 		return OctNode(position, size, objects)
 
@@ -141,22 +131,22 @@ class Octree:
 			# Found from the position of the parent node supplied in the arguments
 			pos = parent.position
 
-			newSize = parent.size / 2
-
 			# offset is halfway across the size allocated for this node
 			offset = size / 2
 
 			# find out which direction we're heading in
 			branch = self.findBranch(parent, objData.position)
 
+            # new center = parent position + (branch direction * offset)
 			newCenter = (0,0,0)
+
 			if branch == 0:
 				# left down back
-				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] + offset)
+				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset)
 
 			elif branch == 1:
 				# left down forwards
-				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset)
+				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset)
 
 			elif branch == 2:
 				# right down forwards
@@ -168,24 +158,24 @@ class Octree:
 
 			elif branch == 4:
 				# left up back
-				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset)
+				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset)
 
 			elif branch == 5:
 				# left up forward
-				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset)
+				newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset)
 
 			elif branch == 6:
 				# right up forward
-				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset)
+				newCenter = (pos[0] + offset, pos[1] - offset, pos[2] - offset)
 
 			elif branch == 7:
 				# right up back
-				newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset)
+				newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset)
 
 			# Now we know the centre point of the new node
 			# we already know the size as supplied by the parent node
 			# So create a new node at this position in the tree
-			#print "Adding Node of size: " + str(size / 2) + " at " + str(newCenter)
+			# print "Adding Node of size: " + str(size / 2) + " at " + str(newCenter)
 			return self.addNode(newCenter, size, [objData])
 
 		#else: are we not at our position, but not at a leaf node either
@@ -209,11 +199,6 @@ class Octree:
 				# No? then Add to the Node's list of objects and we're done
 				root.data.append(objData)
 
-				# We can draw it too
-				#self.debug.addDebugRectangle(objData.position, objData.width, objData.height, objData.depth)
-
-
-
 			elif len(root.data) == MAX_OBJECTS_PER_CUBE:
 				# Adding this object to this leaf takes us over the limit
 				# So we have to subdivide the leaf and redistribute the objects
@@ -234,15 +219,15 @@ class Octree:
 				newSize = root.size / 2
 
 				# distribute the objects on the new tree
-				#print "Subdividing Node sized at: " + str(root.size) + " at " + str(root.position)
+				# print "Subdividing Node sized at: " + str(root.size) + " at " + str(root.position)
 				for ob in objList:
 					branch = self.findBranch(root, ob.position)
 					root.branches[branch] = self.insertNode(root.branches[branch], newSize, root, ob)
 		return root
 
-	# Basic collision lookup that finds the leaf node wit a specified position
-	# Returns the child objects of the leaf, or None if the leaf is empty
 	def findPosition(self, root, position):
+		# Basic collision lookup that finds the leaf node containing the specified position
+		# Returns the child objects of the leaf, or None if the leaf is empty or none
 		if root == None:
 			return None
 		elif root.isLeafNode:
@@ -250,6 +235,25 @@ class Octree:
 		else:
 			branch = self.findBranch(root, position)
 			return self.findPosition(root.branches[branch], position)
+
+	def findBranch(self, root, position):
+		# helper function
+		# returns an index corresponding to a branch
+		# pointing in the direction we want to go
+		vec1 = root.position
+		vec2 = position
+		result = 0
+
+		# Equation created by adding nodes with known branch directions
+		# into the tree, and comparing results.
+		# See DIRLOOKUP above for the corresponding return values and branch indices
+		for i in range(3):
+			if vec1[i] <= vec2[i]:
+				result += (-4 / (i + 1) / 2)
+			else:
+				result += (4 / (i + 1) / 2)
+		result = DIRLOOKUP[str(result)]
+		return result
 
 	def deletePosition(self, root, position, obj_to_delete):
 		if root == None:
@@ -266,21 +270,8 @@ class Octree:
 			branch = self.findBranch(root, position)
 			return self.deletePosition(root.branches[branch], position, obj_to_delete)
 
-	# Helper function  returns an index corresponding to a branch
-	# pointing in the direction we want to go
-	def findBranch(self, root, position):
-		vec1 = root.position
-		vec2 = position
-		result = 0
+	def checkCollision(self, root, position):
+		pass
+		#branch = self.findPosition(root, position)
 
-		# Equation created by adding nodes with known branch directions
-		# into the tree, and comparing results. See DIRLOOKUP above for the
-		# corresponding return values and branch indices
-		for i in range(3):
-			if vec1[i] <= vec2[i]:
-				result += (-4 / (i + 1) / 2)
-			else:
-				result += (4 / (i + 1) / 2)
-		result = DIRLOOKUP[str(result)]
-		return result
 

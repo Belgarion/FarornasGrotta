@@ -57,7 +57,7 @@ class Physics:
 					self.oldPos[self.main.player.data.id],
 					self.main.player.data
 					)
-			self.octree.insertNode(self.octree.root, 15000, self.octree.root, \
+			self.octree.insertNode(self.octree.root,15000.0, self.octree.root, \
 					self.main.player.data)
 			self.oldPos[self.main.player.data.id] = pos
 
